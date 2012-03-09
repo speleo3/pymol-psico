@@ -1,0 +1,49 @@
+Pymol ScrIpt COllection (PSICO)
+
+DESCRIPTION
+
+    "psico" is a python module which extends PyMOL, a molecular visualization
+    tool (http://pymol.org).
+
+DOCUMENTATION
+
+    http://pymolwiki.org/index.php/psico
+
+    https://github.com/speleo3/pymol-psico
+
+    A reference document with all commands can be generated with:
+    PyMOL> psico.helping.write_html_ref('psico-commands.html')
+
+EXTERNAL PROGRAMS AND LIBRARIES
+
+    Some functions in psico require the following python modules:
+
+     * numpy
+     * Bio (biopython)
+     * MMTK
+
+    psico has several wrappers for external tools. For full support, you need
+    these binaries:
+
+     * dssp (recommended)
+     * stride (recommended)
+     * TMalign (recommended)
+     * TMscore
+     * MMalign
+     * theseus (recommended)
+     * needle (recommended)
+     * DynDom
+     * qdelaunay
+     * mencoder
+     * pdbmat
+     * diagrtb
+
+AUTHORS
+
+    Thomas Holder (1,2) <thomas.holder@tuebingen.mpg.de>
+    Steffen Schmidt (1) <steffen.schmidt@tuebingen.mpg.de>
+
+    (1) Max Planck Institute for Developmental Biology, Germany
+    (2) Warren L. DeLano Memorial PyMOL Open-Source Fellowship 2011-2012
+
+vi: expandtab:smarttab:sw=4
