@@ -14,6 +14,16 @@ DOCUMENTATION
     A reference document with all commands can be generated with:
     PyMOL> psico.helping.write_html_ref('psico-commands.html')
 
+INSTALLATION
+
+    (1) Use the setup.py script, or just copy the "psico" directory to
+        PYTHONPATH (for example /path/to/pymol-xxx/modules/).
+
+    (2) Add to your ~/.pymolrc.py file (or just enter into the PyMOL command
+        line):
+
+        import psico.fullinit
+
 EXTERNAL PROGRAMS AND LIBRARIES
 
     Some functions in psico require the following python modules:
