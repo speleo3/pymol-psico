@@ -243,10 +243,6 @@ DESCRIPTION
 USAGE
 
     dyndom mobile, target [, window [, domain [, ratio ]]]
-
-SEE ALSO
-
-    promix
     '''
     import tempfile, subprocess, os, shutil, sys
 
