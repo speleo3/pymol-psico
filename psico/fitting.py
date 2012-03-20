@@ -33,7 +33,7 @@ ARGUMENTS
 
     methods = string: space separated list of PyMOL commands which take
     arguments "mobile" and "target" (in any order) {default: align super
-    cealign bfit tmalign}
+    cealign tmalign theseus}
     '''
     import threading
     import time
@@ -67,7 +67,8 @@ def tmalign(mobile, target, mobile_state=1, target_state=1, args='',
     '''
 DESCRIPTION
 
-    TMalign wrapper
+    TMalign wrapper. You may also use this as a TMscore or MMalign wrapper
+    if you privide the corresponding executable with the "exe" argument.
 
     Reference: Y. Zhang and J. Skolnick, Nucl. Acids Res. 2005 33, 2302-9
     http://zhanglab.ccmb.med.umich.edu/TM-align/
@@ -80,14 +81,11 @@ ARGUMENTS
 
     args = string: Extra arguments like -d0 5 -L 100
 
-    exe = string: Path to TMalign executable {default: TMalign}
+    exe = string: Path to TMalign (or TMscore, MMalign) executable
+    {default: TMalign}
 
     ter = 0/1: If ter=0, then ignore chain breaks because TMalign will stop
     at first TER record {default: 0}
-
-SEE ALSO
-
-    tmscore, mmalign
     '''
     import subprocess, tempfile, os, re
 
@@ -186,53 +184,6 @@ SEE ALSO
             print 'Found in output TM-score = %.4f' % (r)
 
     return r
-
-def tmscore(mobile, target, mobile_state=1, target_state=1, args='',
-        exe='TMscore', ter=0, transform=1, object=None, quiet=0):
-    '''
-DESCRIPTION
-
-    TMscore wrapper
-
-    Reference: Yang Zhang and Jeffrey Skolnick, Proteins 2004 57: 702-710
-    http://zhanglab.ccmb.med.umich.edu/TM-score/
-
-ARGUMENTS
-
-    mobile, target = string: atom selections
-
-    mobile_state, target_state = int: object states {default: 1}
-
-    args = string: Extra arguments like -d 5
-
-    exe = string: Path to TMscore executable {default: TMscore}
-
-    ter = 0/1: If ter=0, then ignore chain breaks because TMscore will stop
-    at first TER record {default: 0}
-
-SEE ALSO
-
-    tmalign, mmalign
-    '''
-    return tmalign(mobile, target, mobile_state, target_state, args,
-            exe, ter, transform, object, quiet)
-
-def mmalign(mobile, target, mobile_state=1, target_state=1, args='',
-        exe='MMalign', ter=0, transform=1, quiet=0):
-    '''
-DESCRIPTION
-
-    MMalign wrapper
-
-    Reference: S. Mukherjee and Y. Zhang, Nucleic Acids Research 2009; 37: e83
-    http://zhanglab.ccmb.med.umich.edu/MM-align/
-
-SEE ALSO
-
-    tmalign, tmscore
-    '''
-    return tmalign(mobile, target, mobile_state, target_state, args,
-            exe, ter, transform, None, quiet)
 
 def dyndom_parse_info(filename, selection='(all)', quiet=0):
     import re
@@ -772,8 +723,6 @@ align_methods_sc = cmd.Shortcut(align_methods)
 # pymol commands
 cmd.extend('alignwithanymethod', alignwithanymethod)
 cmd.extend('tmalign', tmalign)
-cmd.extend('tmscore', tmscore)
-cmd.extend('mmalign', mmalign)
 cmd.extend('dyndom', dyndom)
 cmd.extend('gdt_ts', gdt_ts)
 cmd.extend('local_rms', local_rms)
@@ -785,8 +734,6 @@ cmd.extend('theseus', theseus)
 cmd.auto_arg[0].update({
     'alignwithanymethod': cmd.auto_arg[0]['align'],
     'tmalign': cmd.auto_arg[0]['align'],
-    'tmscore': cmd.auto_arg[0]['align'],
-    'mmalign': cmd.auto_arg[0]['align'],
     'dyndom': cmd.auto_arg[0]['align'],
     'gdt_ts': cmd.auto_arg[0]['align'],
     'local_rms': cmd.auto_arg[0]['align'],
@@ -797,8 +744,6 @@ cmd.auto_arg[0].update({
 cmd.auto_arg[1].update({
     'alignwithanymethod': cmd.auto_arg[1]['align'],
     'tmalign': cmd.auto_arg[1]['align'],
-    'tmscore': cmd.auto_arg[1]['align'],
-    'mmalign': cmd.auto_arg[1]['align'],
     'dyndom': cmd.auto_arg[1]['align'],
     'gdt_ts': cmd.auto_arg[1]['align'],
     'local_rms': cmd.auto_arg[1]['align'],
