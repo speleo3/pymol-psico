@@ -70,19 +70,35 @@ sidechaincenteratoms = {
     'PRO': ('CB', 'CG', 'CD'),
 }
 
-def sidechaincenters(object='scc', selection='all', name='PS1', method='bahar1996'):
+sidechaincentermethods = ['bahar1996', 'centroid']
+
+def sidechaincenters(object='scc', selection='all', method='bahar1996', name='PS1'):
     '''
 DESCRIPTION
 
     Creates an object with sidechain representing pseudoatoms for each residue
     in selection.
 
-    Sidechain interaction centers as defined by Bahar and Jernigan 1996
-    http://www.ncbi.nlm.nih.gov/pubmed/9080182
+    Two methods are available:
+    (1) Sidechain interaction centers as defined by Bahar and Jernigan 1996
+        http://www.ncbi.nlm.nih.gov/pubmed/9080182
+    (2) Sidechain centroids, the pseudoatom is the centroid of all atoms except
+        hydrogens and backbone atoms (N, C and O).
+
+NOTE
+
+    With method "bahar1996", if a residue has all relevant sidechain center
+    atoms missing (for example a MET without SD), it will be missing in the
+    created pseudoatom object.
+
+    With method "centroid", if you want to exclude C-alpha atoms from
+    sidechains, modify the selection like in this example:
+
+    sidechaincenters newobject, all and (not name CA or resn GLY), method=2
 
 USAGE
 
-    sidechaincenters object [, selection]
+    sidechaincenters object [, selection [, method ]]
 
 ARGUMENTS
 
@@ -90,21 +106,23 @@ ARGUMENTS
 
     selection = string: atoms to consider {default: (all)}
 
+    method = string: bahar1996 or centroid {default: bahar1996}
+
     name = string: atom name of pseudoatoms {default: PS1}
 
 SEE ALSO
 
-    sidechaincentroids, pseudoatom
+    pseudoatom
     '''
     from chempy import Atom, cpv, models
 
     atmap = dict()
-    if method == 'bahar1996':
+    if method in ['bahar1996', '1', 1]:
         modelAll = cmd.get_model('(%s) and resn %s' % (selection, '+'.join(sidechaincenteratoms)))
         for at in modelAll.atom:
             if at.name in sidechaincenteratoms[at.resn]:
                 atmap.setdefault((at.segi, at.chain, at.resn, at.resi), []).append(at)
-    elif method == 'centroid':
+    elif method in ['centroid', '2', 2]:
         modelAll = cmd.get_model('(%s) and polymer and not (hydro or name C+N+O)' % selection)
         for at in modelAll.atom:
             atmap.setdefault((at.segi, at.chain, at.resn, at.resi), []).append(at)
@@ -131,35 +149,15 @@ SEE ALSO
     cmd.load_model(model, object)
     return model
 
-def sidechaincentroids(object='scc', selection='all', name='PS1'):
-    '''
-DESCRIPTION
-
-    Sidechain centroids. Works like "sidechaincenters", but the
-    pseudoatom is the centroid of all atoms except hydrogens and backbone atoms
-    (N, C and O).
-
-NOTE
-
-    If you want to exclude C-alpha atoms from sidechains, modify the selection
-    like in this example:
-
-    sidechaincentroids newobject, all and (not name CA or resn GLY)
-
-SEE ALSO
-
-    sidechaincenters
-    '''
-    return sidechaincenters(object, selection, name, method='centroid')
-
 cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
-cmd.extend('sidechaincentroids', sidechaincentroids)
 
 cmd.auto_arg[1].update({
     'join_states'          : cmd.auto_arg[0]['zoom'],
     'sidechaincenters'     : cmd.auto_arg[0]['zoom'],
-    'sidechaincentroids'   : cmd.auto_arg[0]['zoom'],
 })
+cmd.auto_arg[2].update([
+    ('sidechaincenters', [cmd.Shortcut(sidechaincentermethods), 'method', '']),
+])
 
 # vi: ts=4:sw=4:smarttab:expandtab
