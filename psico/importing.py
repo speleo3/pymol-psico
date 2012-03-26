@@ -182,7 +182,7 @@ DESCRIPTION
                 for filename in filenames]
         cmd.group(group, ' '.join(members))
 
-def load_traj_crd(filename, object='', state=0, box=0, quiet=1):
+def load_traj_crd(filename, object='', state=0, box=0, start=1, stop=-1, quiet=1):
     '''
 DESCRIPTION
 
@@ -197,7 +197,9 @@ SEE ALSO
 
     load_traj
     '''
+    from pymol import _cmd
     state, box, quiet = int(state), int(box), int(quiet)
+    start, stop = int(start), int(stop)
     if object == '':
         import os
         object = os.path.splitext(os.path.basename(filename))[0]
@@ -252,19 +254,21 @@ SEE ALSO
             for i in range(0, len(line.rstrip()), width):
                 x = float(line[i:i+width])
                 if count == 0:
-                    if not quiet:
-                        print 'Read CoordSet into state', state
                     yield True
                 count += 1
                 yield x
         yield False
+    frame = 1
     coord_it = crd_coord_iter()
-    space = {'it': coord_it}
     while coord_it.next() == True:
-        cmd.create(object, object, 1, state)
-        cmd.alter_state(state, object,
-                '(x,y,z) = (it.next(),it.next(),it.next())', space=space)
-        state += 1
+        coordset = [[coord_it.next(), coord_it.next(), coord_it.next()]
+                for _ in range(natom)]
+        if frame >= start:
+            _cmd.load_coords(cmd._COb, object, coordset, state-1, cmd.loadable.model)
+            state += 1
+        if stop > 0 and frame == stop:
+            break
+        frame += 1
 
 def load_3d(filename, object=''):
     '''
