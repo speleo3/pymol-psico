@@ -407,6 +407,19 @@ SEE ALSO
     height = unittouu(height, dpi)
     cmd.png(filename, width, height, dpi, ray)
 
+def save_pdb_without_ter(filename, selection, *args, **kwargs):
+    '''
+DESCRIPTION
+
+    Save PDB file without TER records. External applications like TMalign and
+    DynDom stop reading PDB files at TER records, which might be undesired in
+    case of missing loops.
+    '''
+    v = cmd.get_setting_boolean('pdb_use_ter_records')
+    if v: cmd.unset('pdb_use_ter_records')
+    cmd.save(filename, selection, *args, **kwargs)
+    if v: cmd.set('pdb_use_ter_records')
+
 ## pymol command stuff
 
 cmd.extend('save_traj', save_traj)

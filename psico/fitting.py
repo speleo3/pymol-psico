@@ -6,19 +6,6 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-def save_pdb_without_ter(filename, selection, **kwargs):
-    '''
-DESCRIPTION
-
-    Save PDB file without TER records. External applications like TMalign and
-    DynDom stop reading PDB files at TER records, which might be undesired in
-    case of missing loops.
-    '''
-    v = cmd.get_setting_boolean('pdb_use_ter_records')
-    if v: cmd.unset('pdb_use_ter_records')
-    cmd.save(filename, selection, **kwargs)
-    if v: cmd.set('pdb_use_ter_records')
-
 def alignwithanymethod(mobile, target, methods=None, async=1, quiet=1):
     '''
 DESCRIPTION
@@ -88,6 +75,7 @@ ARGUMENTS
     at first TER record {default: 0}
     '''
     import subprocess, tempfile, os, re
+    from .exporting import save_pdb_without_ter
 
     ter, quiet = int(ter), int(quiet)
 
@@ -245,6 +233,7 @@ USAGE
     dyndom mobile, target [, window [, domain [, ratio ]]]
     '''
     import tempfile, subprocess, os, shutil, sys
+    from .exporting import save_pdb_without_ter
 
     window, domain, ratio = int(window), int(domain), float(ratio)
     transform, quiet = int(transform), int(quiet)
