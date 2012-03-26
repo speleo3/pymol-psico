@@ -227,7 +227,12 @@ SEE ALSO
     conf = PDBConfiguration(StringIO(cmd.get_pdbstr(selection)))
     system = Protein(conf.createPeptideChains(hydrogens))
 
-    area, volume = surfaceAndVolume(system, radius * 0.1)
+    try:
+        area, volume = surfaceAndVolume(system, radius * 0.1)
+    except:
+        print ' Error: MMTK.MolecularSurface.surfaceAndVolume failed'
+        raise CmdException
+
     if not quiet:
         print ' get_sasa_mmtk: %.3f Angstroms^2 (volume: %.3f Angstroms^3).' % (area * 1e2, volume * 1e3)
     return area * 1e2
@@ -253,7 +258,7 @@ ARGUMENTS
 
 SEE ALSO
 
-    cmd.find_pairs, cmd.get_raw_alignment
+    select_distances, cmd.find_pairs, cmd.get_raw_alignment
     '''
     from chempy import cpv
 
