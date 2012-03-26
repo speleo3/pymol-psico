@@ -126,7 +126,12 @@ def api_info(name):
 DESCRIPTION
 
     Get the full function name (incl. module) of given command.
+
+ARGUMENTS
+
+    name = string: name of a PyMOL command
     '''
+    import sys
     name = cmd.kwhash.shortcut.get(name, name)
     try:
         func = cmd.keyword[name][0]
@@ -136,6 +141,7 @@ DESCRIPTION
     print ' API: %s.%s' % (func.__module__, func.__name__)
     if func == getattr(cmd, func.__name__, None):
         print ' API: cmd.' + func.__name__
+    print ' FILE:', sys.modules[func.__module__].__file__
     return func
 
 def write_html_ref(filename, prefix='psico'):
