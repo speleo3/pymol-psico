@@ -258,6 +258,10 @@ EXAMPLE
     aaindex2b KYTJ820101
     spectrumany b, white yellow forest
     show surface
+
+SEE ALSO
+
+    hydropathy2b
     '''
     from . import one_letter
 
