@@ -182,6 +182,93 @@ DESCRIPTION
                 for filename in filenames]
         cmd.group(group, ' '.join(members))
 
+def load_traj_dcd(filename, object='', state=0, start=1, stop=-1, quiet=1):
+    '''
+DESCRIPTION
+
+    Load DCD trajectory.
+
+    http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
+
+SEE ALSO
+
+    save_traj, load_traj_crd, load_traj
+    '''
+    import struct
+    from pymol import _cmd
+
+    state, quiet = int(state), int(quiet)
+    start, stop = int(start), int(stop)
+
+    if object == '':
+        import os
+        object = os.path.splitext(os.path.basename(filename))[0]
+    if object not in cmd.get_object_list():
+        print ' Error: must load object topology before loading trajectory'
+        raise CmdException
+
+    if state < 1:
+        state = cmd.count_states(object) + 1
+    natom = cmd.count_atoms(object)
+
+    endian = '<'
+    handle = open(filename)
+    read = lambda fmt: struct.unpack(endian + fmt,
+            handle.read(struct.calcsize(fmt)))
+
+    # Header
+    length = read('i')[0]
+    if length != 0x54:
+        if not quiet:
+            print ' Info: big-endian'
+        endian = '>'
+
+    fmt = '4s i i i 5i i d 9i i'
+    HDR, NSET, ISTRT, NSAVC, _, _, _, _, _, NATOMNFREAT, DELTA, \
+            _, _, _, _, _, _, _, _, _, LENGTH = read(fmt)
+    assert HDR == 'CORD'
+    assert LENGTH == length
+
+    # Title
+    length = read('i')[0]
+    fmt = 'i %ds i' % (length - 4)
+    NTITLE, TITLE, LENGTH = read(fmt)
+    assert LENGTH == length
+
+    # NATOM
+    length, NATOM, LENGTH = read('iii')
+    assert LENGTH == length
+    assert NATOM == natom
+
+    # Coord Sets
+    if stop > 0:
+        NSET = min(NSET, stop)
+
+    fmt = 'i %df i' % (NATOM)
+    def readX():
+        X = read(fmt)
+        assert X[0] == X[-1]
+        return X[1:-1]
+
+    for frame in range(1, NSET+1):
+        length = read('i')[0]
+        if length == 6*8:
+            box = read('6d i')
+            assert box[-1] == length
+        else:
+            handle.seek(-struct.calcsize('i'), 1)
+
+        XYZ = readX(), readX(), readX()
+
+        if frame < start:
+            continue
+
+        coordset = map(list, zip(*XYZ))
+        assert len(coordset) == natom
+
+        _cmd.load_coords(cmd._COb, object, coordset, state-1, cmd.loadable.model)
+        state += 1
+
 def load_traj_crd(filename, object='', state=0, box=0, start=1, stop=-1, quiet=1):
     '''
 DESCRIPTION
@@ -664,6 +751,7 @@ DESCRIPTION
 # commands
 cmd.extend('loadall', loadall)
 cmd.extend('load_traj_crd', load_traj_crd)
+cmd.extend('load_traj_dcd', load_traj_dcd)
 cmd.extend('load_3d', load_3d)
 cmd.extend('load_aln', load_aln)
 cmd.extend('load_gro', load_gro)
