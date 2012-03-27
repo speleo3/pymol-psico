@@ -57,16 +57,6 @@ ARGUMENTS
     if format == 'charmm':
         outfile = DCDOutfile(filename, NSTATES, NATOMS)
 
-        # Write Trajectory Coordinates
-        for state in range(1, NSTATES+1):
-            xyz = [[], [], []] # atoms in columns
-            cmd.iterate_state(state, selection,
-                    'xyz[0].append(x);xyz[1].append(y);xyz[2].append(z)',
-                    space={'xyz': xyz})
-            outfile.writeCoordSet(xyz)
-
-        outfile.close()
-
     elif format == 'amber':
         # size of periodic box
         if box:
@@ -79,17 +69,15 @@ ARGUMENTS
 
         outfile = CRDOutfile(filename, NSTATES, NATOMS, box=boxdim)
 
-        # Write Trajectory Coordinates
-        for state in range(1, NSTATES+1):
-            xyz = [] # atoms in rows
-            cmd.iterate_state(state, selection, 'xyz.append([x,y,z])',
-                    space={'xyz': xyz})
-            outfile.writeCoordSet(xyz)
-
-        outfile.close()
-
     else:
         raise Exception, 'This should not happen'
+
+    # Write Trajectory Coordinates
+    for state in range(1, NSTATES+1):
+        xyz = cmd.get_model(selection, state).get_coord_list()
+        outfile.writeCoordSet(xyz)
+
+    outfile.close()
 
     if not int(quiet):
         fmt = 'Wrote trajectory in %s format with %d atoms and %d frames to file %s'
@@ -105,11 +93,11 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         self.fmt = '%df' % (natoms)
 
         # Header
-        fmt='4s9i1f10i'
+        fmt='4s 9i d 9i'
         header = ['CORD', # 4s
                 nstates, 1, 1, nstates, 0, 0, 0, natoms*3-6, 0, # 9i
-                2.045473, # 1f
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 27, # 10i
+                1.0, # d
+                0, 0, 0, 0, 0, 0, 0, 0, 0, # 9i
                 ]
         self.writeFortran(header,fmt)
      
@@ -130,12 +118,12 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         '''
         import struct
         if length == 0:
-            length = len(buffer)*4
+            length = struct.calcsize(fmt)
         self.write(struct.pack('i', length))
         self.write(struct.pack(fmt, *buffer))
         self.write(struct.pack('i', length))
 
-    def writeCoordSet(self, xyz, transposed=1):
+    def writeCoordSet(self, xyz, transposed=0):
         '''
         Write a 3xNATOMS coord matrix.
         '''
