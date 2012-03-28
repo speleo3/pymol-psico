@@ -199,7 +199,8 @@ DESCRIPTION
             remarks.setdefault(num, []).append(lstring)
     return remarks
 
-def biomolecule(name=None, filename=None, prefix=None, number=1, quiet=0):
+def biomolecule(name=None, filename=None, prefix=None, number=1, suffix=None,
+        quiet=0):
     '''
 DESCRIPTION
 
@@ -238,6 +239,8 @@ EXAMPLE
         name = cmd.get_object_list()[0]
     if prefix is None:
         prefix = name
+    if suffix is None:
+        suffix = str(number)
     if filename is None:
         candidates = [
             '%s.pdb' % (name),
@@ -289,7 +292,7 @@ EXAMPLE
         for num in matrices:
             mat = matrices[num][0:12]
             mat.extend([0,0,0,1])
-            copy = '%s_%d' % (prefix, num)
+            copy = '%s_%s_%d' % (prefix, suffix, num)
             if not quiet:
                 print 'creating %s' % (copy)
             cmd.create(copy, 'model %s and chain %s' % (name, '+'.join(chains)))
@@ -302,7 +305,7 @@ EXAMPLE
             cmd.transform_object(copy, mat)
 
     cmd.disable(name)
-    cmd.group('%s_quat' % (prefix), '%s_*' % (prefix))
+    cmd.group('%s_%s' % (prefix, suffix), '%s_%s_*' % (prefix, suffix))
 
 cmd.extend('supercell', supercell)
 cmd.extend('symexpcell', symexpcell)
