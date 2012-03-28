@@ -58,7 +58,7 @@ SEE ALSO
     from . import one_letter
     from chempy import cpv
     wrap = int(wrap)
-    for obj in cmd.get_object_list(selection):
+    for obj in cmd.get_object_list('(' + selection + ')'):
         seq = []
         prev_coord = None
         model = cmd.get_model('/%s////CA and polymer and (%s)' % (obj, selection))
@@ -107,7 +107,7 @@ DESCRIPTION
             html.append('</font><font color="' + color + '">')
             stored.color = color
         html.append(aa)
-    for obj in cmd.get_object_list(selection):
+    for obj in cmd.get_object_list('(' + selection + ')'):
         for chain in cmd.get_chains('model %s and (%s)' % (obj, selection)):
             sele = 'model %s and chain "%s" and (%s)' % (obj, chain, selection)
             html.append('\n<br>&gt;%s_%s<font>' % (obj, chain))
