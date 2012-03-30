@@ -7,6 +7,7 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, stored, CmdException
+from pymol import selector
 
 def normalmodes_pdbmat(selection, cutoff=10.0, force=1.0, mass='COOR',
         first=7, last=10, choose='LOWE', substruct='RESI', blocksize=4,
@@ -253,6 +254,7 @@ DESCRIPTION
         print 'Failed to import MMTK, please add to PYTHONPATH'
         raise CmdException
 
+    selection = selector.process(selection)
     cutoff = float(cutoff)
     first, last = int(first), int(last)
     states, factor, quiet = int(states), float(factor), int(quiet)

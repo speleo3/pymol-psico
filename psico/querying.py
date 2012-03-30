@@ -6,6 +6,7 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, CmdException
+from pymol import selector
 
 def centerofmass(selection='(all)', state=-1, quiet=1):
     '''
@@ -213,6 +214,7 @@ SEE ALSO
     from MMTK.MolecularSurface import surfaceAndVolume
     from cStringIO import StringIO
 
+    selection = selector.process(selection)
     state, quiet = int(state), int(quiet)
     radius = cmd.get_setting_float('solvent_radius')
 

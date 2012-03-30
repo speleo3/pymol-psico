@@ -10,6 +10,7 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, CmdException
+from pymol import selector
 
 ## trajectory stuff
 
@@ -267,6 +268,7 @@ SEE ALSO
 
     save
     '''
+    selection = selector.process(selection)
     state, quiet = int(state), int(quiet)
     symm, ss     = int(symm), int(ss)
     
