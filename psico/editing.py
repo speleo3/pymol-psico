@@ -6,6 +6,42 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+def split(operator, selection, prefix='entity'):
+    '''
+DESCRIPTION
+
+    Create a single object for each entity in selection, defined by operator
+    (e.g. bymolecule, bysegment, ...). Returns the number of created objects.
+    '''
+    cmd.disable(' '.join(cmd.get_object_list('(' + selection + ')')))
+    tmp = cmd.get_unused_name('_')
+    cmd.create(tmp, selection)
+
+    r = 0
+    while cmd.count_atoms(tmp) > 0:
+        name = cmd.get_unused_name(prefix)
+        cmd.extract(name, operator + ' first model ' + tmp)
+        r += 1
+
+    cmd.delete(tmp)
+    return r
+
+def split_molecules(selection='(all)', prefix='mol_', quiet=1):
+    '''
+DESCRIPTION
+
+    Create a single object for each molecule (covalently connected entity) in
+    selection (ignores solvent).
+
+SEE ALSO
+
+    split_chains, split_states
+    '''
+    quiet = int(quiet)
+    r = split('bm.', '(%s) and not solvent' % selection, prefix)
+    if not quiet:
+        print ' Found %d non-solvent molecules' % r
+
 def split_chains(selection='(all)', prefix=None):
     '''
 DESCRIPTION
@@ -351,6 +387,7 @@ SEE ALSO
             cmd.set_dihedral(x[1], x[2], x[3], x[4], psi, state, quiet)
 
 cmd.extend('split_chains', split_chains)
+cmd.extend('split_molecules', split_molecules)
 cmd.extend('rmsf2b', rmsf2b)
 cmd.extend('set_sequence', set_sequence)
 cmd.extend('alphatoall', alphatoall)
@@ -365,6 +402,7 @@ cmd.extend('set_phipsi', set_phipsi)
 # tab-completion of arguments
 cmd.auto_arg[0].update({
     'split_chains'   : cmd.auto_arg[0]['zoom'],
+    'split_molecules': cmd.auto_arg[0]['zoom'],
     'rmsf2b'         : cmd.auto_arg[0]['zoom'],
     'mse2met'        : cmd.auto_arg[0]['zoom'],
     'polyala'        : cmd.auto_arg[0]['zoom'],
