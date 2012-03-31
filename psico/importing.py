@@ -166,7 +166,7 @@ DESCRIPTION
     Load all files matching given globbing pattern
     '''
     import glob, os
-    filenames = glob.glob(pattern)
+    filenames = glob.glob(cmd.exp_path(pattern))
     for filename in filenames:
         if not quiet:
             print ' Loading', filename
