@@ -14,6 +14,16 @@ def morpheasy(source, target, source_state=0, target_state=0, name=None,
 DESCRIPTION
 
     Morph source to target, based on sequence alignment
+
+USAGE
+
+    morpheasy source, target [, source_state [, target_state [, name ]]]
+
+EXAMPLE
+
+    fetch 1akeA 4akeA, async=0
+    extra_fit
+    morpheasy 1akeA, 4akeA
     '''
     try:
         from epymol import rigimol

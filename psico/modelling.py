@@ -1,10 +1,10 @@
 '''
-(c) 2010 Thomas Holder, MPI for Developmental Biology
+(c) 2010-2012 Thomas Holder, MPI for Developmental Biology
 
 License: BSD-2-Clause
 '''
 
-from pymol import cmd
+from pymol import cmd, CmdException
 
 def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=0, quiet=1):
     '''
@@ -132,8 +132,8 @@ EXAMPLE
         cmd.unpick()
 
     if sculpt > 0:
-        residue_sculpting(res, cpy)
-    
+        sculpt_relax(res, 0, sculpt == 2, cpy)
+
     return cpy
 
 def mutate_all(selection, new_resn, inplace=1, sculpt=0, *args, **kwargs):
@@ -163,10 +163,12 @@ SEE ALSO
     for sele in sele_list:
         mutate(sele, new_resn, inplace, sculpt and not inplace, *args, **kwargs)
     if sculpt and inplace:
-        residue_sculpting('(' + ' '.join(sele_list) + ')')
+        sculpt_relax('(' + ' '.join(sele_list) + ')', 0, sculpt == 2)
 
-def residue_sculpting(sele, model=''):
+def sculpt_relax(selection, backbone=1, neighbors=0, model=None, cycles=100, quiet=1):
     '''
+DESCRIPTION
+
     Relax the given selection.
 
     SO FAR ONLY SUPPORTS SELECTIONS WITHIN THE SAME MODEL!
@@ -174,28 +176,43 @@ def residue_sculpting(sele, model=''):
     Do 100 iterations, 75 of them with all terms but low VDW weights,
     and 25 with only local geometry terms. With default VDW weights and
     atom clashes, the structure gets distorted very easily!
+
+USAGE
+
+    sculpt_relax selection [, backbone [, neighbors [, model [, cycles ]]]]
     '''
     from pymol import selector
-    sele = selector.process(sele)
+
+    backbone, neighbors = int(backbone), int(neighbors)
+    cycles, quiet = int(cycles), int(quiet)
+
+    sele = selector.process(selection)
     org = cmd.get_object_list(sele)[0]
-    if len(model) == 0:
+    if model is None:
         model = org
     elif model != org:
-        print 'org -> model:', org, '->', model
         sele = sele.replace('(%s)' % org, '(%s)' % model)
-    cmd.protect('(not %s) or name CA+C+N+O+OXT' % (sele))
+
+    cmd.protect('not (%s)' % (sele))
+    if not backbone:
+        cmd.protect('name CA+C+N+O+OXT')
+
     cmd.sculpt_activate(model)
     cmd.set('sculpt_vdw_weight', 0.25, model) # Low VDW forces
     cmd.set('sculpt_field_mask', 0x1FF, model) # Default
-    if sculpt == 2:
-        cmd.sculpt_iterate(model, cycles=25)
-        cmd.deprotect('(byres (%s within 6.0 of %s)) and (not name CA+C+N+O+OXT)' % \
-                (model, sele))
-        cmd.sculpt_iterate(model, cycles=50)
+
+    if neighbors:
+        cmd.sculpt_iterate(model, cycles=int(cycles * 0.25))
+        cmd.deprotect('byres (%s within 6.0 of (%s))' % (model, sele))
+        if not backbone:
+            cmd.protect('name CA+C+N+O+OXT')
+        cmd.sculpt_iterate(model, cycles=int(cycles * 0.50))
     else:
-        cmd.sculpt_iterate(model, cycles=75)
+        cmd.sculpt_iterate(model, cycles=int(cycles * 0.75))
+
     cmd.set('sculpt_field_mask', 0x01F, model) # Local Geometry Only
-    cmd.sculpt_iterate(model, cycles=25)
+    cmd.sculpt_iterate(model, cycles=int(cycles * 0.25))
+
     cmd.unset('sculpt_vdw_weight', model)
     cmd.unset('sculpt_field_mask', model)
     cmd.sculpt_deactivate(model)
@@ -203,10 +220,12 @@ def residue_sculpting(sele, model=''):
 
 cmd.extend('mutate', mutate)
 cmd.extend('mutate_all', mutate_all)
+cmd.extend('sculpt_relax', sculpt_relax)
 
-cmd.auto_arg[0].update({
-    'mutate'         : cmd.auto_arg[0]['align'],
-    'mutate_all'     : cmd.auto_arg[0]['align'],
-})
+cmd.auto_arg[0].update([
+    ('mutate', cmd.auto_arg[0]['align']),
+    ('mutate_all', cmd.auto_arg[0]['align']),
+    ('sculpt_relax', cmd.auto_arg[0]['align']),
+])
 
 # vi: expandtab:smarttab
