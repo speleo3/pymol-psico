@@ -165,7 +165,8 @@ SEE ALSO
     if sculpt and inplace:
         sculpt_relax('(' + ' '.join(sele_list) + ')', 0, sculpt == 2)
 
-def sculpt_relax(selection, backbone=1, neighbors=0, model=None, cycles=100, quiet=1):
+def sculpt_relax(selection, backbone=1, neighbors=0, model=None, cycles=100,
+        state=0, quiet=1):
     '''
 DESCRIPTION
 
@@ -184,7 +185,7 @@ USAGE
     from pymol import selector
 
     backbone, neighbors = int(backbone), int(neighbors)
-    cycles, quiet = int(cycles), int(quiet)
+    cycles, state, quiet = int(cycles), int(state), int(quiet)
 
     sele = selector.process(selection)
     org = cmd.get_object_list(sele)[0]
@@ -197,21 +198,21 @@ USAGE
     if not backbone:
         cmd.protect('name CA+C+N+O+OXT')
 
-    cmd.sculpt_activate(model)
+    cmd.sculpt_activate(model, state)
     cmd.set('sculpt_vdw_weight', 0.25, model) # Low VDW forces
     cmd.set('sculpt_field_mask', 0x1FF, model) # Default
 
     if neighbors:
-        cmd.sculpt_iterate(model, cycles=int(cycles * 0.25))
+        cmd.sculpt_iterate(model, state, int(cycles * 0.25))
         cmd.deprotect('byres (%s within 6.0 of (%s))' % (model, sele))
         if not backbone:
             cmd.protect('name CA+C+N+O+OXT')
-        cmd.sculpt_iterate(model, cycles=int(cycles * 0.50))
+        cmd.sculpt_iterate(model, state, cycles=int(cycles * 0.50))
     else:
-        cmd.sculpt_iterate(model, cycles=int(cycles * 0.75))
+        cmd.sculpt_iterate(model, state, int(cycles * 0.75))
 
     cmd.set('sculpt_field_mask', 0x01F, model) # Local Geometry Only
-    cmd.sculpt_iterate(model, cycles=int(cycles * 0.25))
+    cmd.sculpt_iterate(model, state, int(cycles * 0.25))
 
     cmd.unset('sculpt_vdw_weight', model)
     cmd.unset('sculpt_field_mask', model)
