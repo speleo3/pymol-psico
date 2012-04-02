@@ -195,7 +195,6 @@ SEE ALSO
     save_traj, load_traj_crd, load_traj
     '''
     import struct
-    from pymol import _cmd
 
     state, quiet = int(state), int(quiet)
     start, stop = int(start), int(stop)
@@ -266,7 +265,7 @@ SEE ALSO
         coordset = map(list, zip(*XYZ))
         assert len(coordset) == natom
 
-        _cmd.load_coords(cmd._COb, object, coordset, state-1, cmd.loadable.model)
+        load_coords(coordset, object, state)
         state += 1
 
 def load_traj_crd(filename, object='', state=0, box=0, start=1, stop=-1, quiet=1):
@@ -284,7 +283,6 @@ SEE ALSO
 
     load_traj
     '''
-    from pymol import _cmd
     state, box, quiet = int(state), int(box), int(quiet)
     start, stop = int(start), int(stop)
     if object == '':
@@ -351,7 +349,7 @@ SEE ALSO
         coordset = [[coord_it.next(), coord_it.next(), coord_it.next()]
                 for _ in range(natom)]
         if frame >= start:
-            _cmd.load_coords(cmd._COb, object, coordset, state-1, cmd.loadable.model)
+            load_coords(coordset, object, state)
             state += 1
         if stop > 0 and frame == stop:
             break
@@ -747,6 +745,25 @@ DESCRIPTION
 
     cmd.read_pdbstr('\n'.join(pdb), object, int(state), quiet=int(quiet), zoom=int(zoom))
     cmd.alter(object, '(ID,resi,segi) = (ID+100000*int(segi[:2]),resv+10000*int(segi[2:]),"")')
+
+def load_coords(coords, object, state, quiet=1):
+    '''
+DESCRIPTION
+
+    API only. Load object coordinates.
+
+    TODO: How to handle the object matrix?
+
+SEE ALSO
+
+    pymol.experimenting.load_coords (considered broken!)
+    '''
+    if not (isinstance(coords, list) and isinstance(coords[0], list)):
+        coords = map(list, coords)
+    r = cmd._cmd.load_coords(cmd._COb, object, coords, int(state)-1,
+            cmd.loadable.model)
+    if cmd._raising(r): raise CmdException
+    return r
 
 # commands
 cmd.extend('loadall', loadall)
