@@ -11,6 +11,11 @@ from pymol import menu
 x__mol_generate = menu.mol_generate
 
 def mol_generate(self_cmd, sele):
+    try:
+        from epymol import rigimol
+        cmd = 'morpheasy'
+    except ImportError:
+        cmd = 'morpheasy_linear'
     r = x__mol_generate(self_cmd, sele) + [
         [ 0, '', '' ],
         [ 1, 'biological unit', 'psico.xtal.biomolecule("'+sele+'")' ],
@@ -27,19 +32,12 @@ def mol_generate(self_cmd, sele):
             [ 1, 'Fasta', 'psico.fasta.fasta("'+sele+'")' ],
             [ 1, 'PIR', 'psico.fasta.pir("'+sele+'")' ],
         ]],
+        [ 0, '', '' ],
+        [ 1, 'morphing to ...', [
+            [ 1, a, 'psico.morphing.%s(%s,%s)' % (cmd, repr(sele), repr(a)) ]
+                for a in self_cmd.get_object_list()[0:25] if a != sele
+        ]],
     ]
-    try:
-        from epymol import rigimol
-        morph_submenu = []
-        for a in self_cmd.get_object_list()[0:25]:
-            if a != sele:
-                morph_submenu.append([ 1, a, 'psico.morpheasy.morpheasy(%s,%s)' % (repr(sele), repr(a)) ])
-        r.extend([
-            [ 0, '', '' ],
-            [ 1, 'morphing to ...', morph_submenu ]
-        ])
-    except ImportError:
-        pass
     return r
 
 menu.mol_generate = mol_generate

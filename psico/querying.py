@@ -344,6 +344,31 @@ ARGUMENTS
         return '#%02x%02x%02x' % tuple(255 * i for i in color)
     return color
 
+def get_object_name(selection, strict=0):
+    '''
+DESCRIPTION
+
+    Returns the object name for given selection.
+    '''
+    names = cmd.get_object_list('(' + selection + ')')
+    if len(names) == 0:
+        print ' Error: No objects in selection'
+        raise CmdException
+    if strict and len(names) > 1:
+        print ' Error: Selection spans more than one object'
+        raise CmdException
+    return names[0]
+
+def get_object_state(name):
+    '''
+DESCRIPTION
+
+    Returns the effective object state.
+    '''
+    if cmd.count_states(name) < 2:
+        return 1
+    return cmd.get_setting_int('state', name)
+
 cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)
 cmd.extend('get_sasa', get_sasa)

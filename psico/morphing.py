@@ -29,17 +29,19 @@ EXAMPLE
         from epymol import rigimol
     except ImportError:
         print 'No epymol available, please use a "Incentive PyMOL" build'
+        print 'You may use "morpheasy_linear" instead'
         return
 
     from .editing import mse2met
+    from .querying import get_object_state, get_object_name
 
     # arguments
     source_state = int(source_state)
     target_state = int(target_state)
     if source_state < 1:
-        source_state = cmd.get_setting_int('state', cmd.get_object_list(source)[0])
+        source_state = get_object_state(get_object_name(source))
     if target_state < 1:
-        target_state = cmd.get_setting_int('state', cmd.get_object_list(target)[0])
+        target_state = get_object_state(get_object_name(target))
     refinement = int(refinement)
     quiet = int(quiet)
 
@@ -92,6 +94,66 @@ EXAMPLE
 
     return name
 
+def morpheasy_linear(source, target, source_state=0, target_state=0, name=None,
+        steps=30, match='align', quiet=1):
+    '''
+DESCRIPTION
+
+    Morph by linear interpolation in cartesian space (like LSQMAN).
+
+    This is the poor man's version of morphing, it's quick but will produce
+    distorted intermediate conformations. Does not require rigimol (incentive
+    PyMOL product). Requires numpy.
+
+SEE ALSO
+
+    morpheasy
+    '''
+    from numpy import array
+    from .fitting import matchmaker
+    from .importing import load_coords
+    from .querying import get_object_state, get_object_name
+
+    # arguments
+    source_state = int(source_state)
+    target_state = int(target_state)
+    steps, quiet = int(steps), int(quiet)
+
+    if source_state < 1:
+        source_state = get_object_state(get_object_name(source))
+    if target_state < 1:
+        target_state = get_object_state(get_object_name(target))
+
+    msource, mtarget, tmp_names = matchmaker(source, target, match)
+
+    csource = array(cmd.get_model(msource, source_state).get_coord_list())
+    ctarget = array(cmd.get_model(mtarget, target_state).get_coord_list())
+    cdiff = ctarget - csource
+
+    if name is None:
+        name = cmd.get_unused_name('morph')
+    cmd.create(name, msource, source_state, 1)
+
+    for state in range(2, steps+1):
+        c = csource + cdiff * float(state-1) / (steps-1)
+        load_coords(c.tolist(), name, state)
+
+    # clean up
+    for obj in tmp_names:
+        cmd.delete(obj)
+
+    return name
+
 cmd.extend('morpheasy', morpheasy)
+cmd.extend('morpheasy_linear', morpheasy_linear)
+
+cmd.auto_arg[0].update([
+    ('morpheasy', cmd.auto_arg[0]['align']),
+    ('morpheasy_linear', cmd.auto_arg[0]['align']),
+])
+cmd.auto_arg[1].update([
+    ('morpheasy', cmd.auto_arg[1]['align']),
+    ('morpheasy_linear', cmd.auto_arg[1]['align']),
+])
 
 # vi: ts=4:sw=4:smarttab:expandtab
