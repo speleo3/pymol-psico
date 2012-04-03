@@ -18,6 +18,7 @@ def mol_generate(self_cmd, sele):
         cmd = 'morpheasy_linear'
     r = x__mol_generate(self_cmd, sele) + [
         [ 0, '', '' ],
+        [ 1, 'electrostatics (APBS)', 'psico.electrostatics.apbs_surface("'+sele+'")' ],
         [ 1, 'biological unit', 'psico.xtal.biomolecule("'+sele+'")' ],
         [ 1, 'supercell with mates', [
             [ 2, 'Supercell:', '' ],
