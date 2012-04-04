@@ -88,7 +88,7 @@ SEE ALSO
     extent = cmd.get_extent(tmpname)
     fglen = [(emax-emin + 2*buffer) for (emin, emax) in zip(*extent)]
     cglen = [(emax-emin + 4*buffer) for (emin, emax) in zip(*extent)]
-    dime = [1 + max(1, n / grid) for n in fglen]
+    dime = [1 + max(64, n / grid) for n in fglen]
 
     if not preserve:
         cmd.delete(tmpname)
@@ -143,7 +143,7 @@ quit
             print ' Notice: not deleting %s' % (tempdir)
 
 def apbs_surface(selection='all', maximum=None, minimum=None, map_name=None,
-        ramp_name=None, quiet=1):
+        ramp_name=None, grid=0.5, quiet=1):
     '''
 DESCRIPTION
 
@@ -176,7 +176,7 @@ SEE ALSO
     if map_name is None:
         map_name = cmd.get_unused_name('map')
 
-    map_new_apbs(map_name, selection, quiet=quiet)
+    map_new_apbs(map_name, selection, float(grid), quiet=quiet)
 
     if maximum is not None:
         maximum = float(maximum)
