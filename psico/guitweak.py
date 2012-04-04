@@ -1,5 +1,5 @@
 '''
-(c) 2010 Thomas Holder
+(c) 2010-2012 Thomas Holder
 
 License: BSD-2-Clause
 
@@ -8,7 +8,11 @@ Extensions to the PyMOL GUI like menu items
 
 from pymol import menu
 
-x__mol_generate = menu.mol_generate
+# originial (not overloaded) menu functions
+orig = dict((name, getattr(menu, name)) for name in [
+    'mol_generate',
+    'ramp_action',
+    ])
 
 def mol_generate(self_cmd, sele):
     try:
@@ -16,7 +20,7 @@ def mol_generate(self_cmd, sele):
         cmd = 'morpheasy'
     except ImportError:
         cmd = 'morpheasy_linear'
-    r = x__mol_generate(self_cmd, sele) + [
+    r = orig['mol_generate'](self_cmd, sele) + [
         [ 0, '', '' ],
         [ 1, 'electrostatics (APBS)', 'psico.electrostatics.apbs_surface("'+sele+'")' ],
         [ 1, 'biological unit', 'psico.xtal.biomolecule("'+sele+'")' ],
@@ -41,6 +45,19 @@ def mol_generate(self_cmd, sele):
     ]
     return r
 
-menu.mol_generate = mol_generate
+def ramp_action(self_cmd, sele):
+    r = orig['ramp_action'](self_cmd, sele) + [
+        [ 0, '', '' ],
+        [ 1, 'levels', [
+            [ 1, 'Range +/- %.1f' % (L),
+                'psico.creating.ramp_levels("%s", [%f, 0, %f])' % (sele, -L, L) ]
+            for L in [1, 2, 5, 10, 20, 50, 100]
+        ]],
+    ]
+    return r
+
+# overload menu functions
+for name in orig:
+    setattr(menu, name, globals()[name])
 
 # vi: ts=4:sw=4:smarttab:expandtab

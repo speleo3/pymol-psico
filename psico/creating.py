@@ -149,9 +149,52 @@ SEE ALSO
     cmd.load_model(model, object)
     return model
 
+def ramp_levels(name, levels, quiet=1):
+    '''
+DESCRIPTION
+
+    Changes the slot levels of a ramp.
+
+SEE ALSO
+
+    ramp_new, isolevel
+    '''
+    quiet = int(quiet)
+    if cmd.is_string(levels):
+        levels = cmd.safe_list_eval(levels)
+
+    try:
+        position = cmd.get_names('all').index(name)
+
+        odata = cmd.get_session(name, 1, 1, 0, 0)['names'][0]
+        if odata[4] != 8:
+            raise TypeError('not a ramp')
+        data = odata[5]
+    except:
+        print ' Error: Get session data for ramp "%s" failed' % (name)
+        raise CmdException
+
+    if len(levels) != len(data[3]):
+        print ' Error: number of levels must agree with existing object'
+        raise CmdException
+
+    map_name = data[6]
+    colors = [data[4][i:i+3] for i in range(0, len(data[4]), 3)]
+    cmd.ramp_new(name, map_name, levels, colors, quiet=quiet)
+
+    # restore original position
+    if position == 0:
+        cmd.order(name, location='top')
+    else:
+        cmd.order(cmd.get_names('all')[position-1] + ' ' + name)
+
 cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
+cmd.extend('ramp_levels', ramp_levels)
 
+cmd.auto_arg[0].update([
+    ('ramp_levels', [lambda: cmd.Shortcut(cmd.get_names_of_type('object:')), 'ramp object', '']),
+])
 cmd.auto_arg[1].update({
     'join_states'          : cmd.auto_arg[0]['zoom'],
     'sidechaincenters'     : cmd.auto_arg[0]['zoom'],
