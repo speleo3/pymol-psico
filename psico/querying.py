@@ -365,9 +365,28 @@ DESCRIPTION
 
     Returns the effective object state.
     '''
-    if cmd.count_states(name) < 2:
+    states = cmd.count_states(name)
+    if states < 2 and cmd.get_setting_boolean('static_singletons'):
         return 1
-    return cmd.get_setting_int('state', name)
+    state = cmd.get_setting_int('state', name)
+    if state > states:
+        print ' Error: Invalid state %d for object %s' % (state, name)
+        raise CmdException
+    return state
+
+def get_selection_state(selection):
+    '''
+DESCRIPTION
+
+    Returns the effective object state for all objects in given selection.
+    Raises exception if objects are in different states.
+    '''
+    state_set = set(map(get_object_state,
+        cmd.get_object_list('(' + selection + ')')))
+    if len(state_set) != 1:
+        print ' Error: Selection spans multiple object states'
+        raise CmdException
+    return state_set.pop()
 
 cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)

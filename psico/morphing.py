@@ -33,17 +33,16 @@ EXAMPLE
         return
 
     from .editing import mse2met
-    from .querying import get_object_state, get_object_name
+    from .querying import get_selection_state
 
     # arguments
     source_state = int(source_state)
     target_state = int(target_state)
-    if source_state < 1:
-        source_state = get_object_state(get_object_name(source))
-    if target_state < 1:
-        target_state = get_object_state(get_object_name(target))
     refinement = int(refinement)
     quiet = int(quiet)
+
+    if source_state < 1: source_state = get_selection_state(source)
+    if target_state < 1: target_state = get_selection_state(target)
 
     # temporary objects
     # IMPORTANT: cmd.get_raw_alignment does not work with underscore object names!
@@ -112,17 +111,15 @@ SEE ALSO
     from numpy import array
     from .fitting import matchmaker
     from .importing import load_coords
-    from .querying import get_object_state, get_object_name
+    from .querying import get_selection_state
 
     # arguments
     source_state = int(source_state)
     target_state = int(target_state)
     steps, quiet = int(steps), int(quiet)
 
-    if source_state < 1:
-        source_state = get_object_state(get_object_name(source))
-    if target_state < 1:
-        target_state = get_object_state(get_object_name(target))
+    if source_state < 1: source_state = get_selection_state(source)
+    if target_state < 1: target_state = get_selection_state(target)
 
     msource, mtarget, tmp_names = matchmaker(source, target, match)
 
