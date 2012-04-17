@@ -263,20 +263,25 @@ ARGUMENTS
 
     name = a unique name for the selection {default: sele}
 
+    state = int: object state (-1: current, 0: all states) {default: 1}
+
 SEE ALSO
 
     get_raw_distances
     '''
+    from collections import defaultdict
     from .querying import get_raw_distances
 
     state, cutoff, quiet = int(state), float(cutoff), int(quiet)
+    states = [state] if state else range(1, cmd.count_states(selection)+1)
 
-    sele_dict = {}
-    distances = get_raw_distances(names, state, selection)
-    for idx1, idx2, dist in distances:
-        if cutoff <= 0.0 or dist <= cutoff:
-            sele_dict.setdefault(idx1[0], set()).add(idx1[1])
-            sele_dict.setdefault(idx2[0], set()).add(idx2[1])
+    sele_dict = defaultdict(set)
+    for state in states:
+        distances = get_raw_distances(names, state, selection)
+        for idx1, idx2, dist in distances:
+            if cutoff <= 0.0 or dist <= cutoff:
+                sele_dict[idx1[0]].add(idx1[1])
+                sele_dict[idx2[0]].add(idx2[1])
 
     cmd.select(name, 'none')
     tmp_name = cmd.get_unused_name('_')
