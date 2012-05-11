@@ -81,6 +81,7 @@ ARGUMENTS
 
     mobile_filename = tempfile.mktemp('.pdb', 'mobile')
     target_filename = tempfile.mktemp('.pdb', 'target')
+    matrix_filename = tempfile.mktemp('.txt', 'matrix')
     mobile_ca_sele = '(%s) and (not hetatm) and name CA and alt +A' % (mobile)
     target_ca_sele = '(%s) and (not hetatm) and name CA and alt +A' % (target)
 
@@ -92,7 +93,7 @@ ARGUMENTS
     save(target_filename, target_ca_sele, state=target_state)
 
     exe = cmd.exp_path(exe)
-    args = [exe, mobile_filename, target_filename] + args.split()
+    args = [exe, mobile_filename, target_filename, '-m', matrix_filename] + args.split()
 
     try:
         process = subprocess.Popen(args, stdout=subprocess.PIPE)
@@ -104,12 +105,18 @@ ARGUMENTS
         os.remove(mobile_filename)
         os.remove(target_filename)
 
+    # TMalign >= 2012/04/17
+    if os.path.exists(matrix_filename):
+        lines += open(matrix_filename).readlines()
+        os.remove(matrix_filename)
+
     r = None
     re_score = re.compile(r'TM-score\s*=\s*(\d*\.\d*)')
     rowcount = 0
     matrix = []
     line_it = iter(lines)
     headercheck = False
+    alignment = []
     for line in line_it:
         if 4 >= rowcount > 0:
             if rowcount >= 2:
