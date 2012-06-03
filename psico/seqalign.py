@@ -31,7 +31,9 @@ def alignment_mapping(seq1, seq2):
     '''
 DESCRIPTION
 
-    Returns a dictionary with seq1 indices mapped to seq2 indices
+    Returns an iterator with seq1 indices mapped to seq2 indices
+
+    >>> mapping = dict(alignment_mapping(s1, s2))
     '''
     i, j = -1, -1
     for a, b in zip(seq1, seq2):

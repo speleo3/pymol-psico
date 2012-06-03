@@ -6,7 +6,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-def select_pepseq(pattern, selection='all', name='sele', state=-1, quiet=1):
+def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1):
     '''
 DESCRIPTION
 
