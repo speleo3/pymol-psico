@@ -340,6 +340,17 @@ SEE ALSO
         print ' Angle: %.2f deg' % (angle)
 
     if visualize:
+        # measurement object for angle
+        center = cpv.scale(cpv.add(cen1, cen2), 0.5)
+        tmp = cmd.get_unused_name('_')
+        for pos in [center,
+                cpv.add(center, cpv.scale(dir1, 5.0)),
+                cpv.add(center, cpv.scale(dir2, 5.0))]:
+            cmd.pseudoatom(tmp, pos=list(pos), state=1)
+        name = cmd.get_unused_name('angle')
+        cmd.angle(name, *[(tmp, i) for i in [2,1,3]])
+        cmd.delete(tmp)
+
         cmd.zoom('(%s) or (%s)' % (selection1, selection2), 2,
                 state1 if state1 == state2 else 0)
 
