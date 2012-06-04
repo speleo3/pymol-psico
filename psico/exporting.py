@@ -92,13 +92,14 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         file.__init__(self, filename, 'wb')
         self.natoms = natoms
         self.fmt = '%df' % (natoms)
+        charmm = int(nstates > 0)
 
         # Header
         fmt='4s 9i d 9i'
         header = ['CORD', # 4s
-                nstates, 1, 1, nstates, 0, 0, 0, natoms*3-6, 0, # 9i
+                nstates, 1, 1, 0, 0, 0, 0, 0, 0, # 9i
                 1.0, # d
-                0, 0, 0, 0, 0, 0, 0, 0, 0, # 9i
+                0, 0, 0, 0, 0, 0, 0, 0, charmm, # 9i
                 ]
         self.writeFortran(header,fmt)
      

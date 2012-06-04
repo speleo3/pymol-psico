@@ -195,6 +195,7 @@ SEE ALSO
     save_traj, load_traj_crd, load_traj
     '''
     import struct
+    import itertools
 
     state, quiet = int(state), int(quiet)
     start, stop = int(start), int(stop)
@@ -240,16 +241,16 @@ SEE ALSO
     assert NATOM == natom
 
     # Coord Sets
-    if stop > 0:
-        NSET = min(NSET, stop)
-
     fmt = 'i %df i' % (NATOM)
     def readX():
         X = read(fmt)
         assert X[0] == X[-1]
         return X[1:-1]
 
-    for frame in range(1, NSET+1):
+    for frame in itertools.count(1):
+        if 0 < stop < frame or 0 < NSET < frame:
+            break
+
         length = read('i')[0]
         if length == 6*8:
             box = read('6d i')
@@ -257,7 +258,10 @@ SEE ALSO
         else:
             handle.seek(-struct.calcsize('i'), 1)
 
-        XYZ = readX(), readX(), readX()
+        try:
+            XYZ = readX(), readX(), readX()
+        except struct.error:
+            break
 
         if frame < start:
             continue
