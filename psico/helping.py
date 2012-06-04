@@ -5,7 +5,7 @@
 License: BSD-2-Clause
 '''
 
-from pymol import cmd
+from pymol import cmd, CmdException
  
 def grepset(regexp=''):
     '''
@@ -137,6 +137,7 @@ ARGUMENTS
         func = cmd.keyword[name][0]
     except KeyError:
         print ' Error: No such command'
+        raise CmdException
     print ' CMD:', name
     print ' API: %s.%s' % (func.__module__, func.__name__)
     if func == getattr(cmd, func.__name__, None):
