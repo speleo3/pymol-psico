@@ -388,6 +388,27 @@ DESCRIPTION
         raise CmdException
     return state_set.pop()
 
+def get_coords(selection, state=-1):
+    '''
+DESCRIPTION
+
+    API only. Returns the (natoms, 3) coordinate matrix for a given state.
+    Considers the object rotation matrix. 
+    '''
+    if state < 0:
+        state = cmd.get_state()
+    return cmd.get_model(selection, state).get_coord_list()
+
+def get_ensemble_coords(selection):
+    '''
+DESCRIPTION
+
+    API only. Returns the (nstates, natoms, 3) coordinate matrix. Considers
+    the object rotation matrix. 
+    '''
+    return [get_coords(selection, state)
+            for state in range(1, cmd.count_states(selection) + 1)]
+
 cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)
 cmd.extend('get_sasa', get_sasa)
