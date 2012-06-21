@@ -4,6 +4,7 @@
 License: BSD-2-Clause
 '''
 
+import os.path
 from pymol import cmd, CmdException
 
 mysql_kwargs = {
@@ -33,7 +34,6 @@ PSICO NOTES
     function "psico.importing.local_mirror_pdb(code)" that returns a
     full path to a pdb file. 
     '''
-    import os
     from pymol.importing import fetch as pymol_fetch
 
     quiet, async = int(quiet), int(async)
@@ -75,8 +75,6 @@ def cath_parse_domall(filename=''):
     Download "CathDomall.seqreschopping" to fetch_path (once), parse it and
     store results in global dict "cath_domains".
     '''
-    import os
-
     if filename == '':
         fetch_path = cmd.get('fetch_path')
         if fetch_path == '.':
@@ -201,7 +199,6 @@ SEE ALSO
     start, stop = int(start), int(stop)
 
     if object == '':
-        import os
         object = os.path.splitext(os.path.basename(filename))[0]
     if object not in cmd.get_object_list():
         print ' Error: must load object topology before loading trajectory'
@@ -290,7 +287,6 @@ SEE ALSO
     state, box, quiet = int(state), int(box), int(quiet)
     start, stop = int(start), int(stop)
     if object == '':
-        import os
         object = os.path.splitext(os.path.basename(filename))[0]
     if object not in cmd.get_object_list():
         print ' Error: must load object topology before loading trajectory'
@@ -372,7 +368,6 @@ DESCRIPTION
     from struct import unpack
 
     if object == '':
-        import os
         object = os.path.splitext(os.path.basename(filename))[0]
 
     f = open(filename, 'rb')
@@ -627,7 +622,6 @@ EXAMPLE
 
     quiet = int(quiet)
     if object is None:
-        import os
         object = os.path.basename(filename).rsplit('.', 1)[0]
 
     # load alignment file
@@ -692,7 +686,6 @@ DESCRIPTION
     http://www.mail-archive.com/pymol-users@lists.sourceforge.net/msg09394.html
     '''
     if object == '':
-        import os
         object = os.path.basename(filename).rsplit('.', 1)[0]
 
     _pdbAtomLine = 'ATOM  %5i  %-3s %3s%2s%4i    %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s  '
@@ -769,6 +762,48 @@ SEE ALSO
     if cmd._raising(r): raise CmdException
     return r
 
+def load_mtz(filename, prefix='', maptypes='FoFc 2FoFc', multistate=0, quiet=1):
+    '''
+DESCRIPTION
+
+    Load a MTZ file as two map objects (FoFc, 2FoFc)
+
+    This only works with the incentive PyMOL product!
+
+USAGE
+
+    load_mtz filename [, prefix [, maptypes ]]
+    '''
+    from pymol import headering
+
+    multistate, quiet = int(multistate), int(quiet)
+
+    header = headering.MTZHeader(filename)
+
+    for coltype in ('F', 'P'):
+        if not header.getColumnsOfType(coltype):
+            print ' Error: could not find %s type column' % coltype
+            raise CmdException
+
+    if not prefix:
+        prefix = os.path.basename(filename).rsplit('.', 1)[0]
+
+    for maptype in maptypes.split():
+        F, P, prg = header.guessCols(maptype)
+        if None in (F, P):
+            print ' Warning: No %s map' % (maptype)
+            continue
+
+        name = prefix + '.' + maptype
+        if not multistate:
+            cmd.delete(name)
+
+        cmd.map_generate(name, filename, F, P, 'None', 0, 0, quiet)
+        if name not in cmd.get_names('objects'):
+            print ' Error: Loading %s map failed.' % (maptype)
+            print ' This PyMOL version might not be capable of loading MTZ files'
+            raise CmdException
+
 # commands
 cmd.extend('loadall', loadall)
 cmd.extend('load_traj_crd', load_traj_crd)
@@ -776,5 +811,6 @@ cmd.extend('load_traj_dcd', load_traj_dcd)
 cmd.extend('load_3d', load_3d)
 cmd.extend('load_aln', load_aln)
 cmd.extend('load_gro', load_gro)
+cmd.extend('load_mtz', load_mtz)
 
 # vi:expandtab:smarttab
