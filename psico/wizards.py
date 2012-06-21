@@ -37,6 +37,8 @@ class Sspick(Wizard):
             smm.append([1, label, 'cmd.get_wizard().set_mode(%d)' % i])
         self.menu['selection_mode'] = smm
 
+        self.name = None
+
     def set_mode(self, i):
         self.selection_mode = i
         cmd.refresh_wizard()
@@ -59,8 +61,10 @@ class Sspick(Wizard):
 
     def do_select(self, name): # map selects into picks
         from .selecting import select_sspick
-        select_sspick(name, 'sele', self.selection_mode)
-        cmd.enable('sele')
+        if self.name not in cmd.get_names('selections', enabled_only=1):
+            self.name = cmd.get_unused_name('ss')
+        select_sspick(name, self.name, self.selection_mode)
+        cmd.enable(self.name)
         cmd.refresh_wizard()
 
     def do_pick(self, bondFlag):
