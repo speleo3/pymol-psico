@@ -358,37 +358,50 @@ DESCRIPTION
         temporary_names.append(aln_obj)
         align = cmd.keyword[match][0]
         align(mobile, target, cycles=0, transform=0, object=aln_obj)
+        cmd.disable(aln_obj)
         from .selecting import wait_for
         wait_for(aln_obj)
         mobile = '(%s) and %s' % (mobile, aln_obj)
         target = '(%s) and %s' % (target, aln_obj)
     elif match in cmd.get_names('all') and cmd.get_type(match) == 'object:':
         names = cmd.get_object_list('(' + match + ')')
-        if len(names) == 2:
-            # easy case, alignment object covers only the two given objects
-            mobile = '(%s) and %s' % (mobile, match)
-            target = '(%s) and %s' % (target, match)
+        _mobile = '(%s) and %s' % (mobile, match)
+        _target = '(%s) and %s' % (target, match)
+        if cmd.count_atoms(_mobile) == cmd.count_atoms(_target):
+            mobile = _mobile
+            target = _target
         else:
+            # difficult: if selections spans only part of the alignment or
             # if alignment object covers more than the two objects, then we
             # need to pick those columns that have no gap in any of the two
-            # given objects
-            mobile_object = cmd.get_object_list('(' + mobile + ')')[0]
-            target_object = cmd.get_object_list('(' + target + ')')[0]
-            mobile_index_list = []
-            target_index_list = []
+            # given selections
+            mobileidx = set(cmd.index(mobile))
+            targetidx = set(cmd.index(target))
+            mobileidxsel = []
+            targetidxsel = []
             for column in cmd.get_raw_alignment(match):
-                column = dict(column)
-                if mobile_object in column and target_object in column:
-                    mobile_index_list.append(column[mobile_object])
-                    target_index_list.append(column[target_object])
+                mobiles = mobileidx.intersection(column)
+                if len(mobiles) == 1:
+                    targets = targetidx.intersection(column)
+                    if len(targets) == 1:
+                        mobileidxsel.extend(mobiles)
+                        targetidxsel.extend(targets)
             mobile_name = cmd.get_unused_name('_mobile')
             target_name = cmd.get_unused_name('_target')
-            cmd.select_list(mobile_name, mobile_object, mobile_index_list, mode='index')
-            cmd.select_list(target_name, target_object, target_index_list, mode='index')
+            mobile_objects = set(idx[0] for idx in mobileidxsel)
+            target_objects = set(idx[0] for idx in targetidxsel)
+            if len(mobile_objects) == len(target_objects) == 1:
+                mobile_index_list = [idx[1] for idx in mobileidxsel]
+                target_index_list = [idx[1] for idx in targetidxsel]
+                cmd.select_list(mobile_name, mobile_objects.pop(), mobile_index_list, mode='index')
+                cmd.select_list(target_name, target_objects.pop(), target_index_list, mode='index')
+            else:
+                cmd.select(mobile_name, ' '.join('%s`%d' % idx for idx in mobileidxsel))
+                cmd.select(target_name, ' '.join('%s`%d' % idx for idx in targetidxsel))
             temporary_names.append(mobile_name)
             temporary_names.append(target_name)
-            mobile = '(%s) and %s' % (mobile, mobile_name)
-            target = '(%s) and %s' % (target, target_name)
+            mobile = mobile_name
+            target = target_name
     else:
         print ' Error: unkown match method', match
         raise CmdException

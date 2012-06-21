@@ -396,7 +396,7 @@ DESCRIPTION
     Considers the object rotation matrix. 
     '''
     if state < 0:
-        state = cmd.get_state()
+        state = get_selection_state(selection)
     return cmd.get_model(selection, state).get_coord_list()
 
 def get_ensemble_coords(selection):
