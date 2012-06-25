@@ -386,6 +386,29 @@ SEE ALSO
         if psi is not None:
             cmd.set_dihedral(x[1], x[2], x[3], x[4], psi, state, quiet)
 
+def update_identifiers(target, source, identifiers='segi chain resi',
+        match='align', quiet=1):
+    '''
+DESCRIPTION
+
+    Transfers segi, chain, and resi identifiers from one selection to another.
+    This works by mapping old to new identifiers and alters also not aligned
+    atoms (works if any other atom from the same residue got aligned).
+    '''
+    from .fitting import matchmaker
+
+    tmatched, smatched, tmp_names = matchmaker(target, source, match)
+
+    key = '(' + ','.join(identifiers.split()) + ',)'
+    tkeys, skeys = [], []
+    cmd.iterate(tmatched, 'tkeys.append(%s)' % (key), space=locals())
+    cmd.iterate(smatched, 'skeys.append(%s)' % (key), space=locals())
+    t2s = dict(zip(tkeys, skeys))
+    cmd.alter(target, '%s = t2s.get(%s, %s)' % (key, key, key), space=locals())
+
+    for name in tmp_names:
+        cmd.delete(name)
+
 cmd.extend('split_chains', split_chains)
 cmd.extend('split_molecules', split_molecules)
 cmd.extend('rmsf2b', rmsf2b)
@@ -398,6 +421,7 @@ cmd.extend('remove_alt', remove_alt)
 cmd.extend('dssp', dssp)
 cmd.extend('stride', stride)
 cmd.extend('set_phipsi', set_phipsi)
+cmd.extend('update_identifiers', update_identifiers)
 
 # tab-completion of arguments
 cmd.auto_arg[0].update({
