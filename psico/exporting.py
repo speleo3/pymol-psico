@@ -99,8 +99,12 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         header = ['CORD', # 4s
                 nstates, 1, 1, 0, 0, 0, 0, 0, 0, # 9i
                 1.0, # d
-                0, 0, 0, 0, 0, 0, 0, 0, charmm, # 9i
+                0, 0, 0, 0, 0, 0, 0, 0, 0, # 9i
                 ]
+        if charmm:
+            # DELTA is stored as a double with X-PLOR but as a float with CHARMm
+            fmt = '4s 9i f 10i'
+            header.append(24) # dummy charmm version number
         self.writeFortran(header,fmt)
      
         # Title
