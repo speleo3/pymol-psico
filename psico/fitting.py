@@ -224,7 +224,7 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
         cmd.color('green', name)
     return fixed_name
 
-def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='DynDom', transform=1, quiet=1):
+def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='', transform=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -256,7 +256,14 @@ USAGE
         raise CmdException
     chain2id = chains[0]
 
-    exe = cmd.exp_path(exe)
+    if not exe:
+        from . import which
+        exe = which('DynDom', 'dyndom')
+        if not exe:
+            print ' Error: Cannot find DynDom executable'
+            raise CmdException
+    else:
+        exe = cmd.exp_path(exe)
     tempdir = tempfile.mkdtemp()
 
     try:
