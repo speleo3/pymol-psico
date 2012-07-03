@@ -70,6 +70,30 @@ NOTES
     cmd.set('opaque_background', 0, quiet=quiet)
     cmd.bg_color('white')
 
+class set_temporary(object):
+    '''
+DESCRIPTION
+
+    API only. Supports the following pattern:
+
+    >>> with set_temporary(pdb_retain_ids=1):
+    ...    cmd.save('out.pdb')
+    '''
+    def __init__(self, *args, **kwargs):
+        self.sele = kwargs.pop('selection', '')
+        self.args = args + tuple(kwargs.items())
+    def __enter__(self):
+        self.saved = []
+        for k, v in self.args:
+            v_saved = cmd.get(k, self.sele)
+            if v != v_saved:
+                self.saved.append((k, v_saved))
+                cmd.set(k, v, self.sele)
+        return self
+    def __exit__(self, type, value, traceback):
+        for k, v in self.saved:
+            cmd.set(k, v, self.sele)
+
 cmd.extend('save_settings', save_settings)
 cmd.extend('paper_settings', paper_settings)
 
