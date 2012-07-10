@@ -1,7 +1,7 @@
 '''
 Normal mode calculation using external apps or libraries.
 
-(c) 2011 Thomas Holder, MPI for Developmental Biology
+(c) 2011-2012 Thomas Holder, MPI for Developmental Biology
 
 License: BSD-2-Clause
 '''
@@ -355,12 +355,76 @@ DESCRIPTION
     else:
         cmd.show_as('lines', prefix + '*')
 
+def normalmodes_prody(selection, cutoff=15, first=7, last=10, guide=1,
+        prefix='prody', states=7, factor=-1, quiet=1):
+    '''
+DESCRIPTION
+
+    Anisotropic Network Model (ANM) analysis with ProDy.
+
+    Based on:
+    http://www.csb.pitt.edu/prody/examples/dynamics/enm/anm.html
+    '''
+    try:
+        import prody
+    except ImportError:
+        print 'Failed to import prody, please add to PYTHONPATH'
+        raise CmdException
+
+    first, last, guide = int(first), int(last), int(guide)
+    states, factor, quiet = int(states), float(factor), int(quiet)
+    assert first > 6
+
+    if guide:
+        selection = '(%s) and guide and alt A+' % (selection)
+    tmpsele = cmd.get_unused_name('_')
+    cmd.select(tmpsele, selection)
+
+    from cStringIO import StringIO
+    f = StringIO(cmd.get_pdbstr(tmpsele))
+    conf = prody.parsePDBStream(f)
+
+    modes = prody.ANM()
+    modes.buildHessian(conf, float(cutoff))
+    modes.calcModes(last - first + 1)
+
+    if factor < 0:
+        from math import log
+        natoms = modes.numAtoms()
+        factor = log(natoms) * 10
+        if not quiet:
+            print ' set factor to %.2f' % (factor)
+
+    for mode in range(first, last + 1):
+        name = prefix + '%d' % mode
+        cmd.delete(name)
+
+        if not quiet:
+            print ' normalmodes: object "%s" for mode %d' % (name, mode)
+
+        for state in range(1, states+1):
+            xyz_it = iter(modes[mode-7].getArrayNx3() * (factor *
+                    ((state-1.0)/(states-1.0) - 0.5)))
+            cmd.create(name, tmpsele, 1, state, zoom=0)
+            cmd.alter_state(state, name, '(x,y,z) = xyz_it.next() + (x,y,z)',
+                    space=locals())
+
+    cmd.delete(tmpsele)
+
+    if guide:
+        cmd.set('ribbon_trace_atoms', 1, prefix + '*')
+        cmd.show_as('ribbon', prefix + '*')
+    else:
+        cmd.show_as('lines', prefix + '*')
+
 cmd.extend('normalmodes_pdbmat', normalmodes_pdbmat)
 cmd.extend('normalmodes_mmtk', normalmodes_mmtk)
+cmd.extend('normalmodes_prody', normalmodes_prody)
 
 cmd.auto_arg[0].update([
     ('normalmodes_pdbmat', cmd.auto_arg[0]['zoom']),
     ('normalmodes_mmtk', cmd.auto_arg[0]['zoom']),
+    ('normalmodes_prody', cmd.auto_arg[0]['zoom']),
 ])
 
 # vi: ts=4:sw=4:smarttab:expandtab
