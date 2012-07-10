@@ -8,19 +8,29 @@ Extensions to the PyMOL GUI like menu items
 
 from pymol import menu
 
-# originial (not overloaded) menu functions
-orig = dict((name, getattr(menu, name)) for name in [
-    'mol_generate',
-    'ramp_action',
-    ])
+dummy = lambda c, s: []
 
+def menuappend(f):
+    '''Decorator for overloading menu functions by appending to them'''
+    orig = getattr(menu, f.__name__, dummy)
+    wrapped = lambda c, s: orig(c, s) + f(c, s)
+    setattr(menu, f.__name__, wrapped)
+    return wrapped
+
+def colorramps(self_cmd, sele):
+    '''Menu for coloring atoms and surfaces by color ramps'''
+    return [[ 1, name, 'cmd.color("%s", "%s");'
+        'cmd.set("surface_color", "%s", "%s")' % (name, sele, name, sele) ]
+        for name in self_cmd.get_names_of_type('object:')]
+
+@menuappend
 def mol_generate(self_cmd, sele):
     try:
         from epymol import rigimol
         cmd = 'morpheasy'
     except ImportError:
         cmd = 'morpheasy_linear'
-    r = orig['mol_generate'](self_cmd, sele) + [
+    r = [
         [ 0, '', '' ],
         [ 1, 'electrostatics (APBS)', 'psico.electrostatics.apbs_surface("'+sele+'")' ],
         [ 1, 'biological unit', 'psico.xtal.biomolecule("'+sele+'")' ],
@@ -45,8 +55,9 @@ def mol_generate(self_cmd, sele):
     ]
     return r
 
+@menuappend
 def ramp_action(self_cmd, sele):
-    r = orig['ramp_action'](self_cmd, sele) + [
+    r = [
         [ 0, '', '' ],
         [ 1, 'levels', [
             [ 1, 'Range +/- %.1f' % (L),
@@ -56,8 +67,15 @@ def ramp_action(self_cmd, sele):
     ]
     return r
 
-# overload menu functions
-for name in orig:
-    setattr(menu, name, globals()[name])
+@menuappend
+def all_colors(self_cmd, sele):
+    ramps = colorramps(self_cmd, sele)
+    if len(ramps) == 0:
+        return []
+    return [[ 0, '', '' ], [ 1, 'ramps', ramps ]]
+
+@menuappend
+def slice_color(self_cmd, sele):
+    return colorramps(self_cmd, sele)
 
 # vi: ts=4:sw=4:smarttab:expandtab
