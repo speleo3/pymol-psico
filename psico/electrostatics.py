@@ -88,21 +88,20 @@ SEE ALSO
     extent = cmd.get_extent(tmpname)
     fglen = [(emax-emin + 2*buffer) for (emin, emax) in zip(*extent)]
     cglen = [(emax-emin + 4*buffer) for (emin, emax) in zip(*extent)]
-    dime = [1 + max(64, n / grid) for n in fglen]
 
     if not preserve:
         cmd.delete(tmpname)
 
     apbs_in = defaults_apbs_in.copy()
-    apbs_in['dime'] = '%d %d %d' % tuple(dime)
     apbs_in['fglen'] = '%f %f %f' % tuple(fglen)
     apbs_in['cglen'] = '%f %f %f' % tuple(cglen)
     apbs_in['srad'] = cmd.get('solvent_radius')
     apbs_in['write'] = 'pot dx "%s"' % (stem)
 
     # apbs input file
-    f = open(infile, 'w')
-    print >> f, '''
+    def write_input_file():
+        f = open(infile, 'w')
+        print >> f, '''
 read
     mol pqr "%s"
 end
@@ -110,21 +109,39 @@ elec
     mg-auto
 ''' % (pqrfile)
 
-    for (k,v) in apbs_in.items():
-        if v is None:
-            print >> f, k
-        else:
-            print >> f, k, v
+        for (k,v) in apbs_in.items():
+            if v is None:
+                print >> f, k
+            else:
+                print >> f, k, v
 
-    print >> f, '''
+        print >> f, '''
 end
 quit
 '''
-    f.close()
+        f.close()
 
     try:
-        # run apbs
-        subprocess.call([exe, infile], cwd=tempdir)
+        # apbs will fail if grid does not fit into memory
+        # -> on failure repeat with larger grid spacing
+        for _ in range(3):
+            dime = [1 + max(64, n / grid) for n in fglen]
+            apbs_in['dime'] = '%d %d %d' % tuple(dime)
+            write_input_file()
+
+            # run apbs
+            r = subprocess.call([exe, infile], cwd=tempdir)
+            if r == 0:
+                break
+
+            if r == -6:
+                grid *= 2.0
+                if not quiet:
+                    print ' Warning: retry with grid =', grid
+                continue
+
+            print ' Error: apbs failed with code', r
+            raise CmdException
 
         dx_list = glob.glob(stem + '*.dx')
         if len(dx_list) != 1:
