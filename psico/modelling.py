@@ -400,7 +400,8 @@ SEE ALSO
     if not quiet:
         print ' peptide_rebuild: done'
 
-def peptide_rebuild_modeller(name, selection='all', hetatm=0, sequence=None, quiet=1):
+def peptide_rebuild_modeller(name, selection='all', hetatm=0, sequence=None,
+        nmodels=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -425,6 +426,8 @@ ARGUMENTS
 
     sequence = string: if provided, use this sequence instead of the
     template sequence {default: None}
+
+    nmodels = int: number of models (states) to generate {default: 1}
     '''
     try:
         import modeller
@@ -436,7 +439,7 @@ ARGUMENTS
     import tempfile, shutil, os
     from .editing import update_identifiers
 
-    hetatm, quiet = int(hetatm), int(quiet)
+    nmodels, hetatm, quiet = int(nmodels), int(hetatm), int(quiet)
 
     tempdir = tempfile.mkdtemp()
     pdbfile = os.path.join(tempdir, 'template.pdb')
@@ -470,9 +473,21 @@ ARGUMENTS
         a = automodel(env, alnfile=alnfile, sequence=aln[-1].code,
                 knowns=[s.code for s in aln if s.prottyp.startswith('structure')])
         a.max_ca_ca_distance = 30.0
+
+        if nmodels > 1:
+            a.ending_model = nmodels
+            from multiprocessing import cpu_count
+            ncpu = min(cpu_count(), nmodels)
+            if ncpu > 1:
+                from modeller import parallel
+                job = parallel.job(parallel.local_slave()
+                        for _ in range(ncpu))
+                a.use_parallel_job(job)
+
         a.make()
 
-        cmd.load(a.outputs[0]['name'], name, quiet=quiet)
+        for output in a.outputs:
+            cmd.load(output['name'], name, quiet=quiet)
     finally:
         os.chdir(cwd)
         shutil.rmtree(tempdir)
