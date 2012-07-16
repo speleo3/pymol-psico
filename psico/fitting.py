@@ -728,6 +728,65 @@ SEE ALSO
     if not quiet:
         print ' intra_theseus: %d states aligned' % (len(matrices))
 
+def prosmart(mobile, target, mobile_state=1, target_state=1,
+        exe='prosmart', transform=1, object=None, quiet=0):
+    '''
+DESCRIPTION
+
+    ProSMART wrapper.
+
+    http://www2.mrc-lmb.cam.ac.uk/groups/murshudov/
+    '''
+    import subprocess, tempfile, os, shutil, glob
+
+    quiet = int(quiet)
+
+    tempdir = tempfile.mkdtemp()
+    mobile_filename = os.path.join(tempdir, 'mobile.pdb')
+    target_filename = os.path.join(tempdir, 'target.pdb')
+
+    cmd.save(mobile_filename, mobile, state=mobile_state)
+    cmd.save(target_filename, target, state=target_state)
+
+    exe = cmd.exp_path(exe)
+    args = [exe, '-p1', mobile_filename, '-p2', target_filename, '-a']
+
+    xglob = lambda x: glob.glob(os.path.join(tempdir, 'ProSMART_Output/Output_Files', x))
+
+    try:
+        subprocess.check_call(args, cwd=tempdir)
+
+        transfiles = xglob('Superposition/Transformations/*/*.txt')
+        with open(transfiles[0]) as f:
+            f = iter(f)
+            for line in f:
+                if line.startswith('ROTATION'):
+                    matrix = [map(float, next(f).split()) + [0] for _ in range(3)]
+                elif line.startswith('TRANSLATION'):
+                    matrix.append([-float(v) for v in next(f).split()] + [1])
+                    break
+
+        if int(transform):
+            matrix = [v for m in matrix for v in m]
+            assert len(matrix) == 4*4
+            for model in cmd.get_object_list('(' + mobile + ')'):
+                cmd.transform_object(model, matrix, state=0)
+
+        if object:
+            from .importing import load_aln
+            alnfiles = xglob('Residue_Alignment_Scores/*/*.txt')
+            alnfiles = filter(lambda x: not x.endswith('_clusters.txt'), alnfiles)
+            load_aln(alnfiles[0], object, mobile, target)
+
+    except OSError:
+        print ' Error: Cannot execute "%s", please provide full path to prosmart executable' % (exe)
+        raise CmdException
+    finally:
+        shutil.rmtree(tempdir)
+
+    if not quiet:
+        print ' prosmart: done'
+
 # all those have kwargs: mobile, target, mobile_state, target_state
 align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus']
 align_methods_sc = cmd.Shortcut(align_methods)
@@ -741,27 +800,32 @@ cmd.extend('local_rms', local_rms)
 cmd.extend('extra_fit', extra_fit)
 cmd.extend('intra_theseus', intra_theseus)
 cmd.extend('theseus', theseus)
+cmd.extend('prosmart', prosmart)
 
 # autocompletion
-cmd.auto_arg[0].update({
-    'alignwithanymethod': cmd.auto_arg[0]['align'],
-    'tmalign': cmd.auto_arg[0]['align'],
-    'dyndom': cmd.auto_arg[0]['align'],
-    'gdt_ts': cmd.auto_arg[0]['align'],
-    'local_rms': cmd.auto_arg[0]['align'],
-    'extra_fit': cmd.auto_arg[0]['align'],
-    'theseus': cmd.auto_arg[0]['align'],
-    'intra_theseus': cmd.auto_arg[0]['align'],
-})
-cmd.auto_arg[1].update({
-    'alignwithanymethod': cmd.auto_arg[1]['align'],
-    'tmalign': cmd.auto_arg[1]['align'],
-    'dyndom': cmd.auto_arg[1]['align'],
-    'gdt_ts': cmd.auto_arg[1]['align'],
-    'local_rms': cmd.auto_arg[1]['align'],
-    'extra_fit': cmd.auto_arg[0]['disable'],
-    'theseus': cmd.auto_arg[1]['align'],
-})
+_auto_arg0_align = cmd.auto_arg[0]['align']
+_auto_arg1_align = cmd.auto_arg[1]['align']
+cmd.auto_arg[0].update([
+    ('alignwithanymethod', _auto_arg0_align),
+    ('tmalign', _auto_arg0_align),
+    ('dyndom', _auto_arg0_align),
+    ('gdt_ts', _auto_arg0_align),
+    ('local_rms', _auto_arg0_align),
+    ('extra_fit', _auto_arg0_align),
+    ('theseus', _auto_arg0_align),
+    ('intra_theseus', _auto_arg1_align),
+    ('prosmart', _auto_arg0_align),
+])
+cmd.auto_arg[1].update([
+    ('alignwithanymethod', _auto_arg1_align),
+    ('tmalign', _auto_arg1_align),
+    ('dyndom', _auto_arg1_align),
+    ('gdt_ts', _auto_arg1_align),
+    ('local_rms', _auto_arg1_align),
+    ('extra_fit', cmd.auto_arg[0]['disable']),
+    ('theseus', _auto_arg1_align),
+    ('prosmart', _auto_arg1_align),
+])
 cmd.auto_arg[2].update([
     ('extra_fit', [ align_methods_sc, 'alignment method', '' ]),
 ])
