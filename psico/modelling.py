@@ -296,6 +296,8 @@ SEE ALSO
                 cmd.align(tmp_name, skey + ' and name N+C+CA', cycles=0)
                 cmd.remove(tmp_name + ' and (name N+C+O+CA or hydro)')
                 cmd.fuse('name CB and ' + tmp_name, 'name CA and ' + skey, move=0)
+                if resn == 'PRO':
+                    cmd.bond(skey + '/N', skey + '/CD')
                 cmd.unpick()
                 cmd.delete(tmp_name)
 
@@ -401,7 +403,7 @@ SEE ALSO
         print ' peptide_rebuild: done'
 
 def peptide_rebuild_modeller(name, selection='all', hetatm=0, sequence=None,
-        nmodels=1, quiet=1):
+        nmodels=1, hydro=0, quiet=1):
     '''
 DESCRIPTION
 
@@ -431,7 +433,7 @@ ARGUMENTS
     '''
     try:
         import modeller
-        from modeller.automodel import automodel
+        from modeller.automodel import automodel, allhmodel
     except ImportError:
         print ' Error: failed to import "modeller"'
         raise CmdException
@@ -440,6 +442,9 @@ ARGUMENTS
     from .editing import update_identifiers
 
     nmodels, hetatm, quiet = int(nmodels), int(hetatm), int(quiet)
+
+    if int(hydro):
+        automodel = allhmodel
 
     tempdir = tempfile.mkdtemp()
     pdbfile = os.path.join(tempdir, 'template.pdb')
