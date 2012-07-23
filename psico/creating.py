@@ -243,13 +243,14 @@ ARGUMENTS
 
     try:
         cmd.save(infile, selection, state)
-        rcode = subprocess.call(args, cwd=tmpdir)
-
-        if rcode > 0:
-            print ' Error: pdb2pqr failed'
-            raise CmdException
-
+        subprocess.check_call(args, cwd=tmpdir)
         cmd.load(outfile, name)
+    except OSError:
+        print ' Error: Cannot execute "%s"' % (exe)
+        raise CmdException
+    except subprocess.CalledProcessError as e:
+        print ' Error: %s failed with exit status %d' % (args[0], e.returncode)
+        raise CmdException
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
