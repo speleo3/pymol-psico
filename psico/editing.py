@@ -286,6 +286,7 @@ SEE ALSO
     '''
     from subprocess import Popen, PIPE
     import tempfile, os
+    from .exporting import save_pdb_without_ter
 
     state, quiet = int(state), int(quiet)
 
@@ -305,7 +306,8 @@ SEE ALSO
     tmpfilepdb = tempfile.mktemp('.pdb')
     ss_dict = dict()
     for model in cmd.get_object_list(selection):
-        cmd.save(tmpfilepdb, '%s and (%s)' % (model, selection), state)
+        save_pdb_without_ter(tmpfilepdb,
+                '%s and (%s)' % (model, selection), state)
         try:
             process = Popen([exe, tmpfilepdb], stdout=PIPE)
         except OSError:
@@ -366,6 +368,61 @@ SEE ALSO
     os.remove(tmpfilepdb)
     _common_ss_alter(selection, ss_dict, ss_map, raw)
 
+def dss_promotif(selection='all', exe='p_sstruc3', raw='', state=-1, quiet=1):
+    '''
+DESCRIPTION
+
+    Secondary structure assignment with PROMOTIF.
+    http://www.rubic.rdg.ac.uk/~gail/#Software
+
+SEE ALSO
+
+    dss, dssp, stride
+    '''
+    from subprocess import Popen, PIPE
+    import tempfile, os, shutil
+
+    state, quiet = int(state), int(quiet)
+
+    ss_map = {
+        'E': 'S',
+        'H': 'H',
+        'G': 'H',
+    }
+
+    exe = cmd.exp_path(exe)
+    tmpdir = tempfile.mkdtemp()
+    tmpfilepdb = os.path.join(tmpdir, 'xxxx.pdb')
+    tmpfilesst = os.path.join(tmpdir, 'xxxx.sst')
+    ss_dict = dict()
+
+    try:
+        for model in cmd.get_object_list('(' + selection + ')'):
+            cmd.save(tmpfilepdb, 'model %s and (%s)' % (model, selection), state)
+
+            process = Popen([exe], cwd=tmpdir, stdin=PIPE)
+            process.communicate(tmpfilepdb)
+
+            with open(tmpfilesst) as handle:
+                for line in handle:
+                    if line.startswith(' num  seq.no'):
+                        break
+                for line in handle:
+                    if not line.strip():
+                        break
+                    chain = line[6].strip('-')
+                    resi = line[7:12].strip()
+                    ss = line[25]
+                    ss_dict[model,chain,resi] = ss
+
+            os.remove(tmpfilesst)
+    except OSError:
+        print ' Error: Cannot execute exe=' + exe
+        raise CmdException
+    finally:
+        shutil.rmtree(tmpdir)
+    _common_ss_alter(selection, ss_dict, ss_map, raw)
+
 def set_phipsi(selection, phi=None, psi=None, state=1, quiet=1):
     '''
 DESCRIPTION
@@ -420,6 +477,7 @@ cmd.extend('stub2ala', stub2ala)
 cmd.extend('remove_alt', remove_alt)
 cmd.extend('dssp', dssp)
 cmd.extend('stride', stride)
+cmd.extend('dss_promotif', dss_promotif)
 cmd.extend('set_phipsi', set_phipsi)
 cmd.extend('update_identifiers', update_identifiers)
 
@@ -434,6 +492,7 @@ cmd.auto_arg[0].update({
     'remove_alt'     : cmd.auto_arg[0]['zoom'],
     'dssp'           : cmd.auto_arg[0]['zoom'],
     'stride'         : cmd.auto_arg[0]['zoom'],
+    'dss_promotif'   : cmd.auto_arg[0]['zoom'],
     'set_phipsi'     : cmd.auto_arg[0]['zoom'],
 })
 cmd.auto_arg[1].update({
