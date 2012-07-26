@@ -368,7 +368,7 @@ SEE ALSO
     os.remove(tmpfilepdb)
     _common_ss_alter(selection, ss_dict, ss_map, raw)
 
-def dss_promotif(selection='all', exe='p_sstruc3', raw='', state=-1, quiet=1):
+def dss_promotif(selection='all', exe='', raw='', state=-1, quiet=1):
     '''
 DESCRIPTION
 
@@ -385,12 +385,19 @@ SEE ALSO
     state, quiet = int(state), int(quiet)
 
     ss_map = {
+        'B': 'S',
         'E': 'S',
         'H': 'H',
         'G': 'H',
     }
 
     exe = cmd.exp_path(exe)
+    if not exe:
+        from . import which
+        motifdir = os.environ.get('motifdir')
+        exe = which('p_sstruc3', 'p_sstruc2', 'promotif.scr',
+                path=[motifdir] if motifdir else None)
+
     tmpdir = tempfile.mkdtemp()
     tmpfilepdb = os.path.join(tmpdir, 'xxxx.pdb')
     tmpfilesst = os.path.join(tmpdir, 'xxxx.sst')
@@ -400,8 +407,8 @@ SEE ALSO
         for model in cmd.get_object_list('(' + selection + ')'):
             cmd.save(tmpfilepdb, 'model %s and (%s)' % (model, selection), state)
 
-            process = Popen([exe], cwd=tmpdir, stdin=PIPE)
-            process.communicate(tmpfilepdb)
+            process = Popen([exe, tmpfilepdb], cwd=tmpdir, stdin=PIPE)
+            process.communicate(tmpfilepdb + os.linesep)
 
             with open(tmpfilesst) as handle:
                 for line in handle:
@@ -412,7 +419,7 @@ SEE ALSO
                         break
                     chain = line[6].strip('-')
                     resi = line[7:12].strip()
-                    ss = line[25]
+                    ss = line[23]
                     ss_dict[model,chain,resi] = ss
 
             os.remove(tmpfilesst)

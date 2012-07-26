@@ -154,7 +154,7 @@ matplotlib_fix_prefs = {
     'tkagg_overload': True,
 }
 
-def which(*names):
+def which(*names, **kw):
     '''
     Return full path to executable or empty string if not found in PATH.
     '''
@@ -162,7 +162,7 @@ def which(*names):
     if 'PATHEXT' in os.environ:
         pathext = [''] + os.environ['PATHEXT'].split(';')
         names = [n + ext for n in names for ext in pathext]
-    path = os.environ['PATH'].split(os.pathsep)
+    path = kw.get('path') or os.environ['PATH'].split(os.pathsep)
     for n in names:
         for p in path:
             full = os.path.join(p, n)
