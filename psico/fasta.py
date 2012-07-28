@@ -26,7 +26,7 @@ SEE ALSO
     '''
     from . import one_letter
     gapped, wrap = int(gapped), int(wrap)
-    selection = '(%s) and polymer' % (selection)
+    selection = '(%s) and guide' % (selection)
     for obj in cmd.get_object_list(selection):
         for chain in cmd.get_chains('%s and (%s)' % (obj, selection)):
             seq = []
@@ -61,7 +61,7 @@ SEE ALSO
     for obj in cmd.get_object_list('(' + selection + ')'):
         seq = []
         prev_coord = None
-        model = cmd.get_model('/%s////CA and polymer and (%s)' % (obj, selection))
+        model = cmd.get_model('/%s////CA and guide and (%s)' % (obj, selection))
         for atom in model.atom:
             if prev_coord is not None and cpv.distance(atom.coord, prev_coord) > 4.0:
                 seq.append('/\n')
