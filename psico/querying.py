@@ -384,6 +384,8 @@ DESCRIPTION
     state_set = set(map(get_object_state,
         cmd.get_object_list('(' + selection + ')')))
     if len(state_set) != 1:
+        if len(state_set) == 0:
+            return 1
         print ' Error: Selection spans multiple object states'
         raise CmdException
     return state_set.pop()
