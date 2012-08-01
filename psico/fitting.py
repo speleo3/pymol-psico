@@ -352,67 +352,125 @@ def matchmaker(mobile, target, match):
     '''
 DESCRIPTION
 
-    API only. See "local_rms" for description of "match" argument.
+    Legacy, deprecated, use MatchMaker instead
     '''
-    temporary_names = []
-    if match == 'none':
-        pass
-    elif match in ['in', 'like']:
-        mobile = '(%s) %s (%s)' % (mobile, match, target)
-        target = '(%s) %s (%s)' % (target, match, mobile)
-    elif match in ['align', 'super']:
+    mm = MatchMaker(mobile, target, match)
+    mm.autodelete = False
+    return mm.mobile, mm.target, mm.temporary
+
+class MatchMaker(object):
+    '''
+DESCRIPTION
+
+    API only. Matches two atom selections and provides two matched
+    subselections with equal atom count. May involve temporary objects
+    or named selections which will be automatically deleted.
+
+ARGUMENTS
+
+    mobile = string: first atom selection
+
+    target = string: second atom selection
+
+    match = string: method how to match atoms
+        * none: (dummy)
+        * in: match atoms by "in" operator
+        * like: match atoms by "like" operator
+        * align: match atoms by cmd.align (without refinement)
+        * super: match atoms by cmd.super (without refinement)
+        * <name of alignment object>: use given alignment
+
+RESULT
+
+    Properties "mobile" and "target" hold the matched subselections as
+    selection strings.
+    '''
+    def __init__(self, mobile, target, match):
+        self.autodelete = True
+        self.temporary = []
+
+        if match == 'none':
+            self.mobile = mobile
+            self.target = target
+        elif match in ['in', 'like']:
+            self.mobile = '(%s) %s (%s)' % (mobile, match, target)
+            self.target = '(%s) %s (%s)' % (target, match, mobile)
+        elif match in ['align', 'super']:
+            self.align(mobile, target, match)
+        elif match in cmd.get_names('all') and cmd.get_type(match) == 'object:':
+            self.from_alignment(mobile, target, match)
+        else:
+            print ' Error: unkown match method', match
+            raise CmdException
+
+    def check(self):
+        return cmd.count_atoms(self.mobile) == cmd.count_atoms(self.target)
+
+    def align(self, mobile, target, match):
+        '''
+        Align mobile to target using the alignment method given by "match"
+        '''
         aln_obj = cmd.get_unused_name('_')
-        temporary_names.append(aln_obj)
+        self.temporary.append(aln_obj)
+
         align = cmd.keyword[match][0]
         align(mobile, target, cycles=0, transform=0, object=aln_obj)
         cmd.disable(aln_obj)
+
+        self.from_alignment(mobile, target, aln_obj)
+
+    def from_alignment(self, mobile, target, aln_obj):
+        '''
+        Use alignment given by "aln_obj" (name of alignment object)
+        '''
         from .selecting import wait_for
         wait_for(aln_obj)
-        mobile = '(%s) and %s' % (mobile, aln_obj)
-        target = '(%s) and %s' % (target, aln_obj)
-    elif match in cmd.get_names('all') and cmd.get_type(match) == 'object:':
-        names = cmd.get_object_list('(' + match + ')')
-        _mobile = '(%s) and %s' % (mobile, match)
-        _target = '(%s) and %s' % (target, match)
-        if cmd.count_atoms(_mobile) == cmd.count_atoms(_target):
-            mobile = _mobile
-            target = _target
+
+        self.mobile = '(%s) and %s' % (mobile, aln_obj)
+        self.target = '(%s) and %s' % (target, aln_obj)
+        if self.check():
+            return
+
+        # difficult: if selections spans only part of the alignment or
+        # if alignment object covers more than the two objects, then we
+        # need to pick those columns that have no gap in any of the two
+        # given selections
+
+        mobileidx = set(cmd.index(mobile))
+        targetidx = set(cmd.index(target))
+        mobileidxsel = []
+        targetidxsel = []
+
+        for column in cmd.get_raw_alignment(aln_obj):
+            mobiles = mobileidx.intersection(column)
+            if len(mobiles) == 1:
+                targets = targetidx.intersection(column)
+                if len(targets) == 1:
+                    mobileidxsel.extend(mobiles)
+                    targetidxsel.extend(targets)
+
+        self.mobile = cmd.get_unused_name('_mobile')
+        self.target = cmd.get_unused_name('_target')
+        self.temporary.append(self.mobile)
+        self.temporary.append(self.target)
+
+        mobile_objects = set(idx[0] for idx in mobileidxsel)
+        target_objects = set(idx[0] for idx in targetidxsel)
+
+        if len(mobile_objects) == len(target_objects) == 1:
+            mobile_index_list = [idx[1] for idx in mobileidxsel]
+            target_index_list = [idx[1] for idx in targetidxsel]
+            cmd.select_list(self.mobile, mobile_objects.pop(), mobile_index_list, mode='index')
+            cmd.select_list(self.target, target_objects.pop(), target_index_list, mode='index')
         else:
-            # difficult: if selections spans only part of the alignment or
-            # if alignment object covers more than the two objects, then we
-            # need to pick those columns that have no gap in any of the two
-            # given selections
-            mobileidx = set(cmd.index(mobile))
-            targetidx = set(cmd.index(target))
-            mobileidxsel = []
-            targetidxsel = []
-            for column in cmd.get_raw_alignment(match):
-                mobiles = mobileidx.intersection(column)
-                if len(mobiles) == 1:
-                    targets = targetidx.intersection(column)
-                    if len(targets) == 1:
-                        mobileidxsel.extend(mobiles)
-                        targetidxsel.extend(targets)
-            mobile_name = cmd.get_unused_name('_mobile')
-            target_name = cmd.get_unused_name('_target')
-            mobile_objects = set(idx[0] for idx in mobileidxsel)
-            target_objects = set(idx[0] for idx in targetidxsel)
-            if len(mobile_objects) == len(target_objects) == 1:
-                mobile_index_list = [idx[1] for idx in mobileidxsel]
-                target_index_list = [idx[1] for idx in targetidxsel]
-                cmd.select_list(mobile_name, mobile_objects.pop(), mobile_index_list, mode='index')
-                cmd.select_list(target_name, target_objects.pop(), target_index_list, mode='index')
-            else:
-                cmd.select(mobile_name, ' '.join('%s`%d' % idx for idx in mobileidxsel))
-                cmd.select(target_name, ' '.join('%s`%d' % idx for idx in targetidxsel))
-            temporary_names.append(mobile_name)
-            temporary_names.append(target_name)
-            mobile = mobile_name
-            target = target_name
-    else:
-        print ' Error: unkown match method', match
-        raise CmdException
-    return mobile, target, temporary_names
+            cmd.select(self.mobile, ' '.join('%s`%d' % idx for idx in mobileidxsel))
+            cmd.select(self.target, ' '.join('%s`%d' % idx for idx in targetidxsel))
+
+    def __del__(self):
+        if not self.autodelete:
+            return
+        for name in self.temporary:
+            cmd.delete(name)
 
 def local_rms(mobile, target, window=20, mobile_state=1, target_state=1,
         match='align', load_b=1, visualize=1, quiet=1):
@@ -461,14 +519,11 @@ EXAMPLE
     w2 = window/2
     w4 = window/4
 
-    mguide, tguide, tmp_names = matchmaker('(%s) and guide' % (mobile),
+    mm = MatchMaker('(%s) and guide' % (mobile),
             '(%s) and guide' % (target), match)
 
-    model_mobile = cmd.get_model(mguide)
-    model_target = cmd.get_model(tguide)
-
-    for name in tmp_names:
-        cmd.delete(name)
+    model_mobile = cmd.get_model(mm.mobile)
+    model_target = cmd.get_model(mm.target)
 
     if len(model_mobile.atom) != len(model_mobile.atom):
         print 'Error: number of atoms differ, please check match method'
@@ -646,11 +701,9 @@ SEE ALSO
     mobile_filename = os.path.join(tempdir, 'mobile.pdb')
     target_filename = os.path.join(tempdir, 'target.pdb')
 
-    mmobile, mtarget, tmp_names = matchmaker(mobile, target, match)
-    cmd.save(mobile_filename, mmobile, mobile_state)
-    cmd.save(target_filename, mtarget, target_state)
-    for name in tmp_names:
-        cmd.delete(name)
+    mm = MatchMaker(mobile, target, match)
+    cmd.save(mobile_filename, mm.mobile, mobile_state)
+    cmd.save(target_filename, mm.target, target_state)
 
     exe = cmd.exp_path(exe)
     args = [exe, '-a0', '-c' if cov else '-v', '-i%d' % cycles,
