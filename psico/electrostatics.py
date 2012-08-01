@@ -47,7 +47,7 @@ SEE ALSO
     '''
     import tempfile, os, shutil, glob, subprocess
     from pymol.util import protein_assign_charges_and_radii
-    from .editing import stub2ala
+    from .modelling import add_missing_atoms
 
     selection = '(%s) and not solvent' % (selection)
     grid, buffer, state = float(grid), float(buffer), int(state)
@@ -77,7 +77,7 @@ SEE ALSO
                 space=locals())
     if assign[0]:
         cmd.remove('hydro and model ' + tmpname)
-        stub2ala(tmpname, quiet)
+        add_missing_atoms(tmpname, quiet=quiet)
         protein_assign_charges_and_radii(tmpname)
     elif not quiet:
         print ' Notice: using exsiting charges and radii'
@@ -151,7 +151,7 @@ quit
         # load map
         cmd.load(dx_list[0], name, quiet=quiet)
     except OSError:
-        print ' Error: apbs subprocess failed' 
+        print ' Error: Cannot execute "%s"' % (exe)
         raise CmdException
     finally:
         if not preserve:
