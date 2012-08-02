@@ -23,6 +23,10 @@ defaults_apbs_in = {
     'sdens': 10.0,
     'calcenergy': 'no',
     'calcforce': 'no',
+    'ion': [
+        'charge +1 conc 0.15 radius 2.0',
+        'charge -1 conc 0.15 radius 1.8',
+    ],
 }
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
@@ -112,6 +116,9 @@ elec
         for (k,v) in apbs_in.items():
             if v is None:
                 print >> f, k
+            elif isinstance(v, list):
+                for vi in v:
+                    print >> f, k, vi
             else:
                 print >> f, k, v
 
