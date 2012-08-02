@@ -78,4 +78,12 @@ def all_colors(self_cmd, sele):
 def slice_color(self_cmd, sele):
     return colorramps(self_cmd, sele)
 
+@menuappend
+def map_volume(self_cmd, sele):
+    m = 'psico.electrostatics'
+    return [
+        [ 1, 'electrostatics', m + '.volume_esp("'+sele+'_volume_esp","'+sele+'")' ],
+        [ 1, 'difference density', m + '.volume_fofc("'+sele+'_volume_fofc","'+sele+'")' ],
+    ]
+
 # vi: ts=4:sw=4:smarttab:expandtab

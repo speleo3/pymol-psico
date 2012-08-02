@@ -219,14 +219,107 @@ SEE ALSO
     cmd.set('surface_solvent', 0)
     cmd.set('surface_ramp_above_mode', 1)
 
+def volume_esp(name, map, stops=[0.1, 1.0], neg='red', pos='blue',
+        opacity=0.2, quiet=1):
+    '''
+DESCRIPTION
+
+    Create a volume object from a map object with default coloring
+    for electrostatic potential (similar to positive and negative
+    isosurface).
+
+ARGUMENTS
+
+    name = string: name for the new volume object
+
+    map = string: name of the map object to use
+
+    stops = list of floats: 2 or 3 values in standard deviations for creating
+    the volume ramp {default: [0.1, 1.0]}
+
+    neg = string: color for negative volume {default: red}
+
+    pos = string: color for positive volume {default: blue}
+
+    opacity = float: maximum opacity in volume ramp {default: 0.2}
+
+SEE ALSO
+
+    volume
+    '''
+    from pmg_tk.skins.normal.ColorRampModel import ColorRamp
+    from .setting import set_temporary
+
+    opacity, quiet = float(opacity), int(quiet)
+
+    if isinstance(stops, str):
+        stops = cmd.safe_list_eval(stops)
+
+    c_neg = cmd.get_color_tuple(neg)
+    c_pos = cmd.get_color_tuple(pos)
+
+    c_pos_0 = c_pos + (0.0,)
+    c_pos_1 = c_pos + (opacity,)
+    c_neg_0 = c_neg + (0.0,)
+    c_neg_1 = c_neg + (opacity,)
+
+    if len(stops) == 2:
+        cstops = [(c_neg_1, -999), (c_neg_1, -stops[1]), (c_neg_0, -stops[0]),
+                (c_pos_0, stops[0]), (c_pos_1, stops[1]), (c_pos_1, 999)]
+    elif len(stops) == 3:
+        cstops = [(c_neg_0, -999), (c_neg_0, -stops[2]), (c_neg_1, -stops[1]),
+                (c_neg_0, -stops[0]), (c_pos_0, stops[0]), (c_pos_1, stops[1]),
+                (c_pos_0, stops[2]), (c_pos_0, 999)]
+    else:
+        print ' Error: need 2 or 3 stops'
+        raise CmdException
+
+    cmd.volume(name, map, quiet=quiet)
+
+    # get_volume_histogram returns zeros without refresh
+    with set_temporary(suspend_updates='off'):
+        cmd.refresh()
+
+    minD, maxD, meanD, stdevD = cmd.get_volume_histogram(name)[:4]
+
+    v_ramp = []
+    c_ramp = ColorRamp(360)
+    for c, s in cstops:
+        i = int(360 * ((s * stdevD) - minD) / (maxD - minD))
+        i = min(max(i, 0), 359)
+        v_ramp.append(i)
+        v_ramp.extend(c)
+        c_ramp.addColor(i, c)
+
+    cmd.set_volume_ramp(name, v_ramp)
+    cmd.volume_color(name, c_ramp.getRamp())
+    cmd.recolor(name)
+
+def volume_fofc(name, map, stops=[2.5, 3.0, 4.0], neg='red', pos='green',
+        opacity=0.4, quiet=1):
+    '''
+DESCRIPTION
+
+    Create a difference density volume object.
+
+SEE ALSO
+
+    volume_esp
+    '''
+    return volume_esp(**locals())
+
 cmd.extend('map_new_apbs', map_new_apbs)
 cmd.extend('apbs_surface', apbs_surface)
+cmd.extend('volume_esp', volume_esp)
+cmd.extend('volume_fofc', volume_fofc)
 
 cmd.auto_arg[0].update([
     ('apbs_surface', cmd.auto_arg[0]['zoom']),
 ])
 cmd.auto_arg[1].update([
     ('map_new_apbs', cmd.auto_arg[0]['zoom']),
+    ('volume_esp', cmd.auto_arg[1]['volume']),
+    ('volume_fofc', cmd.auto_arg[1]['volume']),
 ])
 
 # vi:expandtab:smarttab
