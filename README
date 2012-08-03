@@ -31,6 +31,9 @@ EXTERNAL PROGRAMS AND LIBRARIES
      * numpy
      * Bio (biopython)
      * MMTK
+     * csb (http://csb.codeplex.com)
+     * modeller
+     * prody
 
     psico has several wrappers for external tools. For full support, you need
     these binaries:
@@ -48,6 +51,9 @@ EXTERNAL PROGRAMS AND LIBRARIES
      * pdbmat
      * diagrtb
      * apbs
+     * pdb2pqr
+     * prosmart
+     * p_sstruc3
 
 AUTHORS
 
