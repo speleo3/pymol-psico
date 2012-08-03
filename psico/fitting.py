@@ -870,7 +870,7 @@ SEE ALSO
     '''
     from numpy import asarray, identity, log, dot, zeros
     from csb.bio.utils import distance_sq, wfit, fit
-    from . import fitting, querying
+    from . import querying
 
     cycles, quiet = int(cycles), int(quiet)
     mobile_state, target_state = int(mobile_state), int(target_state)
@@ -883,10 +883,10 @@ SEE ALSO
         mobile = '(%s) and guide' % (mobile)
         target = '(%s) and guide' % (target)
 
-    mobile, target, tmp_names = fitting.matchmaker(mobile, target, match)
+    mm = MatchMaker(mobile, target, match)
 
-    Y = asarray(cmd.get_model(mobile, mobile_state).get_coord_list())
-    X = asarray(cmd.get_model(target, target_state).get_coord_list())
+    Y = asarray(cmd.get_model(mm.mobile, mobile_state).get_coord_list())
+    X = asarray(cmd.get_model(mm.target, target_state).get_coord_list())
 
     if int(seed):
         R, t = identity(3), zeros(3)
@@ -905,13 +905,10 @@ SEE ALSO
 
     if int(load_b):
         b_iter = iter(-log(scales))
-        cmd.alter(mobile, 'b = b_iter.next()', space=locals())
-
-    for name in tmp_names:
-        cmd.delete(name)
+        cmd.alter(mm.mobile, 'b = b_iter.next()', space=locals())
 
     if not quiet:
-        print ' bFit: %d atoms aligned' % (len(X))
+        print ' xfit: %d atoms aligned' % (len(X))
 
 def intra_xfit(selection, load_b=0, cycles=10, guide=1, seed=0, quiet=1):
     '''
@@ -993,6 +990,165 @@ SEE ALSO
     if not quiet:
         print ' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models)
 
+def promix(mobile, target, K=0, prefix=None, mobile_state=-1, target_state=-1,
+        match='align', guide=1, quiet=1, async=-1, _self=cmd):
+    '''
+DESCRIPTION
+
+    Finds rigid segments in two objects with different conformation.
+
+    Requires CSB, http://csb.codeplex.com
+
+ARGUMENTS
+
+    mobile, target = string: atom selections
+
+    K = integer: Number of segments {default: guess}
+
+    prefix = string: Prefix of named segment selections to make
+
+SEE ALSO
+
+    intra_promix
+
+REFERENCE
+
+    Mixture models for protein structure ensembles
+    Hirsch M, Habeck M. - Bioinformatics. 2008 Oct 1;24(19):2184-92
+    '''
+    from numpy import asarray
+    from csb.statistics.mixtures import SegmentMixture as Mixture
+    from .querying import get_coords, get_object_name
+
+    K, guide, quiet, async = int(K), int(guide), int(quiet), int(async)
+    mobile_state, target_state = int(mobile_state), int(target_state)
+    if async < 0:
+        async = not quiet
+
+    if isinstance(target, str) and target.isdigit() and \
+            cmd.count_atoms('?' + target) == 0 and cmd.count_states(mobile) > 1:
+        print ' Warning: sanity test suggest you want "intra_promix"'
+        return intra_promix(mobile, target, prefix, 0, guide, quiet, async)
+
+    if guide:
+        mobile = '(%s) and guide' % (mobile)
+        target = '(%s) and guide' % (target)
+
+    cmd.color('gray', mobile)
+    obj = get_object_name(mobile)
+    mm = MatchMaker(mobile, target, match)
+    selection = mm.mobile
+
+    X = asarray([
+        get_coords(mm.mobile, mobile_state),
+        get_coords(mm.target, target_state),
+    ])
+
+    if not async:
+        _promix(**locals())
+    else:
+        import threading
+        t = threading.Thread(target=_promix, kwargs=locals())
+        t.setDaemon(1)
+        t.start()
+
+def intra_promix(selection, K=0, prefix=None, conformers=0, guide=1,
+        quiet=1, async=-1, _self=cmd):
+    '''
+DESCRIPTION
+
+    Finds rigid segments in a multi-state object.
+
+    Requires CSB, http://csb.codeplex.com
+
+ARGUMENTS
+
+    selection = string: atom selection
+
+    K = integer: Number of segments {default: guess}
+
+    prefix = string: Prefix of named segment selections to make
+
+SEE ALSO
+
+    promix
+
+REFERENCE
+
+    Mixture models for protein structure ensembles
+    Hirsch M, Habeck M. - Bioinformatics. 2008 Oct 1;24(19):2184-92
+    '''
+    from numpy import asarray
+    from csb.statistics import mixtures
+    from .querying import get_ensemble_coords, get_object_name
+
+    K, conformers = int(K), int(conformers)
+    guide, quiet, async = int(guide), int(quiet), int(async)
+    if async < 0:
+        async = not quiet
+
+    Mixture = mixtures.ConformerMixture if conformers else mixtures.SegmentMixture
+
+    obj = get_object_name(selection)
+    n_models = cmd.count_states(obj)
+
+    if guide:
+        selection = '(%s) and guide' % (selection)
+
+    if n_models < 2:
+        print ' Error: object needs multiple states'
+        raise CmdException
+
+    X = asarray(get_ensemble_coords(selection))
+    assert X.shape == (n_models, cmd.count_atoms(selection), 3)
+
+    if not async:
+        _promix(**locals())
+    else:
+        import threading
+        t = threading.Thread(target=_promix, kwargs=locals())
+        t.setDaemon(1)
+        t.start()
+
+def _promix(**kwargs):
+    conformers = 0
+
+    exec ','.join(kwargs) + ', = kwargs.values()'
+
+    if not prefix:
+        if conformers:
+            prefix = obj + '_conformer'
+        else:
+            prefix = obj + '_segment'
+    cmd.delete(prefix + '_*')
+
+    id_list = []
+    cmd.iterate(selection, 'id_list.append(ID)', space=locals())
+
+    mixture = Mixture.new(X, K)
+    membership = mixture.membership
+
+    if conformers:
+        states_list = [0] * mixture.K
+        for (i,k) in enumerate(membership):
+            states_list[k] += 1
+            name = '%s_%d' % (prefix, k+1)
+            cmd.create(name, obj, i+1, states_list[k])
+    else:
+        cmd.color('gray', selection)
+        for k in range(mixture.K):
+            name = '%s_%d' % (prefix, k+1)
+            id_list_k = [i for (i, m) in zip(id_list, membership) if m == k]
+            cmd.select_list(name, obj, id_list_k)
+            cmd.disable(name)
+            cmd.color(k + 2, name)
+
+    for k, (sigma, w) in enumerate(zip(mixture.sigma, mixture.w)):
+        print ' %s_%d: sigma = %6.3f, w = %.3f' % (prefix, k+1, sigma, w)
+
+    print ' BIC: %.2f' % (mixture.BIC)
+    print ' Log Likelihood: %.2f' % (mixture.log_likelihood)
+
 # all those have kwargs: mobile, target, mobile_state, target_state
 align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus', 'prosmart', 'xfit']
 align_methods_sc = cmd.Shortcut(align_methods)
@@ -1009,6 +1165,8 @@ cmd.extend('theseus', theseus)
 cmd.extend('prosmart', prosmart)
 cmd.extend('xfit', xfit)
 cmd.extend('intra_xfit', intra_xfit)
+cmd.extend('promix', promix)
+cmd.extend('intra_promix', intra_promix)
 
 # autocompletion
 _auto_arg0_align = cmd.auto_arg[0]['align']
@@ -1025,6 +1183,8 @@ cmd.auto_arg[0].update([
     ('prosmart', _auto_arg0_align),
     ('xfit', _auto_arg0_align),
     ('intra_xfit', _auto_arg0_align),
+    ('promix', _auto_arg0_align),
+    ('intra_promix', _auto_arg0_align),
 ])
 cmd.auto_arg[1].update([
     ('alignwithanymethod', _auto_arg1_align),
@@ -1036,6 +1196,7 @@ cmd.auto_arg[1].update([
     ('theseus', _auto_arg1_align),
     ('prosmart', _auto_arg1_align),
     ('xfit', _auto_arg1_align),
+    ('promix', _auto_arg0_align),
 ])
 cmd.auto_arg[2].update([
     ('extra_fit', [ align_methods_sc, 'alignment method', '' ]),
