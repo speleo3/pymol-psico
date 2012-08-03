@@ -840,8 +840,161 @@ DESCRIPTION
     if not quiet:
         print ' prosmart: done'
 
+def xfit(mobile, target, mobile_state=-1, target_state=-1, load_b=0,
+        cycles=10, match='align', guide=1, seed=0, quiet=1):
+    '''
+DESCRIPTION
+
+    Weighted superposition of the model in the first selection on to the model
+    in the second selection. The weights are estimated with maximum likelihood.
+
+    The result should be very similar to "theseus".
+
+    Requires CSB, http://csb.codeplex.com
+
+ARGUMENTS
+
+    mobile = string: atom selection
+ 
+    target = string: atom selection
+
+    mobile_state = int: object state of mobile selection {default: current}
+
+    target_state = int: object state of target selection {default: current}
+
+    load_b = 0 or 1: save -log(weights) into B-factor column {default: 0}
+
+SEE ALSO
+
+    intra_xfit, align, super, fit, cealign, theseus
+    '''
+    from numpy import asarray, identity, log, dot, zeros
+    from csb.bio.utils import distance_sq, wfit, fit
+    from . import fitting, querying
+
+    cycles, quiet = int(cycles), int(quiet)
+    mobile_state, target_state = int(mobile_state), int(target_state)
+    mobile_obj = querying.get_object_name(mobile, 1)
+
+    if mobile_state < 1: mobile_state = querying.get_object_state(mobile_obj)
+    if target_state < 1: target_state = querying.get_selection_state(target)
+
+    if int(guide):
+        mobile = '(%s) and guide' % (mobile)
+        target = '(%s) and guide' % (target)
+
+    mobile, target, tmp_names = fitting.matchmaker(mobile, target, match)
+
+    Y = asarray(cmd.get_model(mobile, mobile_state).get_coord_list())
+    X = asarray(cmd.get_model(target, target_state).get_coord_list())
+
+    if int(seed):
+        R, t = identity(3), zeros(3)
+    else:
+        R, t = fit(X, Y)
+
+    for i in range(cycles):
+        data = distance_sq(X, dot(Y, R.T) + t)
+        scales = (1.0 / data).clip(0., 1000.)
+        R, t = wfit(X, Y, scales)
+
+    m = identity(4)
+    m[0:3,0:3] = R
+    m[0:3,3] = t
+    cmd.transform_object(mobile_obj, list(m.flat))
+
+    if int(load_b):
+        b_iter = iter(-log(scales))
+        cmd.alter(mobile, 'b = b_iter.next()', space=locals())
+
+    for name in tmp_names:
+        cmd.delete(name)
+
+    if not quiet:
+        print ' bFit: %d atoms aligned' % (len(X))
+
+def intra_xfit(selection, load_b=0, cycles=10, guide=1, seed=0, quiet=1):
+    '''
+DESCRIPTION
+
+    Weighted superposition of all states of an object to the intermediate
+    structure over all states. The weights are estimated with maximum
+    likelihood.
+
+    The result should be very similar to "intra_theseus".
+
+    Requires CSB, http://csb.codeplex.com
+
+ARGUMENTS
+
+    selection = string: atom selection
+
+    load_b = 0 or 1: save -log(weights) into B-factor column {default: 0}
+
+NOTE
+
+    Assumes all states to have identical number of CA-atoms.
+
+SEE ALSO
+
+    xfit, intra_fit, intra_theseus
+    '''
+    from numpy import asarray, identity, log, dot, zeros
+    from csb.bio.utils import wfit, fit
+
+    cycles, quiet = int(cycles), int(quiet)
+    mobile_obj = cmd.get_object_list('first (' + selection + ')')[0]
+    n_models = cmd.count_states(mobile_obj)
+
+    if int(guide):
+        selection = '(%s) and guide' % (selection)
+
+    X = asarray([cmd.get_model(selection, state).get_coord_list()
+            for state in range(1, n_models+1)])
+
+    if int(seed):
+        ensemble = X
+    else:
+        ensemble = []
+        for i in range(n_models):
+            R, t = fit(X[i], X[0])
+            ensemble.append(dot(X[i] - t, R))
+
+    R, t = [identity(3)] * n_models, [zeros(3)] * n_models
+
+    for _ in range(cycles):
+        ensemble = asarray(ensemble)
+        average = ensemble.mean(0)
+        data = ensemble.var(0).sum(1)
+        scales = (1.0 / data).clip(0., 1000.)
+
+        ensemble = []
+        for i in range(n_models):
+            R[i], t[i] = wfit(X[i], average, scales)
+            ensemble.append(dot(X[i] - t[i], R[i]))
+
+    m = identity(4)
+    back = identity(4)
+    back[0:3,0:3] = R[0]
+    back[0:3,3] = t[0]
+
+    for i in range(n_models):
+        m[0:3,0:3] = R[i].T
+        m[3,0:3] = -t[i]
+        cmd.transform_object(mobile_obj, list(m.flat), state=i+1)
+
+    # fit back to first state
+    cmd.transform_object(mobile_obj, list(back.flat), state=0)
+
+    if int(load_b):
+        b_iter = iter(-log(scales))
+        cmd.alter(selection, 'b = b_iter.next()', space=locals())
+
+    if not quiet:
+        print ' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models)
+
 # all those have kwargs: mobile, target, mobile_state, target_state
-align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus']
+align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus', 'prosmart', 'xfit']
 align_methods_sc = cmd.Shortcut(align_methods)
 
 # pymol commands
@@ -854,6 +1007,8 @@ cmd.extend('extra_fit', extra_fit)
 cmd.extend('intra_theseus', intra_theseus)
 cmd.extend('theseus', theseus)
 cmd.extend('prosmart', prosmart)
+cmd.extend('xfit', xfit)
+cmd.extend('intra_xfit', intra_xfit)
 
 # autocompletion
 _auto_arg0_align = cmd.auto_arg[0]['align']
@@ -868,6 +1023,8 @@ cmd.auto_arg[0].update([
     ('theseus', _auto_arg0_align),
     ('intra_theseus', _auto_arg1_align),
     ('prosmart', _auto_arg0_align),
+    ('xfit', _auto_arg0_align),
+    ('intra_xfit', _auto_arg0_align),
 ])
 cmd.auto_arg[1].update([
     ('alignwithanymethod', _auto_arg1_align),
@@ -878,6 +1035,7 @@ cmd.auto_arg[1].update([
     ('extra_fit', cmd.auto_arg[0]['disable']),
     ('theseus', _auto_arg1_align),
     ('prosmart', _auto_arg1_align),
+    ('xfit', _auto_arg1_align),
 ])
 cmd.auto_arg[2].update([
     ('extra_fit', [ align_methods_sc, 'alignment method', '' ]),
