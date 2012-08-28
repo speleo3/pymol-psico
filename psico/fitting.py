@@ -840,8 +840,23 @@ DESCRIPTION
     if not quiet:
         print ' prosmart: done'
 
+def _bfit_get_prior(distribution, em=0):
+    from csb.statistics import scalemixture as sm
+
+    if distribution == 'student':
+        prior = sm.GammaPrior()
+        if em: prior.estimator = sm.GammaPosteriorMAP()
+    elif distribution == 'k':
+        prior = sm.InvGammaPrior()
+        if em: prior.estimator = sm.InvGammaPosteriorMAP()
+    else:
+        raise AttributeError('distribution')
+
+    return prior
+
 def xfit(mobile, target, mobile_state=-1, target_state=-1, load_b=0,
-        cycles=10, match='align', guide=1, seed=0, quiet=1):
+        cycles=10, match='align', guide=1, seed=0, quiet=1,
+        bfit=0, distribution='student', _self=cmd):
     '''
 DESCRIPTION
 
@@ -885,18 +900,35 @@ SEE ALSO
 
     mm = MatchMaker(mobile, target, match)
 
-    Y = asarray(cmd.get_model(mm.mobile, mobile_state).get_coord_list())
-    X = asarray(cmd.get_model(mm.target, target_state).get_coord_list())
+    Y = asarray(querying.get_coords(mm.mobile, mobile_state))
+    X = asarray(querying.get_coords(mm.target, target_state))
 
     if int(seed):
         R, t = identity(3), zeros(3)
     else:
         R, t = fit(X, Y)
 
-    for i in range(cycles):
-        data = distance_sq(X, dot(Y, R.T) + t)
-        scales = (1.0 / data).clip(0., 1000.)
-        R, t = wfit(X, Y, scales)
+    if int(bfit):
+        # adapted from csb.apps.bfit
+
+        from csb.bio.utils import distance, probabilistic_fit
+        from csb.statistics.scalemixture import ScaleMixture
+
+        mixture = ScaleMixture(scales=X.shape[0],
+                prior=_bfit_get_prior(distribution), d=3)
+
+        for _ in range(cycles):
+            data = distance(Y, dot(X - t, R))
+            mixture.estimate(data)
+            R, t = probabilistic_fit(X, Y, mixture.scales)
+
+        scales = mixture.scales
+
+    else:
+        for _ in range(cycles):
+            data = distance_sq(Y, dot(X - t, R))
+            scales = 1.0 / data.clip(1e-3)
+            R, t = wfit(X, Y, scales)
 
     m = identity(4)
     m[0:3,0:3] = R
@@ -910,7 +942,8 @@ SEE ALSO
     if not quiet:
         print ' xfit: %d atoms aligned' % (len(X))
 
-def intra_xfit(selection, load_b=0, cycles=10, guide=1, seed=0, quiet=1):
+def intra_xfit(selection, load_b=0, cycles=20, guide=1, seed=0, quiet=1,
+        bfit=0, distribution='student', _self=cmd):
     '''
 DESCRIPTION
 
@@ -938,37 +971,60 @@ SEE ALSO
     '''
     from numpy import asarray, identity, log, dot, zeros
     from csb.bio.utils import wfit, fit
+    from .querying import get_ensemble_coords, get_object_name
 
     cycles, quiet = int(cycles), int(quiet)
-    mobile_obj = cmd.get_object_list('first (' + selection + ')')[0]
+    mobile_obj = get_object_name(selection, 1)
     n_models = cmd.count_states(mobile_obj)
 
     if int(guide):
         selection = '(%s) and guide' % (selection)
 
-    X = asarray([cmd.get_model(selection, state).get_coord_list()
-            for state in range(1, n_models+1)])
-
-    if int(seed):
-        ensemble = X
-    else:
-        ensemble = []
-        for i in range(n_models):
-            R, t = fit(X[i], X[0])
-            ensemble.append(dot(X[i] - t, R))
+    X = asarray(get_ensemble_coords(selection))
 
     R, t = [identity(3)] * n_models, [zeros(3)] * n_models
 
-    for _ in range(cycles):
-        ensemble = asarray(ensemble)
-        average = ensemble.mean(0)
-        data = ensemble.var(0).sum(1)
-        scales = (1.0 / data).clip(0., 1000.)
+    if int(bfit):
+        # adapted from csb.apps.bfite
 
-        ensemble = []
+        from csb.bio.utils import average_structure, distance
+        from csb.statistics.scalemixture import ScaleMixture
+
+        average = average_structure(X)
+
+        mixture = ScaleMixture(scales=X.shape[1],
+                prior=_bfit_get_prior(distribution), d=3)
+
         for i in range(n_models):
-            R[i], t[i] = wfit(X[i], average, scales)
-            ensemble.append(dot(X[i] - t[i], R[i]))
+            R[i], t[i] = fit(X[i], average)
+
+        for _ in range(cycles):
+            data = asarray([distance(average, dot(X[i] - t[i], R[i])) for i in range(n_models)])
+            mixture.estimate(data.T)
+            for i in range(n_models):
+                R[i], t[i] = wfit(X[i], average, mixture.scales)
+
+        scales = mixture.scales
+
+    else:
+        if int(seed):
+            ensemble = X
+        else:
+            ensemble = []
+            for i in range(n_models):
+                R[i], t[i] = fit(X[i], X[0])
+                ensemble.append(dot(X[i] - t[i], R[i]))
+
+        for _ in range(cycles):
+            ensemble = asarray(ensemble)
+            average = ensemble.mean(0)
+            data = ensemble.var(0).sum(1)
+            scales = 1.0 / data.clip(1e-3)
+
+            ensemble = []
+            for i in range(n_models):
+                R[i], t[i] = wfit(X[i], average, scales)
+                ensemble.append(dot(X[i] - t[i], R[i]))
 
     m = identity(4)
     back = identity(4)
