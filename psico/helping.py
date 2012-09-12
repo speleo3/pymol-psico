@@ -145,7 +145,7 @@ ARGUMENTS
     print ' FILE:', sys.modules[func.__module__].__file__
     return func
 
-def write_html_ref(filename, prefix='psico'):
+def write_html_ref(filename, prefix='psico', format='html'):
     '''
 DESCRIPTION
 
@@ -166,6 +166,19 @@ SEE ALSO
             if cmd.is_string(func.__doc__):
                 ref.append([a, func])
     f = open(filename, 'w')
+
+    if format == 'txt_short':
+        import re
+        pattern_header = re.compile(r'^[A-Z]+', flags=re.MULTILINE)
+        pattern_emptyline = re.compile(r'\s+$', flags=re.MULTILINE)
+        for (a, func) in ref:
+            doc = func.__doc__.partition('DESCRIPTION')[-1]
+            doc = pattern_header.split(doc, 1)[0]
+            doc = pattern_emptyline.sub('', doc)
+            f.write('%s\t%s\n\n' % (a, doc))
+        f.close
+        return
+
     f.write("<html><head><style type='text/css'>")
     f.write("p.api {font:small monospace;color:#999}")
     f.write("</style></head><body><h1>pymol psico reference</h1><ul>")
@@ -179,6 +192,18 @@ SEE ALSO
         f.write("<p class='api'>api: %s.%s</p>" % (func.__module__, func.__name__))
     f.write("</body></html>")
     f.close()
+
+def write_txt_ref(filename, prefix='psico'):
+    '''
+DESCRIPTION
+
+    Write psico command and its DESCRIPTION to file as plain text.
+
+SEE ALSO
+
+    cmd.write_html_ref
+    '''
+    write_html_ref(filename, prefix, 'txt_short')
 
 cmd.extend('grepset', grepset)
 cmd.extend('apropos', apropos)
