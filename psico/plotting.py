@@ -30,7 +30,7 @@ DESCRIPTION
         fig.savefig(filename)
         if not quiet:
             print ' Plot written to', filename
-    except ValueError as e:
+    except ValueError, e:
         print ' Error:', e
 
 def get_model_color(model):
@@ -248,7 +248,7 @@ EXAMPLE
 
     try:
         U, L, V = svd(X)
-    except LinAlgError as e:
+    except LinAlgError, e:
         print ' PCA Error: ', e
         raise CmdException
 

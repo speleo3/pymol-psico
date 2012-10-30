@@ -810,7 +810,8 @@ DESCRIPTION
         subprocess.check_call(args, cwd=tempdir)
 
         transfiles = xglob('Superposition/Transformations/*/*.txt')
-        with open(transfiles[0]) as f:
+        f = open(transfiles[0])
+        if True:
             f = iter(f)
             for line in f:
                 if line.startswith('ROTATION'):

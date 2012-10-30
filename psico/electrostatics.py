@@ -277,7 +277,7 @@ SEE ALSO
     cmd.volume(name, map, quiet=quiet)
 
     # get_volume_histogram returns zeros without refresh
-    with set_temporary(suspend_updates='off'):
+    if True:
         cmd.refresh()
 
     minD, maxD, meanD, stdevD = cmd.get_volume_histogram(name)[:4]
@@ -318,8 +318,6 @@ cmd.auto_arg[0].update([
 ])
 cmd.auto_arg[1].update([
     ('map_new_apbs', cmd.auto_arg[0]['zoom']),
-    ('volume_esp', cmd.auto_arg[1]['volume']),
-    ('volume_fofc', cmd.auto_arg[1]['volume']),
 ])
 
 # vi:expandtab:smarttab

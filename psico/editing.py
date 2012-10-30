@@ -410,7 +410,8 @@ SEE ALSO
             process = Popen([exe, tmpfilepdb], cwd=tmpdir, stdin=PIPE)
             process.communicate(tmpfilepdb + os.linesep)
 
-            with open(tmpfilesst) as handle:
+            handle = open(tmpfilesst)
+            if True:
                 for line in handle:
                     if line.startswith(' num  seq.no'):
                         break

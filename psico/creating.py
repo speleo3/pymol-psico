@@ -248,9 +248,6 @@ ARGUMENTS
     except OSError:
         print ' Error: Cannot execute "%s"' % (exe)
         raise CmdException
-    except subprocess.CalledProcessError as e:
-        print ' Error: %s failed with exit status %d' % (args[0], e.returncode)
-        raise CmdException
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
