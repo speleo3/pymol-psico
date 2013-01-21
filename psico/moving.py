@@ -29,7 +29,7 @@ EXAMPLE
             cmd.mview('store', object=name, state=int(state))
 
 def save_movie_mpeg1(filename, mode='', first=0, last=0, preserve=0,
-        fps=25, twopass=1, vbitrate=16000, quiet=1):
+        fps=25, twopass=1, vbitrate=16000, quiet=1, exe='mencoder'):
     '''
 DESCRIPTION
 
@@ -37,6 +37,8 @@ DESCRIPTION
 
     This will not be the best quality possible for the file size, but
     we were successfull to play those movies in PowerPoint.
+
+    Requires mencoder executable from http://mplayerhq.hu
 
 ARGUMENTS
 
@@ -75,6 +77,12 @@ SEE ALSO
         mode = produce_mode_dict[mode]
     mode = int(mode)
 
+    try:
+        subprocess.call([exe])
+    except OSError:
+        print ' Error: Cannot execute "%s"' % (exe)
+        raise CmdException
+
     if not quiet:
         print ' save_movie: Rendering frames...'
 
@@ -82,12 +90,11 @@ SEE ALSO
     prefix = os.path.join(tmp_path, 'frame')
     cmd.mpng(prefix, first, last, preserve, mode=mode)
 
-    mencoder = 'mencoder -quiet'
     mpeg1line = '-mf type=png:fps=%d -ovc lavc -forceidx -noskip -of rawvideo' \
             + ' -mpegopts format=mpeg1 -lavcopts vcodec=mpeg1video:vbitrate=%d' \
             + ':vhq:trell:keyint=25'
     mpeg1line = mpeg1line % (fps, vbitrate)
-    cmdline = mencoder + ' mf://' + prefix + '* ' + mpeg1line
+    cmdline = exe + ' -quiet mf://' + prefix + '* ' + mpeg1line
 
     if not quiet:
         print ' save_movie: Running mencoder...'
