@@ -75,7 +75,7 @@ DESCRIPTION
     ])
     cmd.load_cgo(obj, cmd.get_unused_name('oriVec'), zoom=0)
 
-def cafit_orientation(selection, state=-1, visualize=1, quiet=1):
+def cafit_orientation(selection, state=-1, visualize=1, guide=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -102,8 +102,11 @@ SEE ALSO
 
     state, visualize, quiet = int(state), int(visualize), int(quiet)
 
+    if int(guide):
+        selection = '(%s) and guide' % (selection)
+
     coords = []
-    cmd.iterate_state(state, '(%s) and guide' % (selection),
+    cmd.iterate_state(state, selection,
             'coords.append([x,y,z])', space=locals())
     x = numpy.array(coords)
 
@@ -223,7 +226,7 @@ SEE ALSO
     _common_orientation(selection, center, vec, visualize, 1.5*len(vec_list), quiet)
     return center, vec
 
-def plane_orientation(selection, state=-1, visualize=1, quiet=1):
+def plane_orientation(selection, state=-1, visualize=1, guide=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -240,8 +243,11 @@ DESCRIPTION
 
     state, visualize, quiet = int(state), int(visualize), int(quiet)
 
+    if int(guide):
+        selection = '(%s) and guide' % (selection)
+
     coords = list()
-    cmd.iterate_state(state, '(%s) and guide' % (selection),
+    cmd.iterate_state(state, selection,
             'coords.append([x,y,z])', space=locals())
 
     if len(coords) < 3:
