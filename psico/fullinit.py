@@ -6,9 +6,22 @@ Convenience module for single line psico initialization
 License: BSD-2-Clause
 '''
 
-from . import init
-from . import guitweak
+if __name__.endswith('.fullinit'):
+    from . import init
+    from . import guitweak
 
-init(1, 1, 1)
+    init(1, 1, 1)
+else:
+    import os, sys, imp
+
+    try:
+        __script__
+    except NameError:
+        raise ImportError('invalid invocation of psico.fullinit')
+
+    imp.load_module('psico', None, os.path.dirname(__script__),
+            ('', '', imp.PKG_DIRECTORY))
+
+    import psico.fullinit
 
 # vi: ts=4:sw=4:smarttab:expandtab
