@@ -397,7 +397,7 @@ RESULT
             self.target = '(%s) %s (%s)' % (target, match, mobile)
         elif match in ['align', 'super']:
             self.align(mobile, target, match)
-        elif match in cmd.get_names('all') and cmd.get_type(match) == 'object:':
+        elif match in cmd.get_names('all') and cmd.get_type(match) in ('object:', 'object:alignment'):
             self.from_alignment(mobile, target, match)
         else:
             print ' Error: unkown match method', match
