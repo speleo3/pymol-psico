@@ -119,9 +119,33 @@ SEE ALSO
     if not quiet:
         print ' save_movie: Done'
 
+def matrix_to_ttt(names, reverse=0, state=-1, quiet=1):
+    '''
+DESCRIPTION
+
+    Objects can have state matrices and view (frames) matrices. This function
+    takes the total matrix and stores it either as view matrix or as state
+    matrix (reverse=1). For movie frames, movie_auto_store must be set.
+    '''
+    from . import querying
+    reverse, state, quiet = int(reverse), int(state), int(quiet)
+    ostate = state
+    for object in cmd.get_object_list('(' + names + ')'):
+        if ostate < 1:
+            state = querying.get_object_state(object)
+        matrix = cmd.get_object_matrix(object, state)
+        cmd.matrix_reset(object)
+        if reverse:
+            cmd.reset(object)
+            cmd.transform_object(object, matrix, homogenous=1)
+        else:
+            cmd.set_object_ttt(object, matrix)
+
 cmd.extend('frames2states', frames2states)
 cmd.extend('save_movie_mpeg1', save_movie_mpeg1)
+cmd.extend('matrix_to_ttt', matrix_to_ttt)
 
+cmd.auto_arg[0]['matrix_to_ttt'] = cmd.auto_arg[0]['disable']
 cmd.auto_arg[0]['frames2states'] = cmd.auto_arg[0]['zoom']
 cmd.auto_arg[1]['save_movie_mpeg1'] = [produce_mode_sc, 'mode', '']
 
