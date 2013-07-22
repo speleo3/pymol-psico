@@ -260,10 +260,62 @@ ARGUMENTS
     if not quiet:
         print ' pdb2pqr: done'
 
+def corina(name, selection, exe='corina', state=-1, preserve=0, quiet=1):
+    '''
+DESCRIPTION
+
+    Run corina on selection and load as new object
+    '''
+    import os, tempfile, subprocess, shutil
+    from . import querying
+
+    state, preserve, quiet = int(state), int(preserve), int(quiet)
+
+    if state < 1:
+        state = querying.get_selection_state(selection)
+
+    tmpdir = tempfile.mkdtemp()
+    infile = os.path.join(tmpdir, 'in.sdf')
+    outfile = os.path.join(tmpdir, 'out.sdf')
+    trcfile = os.path.join(tmpdir, 'corina.trc')
+
+    args = [exe, infile, outfile]
+    stderr = ''
+
+    try:
+        cmd.save(infile, selection, state)
+        stdout, stderr = subprocess.Popen(args, cwd=tmpdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE).communicate()
+
+        if not quiet and stdout.strip():
+            print stdout
+
+        trclines = open(trcfile).readlines()
+        trcerror = filter(lambda line: 'ERROR' in line, trclines)
+        if trcerror:
+            raise CmdException("corina failed: " + trcerror[0].strip())
+
+        if not os.path.exists(outfile):
+            raise CmdException("corina failed: " + stderr.strip())
+
+        cmd.load(outfile, name)
+    except OSError:
+        raise CmdException('Cannot execute "%s"' % (exe))
+    finally:
+        if not preserve:
+            shutil.rmtree(tmpdir)
+        elif not quiet:
+            print ' Notice: not deleting', tmpdir
+
+    if not quiet:
+        print ' corina: done'
+
 cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
 cmd.extend('ramp_levels', ramp_levels)
 cmd.extend('pdb2pqr', pdb2pqr)
+cmd.extend('corina', corina)
 
 cmd.auto_arg[0].update([
     ('ramp_levels', [lambda: cmd.Shortcut(cmd.get_names_of_type('object:')), 'ramp object', '']),
@@ -272,6 +324,7 @@ cmd.auto_arg[1].update([
     ('join_states'          , cmd.auto_arg[0]['zoom']),
     ('sidechaincenters'     , cmd.auto_arg[0]['zoom']),
     ('pdb2pqr'              , cmd.auto_arg[0]['zoom']),
+    ('corina'               , cmd.auto_arg[0]['zoom']),
 ])
 cmd.auto_arg[2].update([
     ('sidechaincenters', [cmd.Shortcut(sidechaincentermethods), 'method', '']),
