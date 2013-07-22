@@ -49,7 +49,6 @@ SEE ALSO
     for setting in matches:
         print fmt % setting
     print '%d settings matched' % (count,)
-    cmd.set('text', 1)
 
  
 def apropos(regexp=''):
@@ -76,7 +75,6 @@ SEE ALSO
     grepset
     '''
     import re
-    cmd.set("text","1",quiet=1)
  
     count=0
     docre = re.compile(regexp, re.MULTILINE | re.IGNORECASE)
