@@ -46,32 +46,27 @@ ARGUMENTS
         format = filename.rsplit('.', 1)[1]
     format = format.lower()
     if format in ['charmm', 'dcd']:
-        format = 'charmm'
+        Outfile = DCDOutfile
     elif format in ['amber', 'trj', 'crd']:
-        format = 'amber'
+        Outfile = CRDOutfile
+    elif format in ['rst', 'rst7']:
+        Outfile = RSTOutfile
     else:
         print 'Unknown format:', format
         raise CmdException
 
     f = open(filename, 'wb')
 
-    if format == 'charmm':
-        outfile = DCDOutfile(filename, NSTATES, NATOMS)
-
-    elif format == 'amber':
-        # size of periodic box
-        if box:
-            try:
-                boxdim = cmd.get_symmetry(selection)[0:3]
-            except:
-                boxdim = [0,0,0]
-        else:
-            boxdim = None
-
-        outfile = CRDOutfile(filename, NSTATES, NATOMS, box=boxdim)
-
+    # size of periodic box
+    if box:
+        try:
+            boxdim = cmd.get_symmetry(selection)[0:3]
+        except:
+            boxdim = [0,0,0]
     else:
-        raise Exception, 'This should not happen'
+        boxdim = None
+
+    outfile = Outfile(filename, NSTATES, NATOMS, box=boxdim)
 
     # Write Trajectory Coordinates
     for state in range(1, NSTATES+1):
@@ -88,7 +83,7 @@ class DCDOutfile(file):
     '''
 http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
     '''
-    def __init__(self, filename, nstates, natoms, vendor='PyMOL'):
+    def __init__(self, filename, nstates, natoms, vendor='PyMOL', box=None):
         file.__init__(self, filename, 'wb')
         self.natoms = natoms
         self.fmt = '%df' % (natoms)
@@ -144,11 +139,12 @@ class CRDOutfile(file):
     '''
 http://ambermd.org/formats.html#trajectory
     '''
+    fmt = '%8.3f'
+    columns = 10
+
     def __init__(self, filename, nstates=-1, natoms=-1, vendor='PyMOL', box=None):
         file.__init__(self, filename, 'w')
         self.natoms = natoms
-        self.fmt = '%8.3f'
-        self.columns = 10
         self.box = box
 
         # Write Trajectory Header Information
@@ -179,6 +175,18 @@ http://ambermd.org/formats.html#trajectory
             for c in self.box:
                 f.write(self.fmt % c)
             f.write('\n')
+
+class RSTOutfile(CRDOutfile):
+    '''
+http://ambermd.org/formats.html#restart
+    '''
+    fmt = '%12.7f'
+    columns = 6
+
+    def __init__(self, *args, **kwargs):
+        super(RSTOutfile, self).__init__(*args, **kwargs)
+
+        print >> self, '%5i%s' % (self.natoms, '  0.0000000e+00' * 5)
 
 ## pdb header stuff
 
@@ -316,7 +324,9 @@ SEE ALSO
         pdbstr = '\n'.join(line for line in pdbstr.splitlines() if line != 'END') + '\nEND\n'
 
     # anisotropic b-factors
-    if int(aniso) and cmd.get_model('first (%s)' % selection).atom[0].u_aniso[0] != 0.0:
+    from . import pymol_version
+    if int(aniso) and pymol_version < 1.6 and \
+            cmd.get_model('first (%s)' % selection).atom[0].u_aniso[0] != 0.0:
         def mergeaniso():
             atom_it = iter(cmd.get_model(selection, state).atom)
             for line in pdbstr.splitlines(True):
