@@ -11,7 +11,13 @@ PyMOL> psico.helping.write_html_ref('psico-commands.html')
 License: BSD-2-Clause
 '''
 
-__version__ = '3.0'
+__version__ = '3.2'
+
+try:
+    from pymol import cmd
+    pymol_version = cmd.get_version()[1]
+except:
+    pymol_version = 1.6
 
 __all__ = [
     'aaindex',
@@ -27,7 +33,6 @@ __all__ = [
     'helping',
     'importing',
     'modelling',
-    'morphing',
     'moving',
     'nma',
     'plotting',
@@ -39,6 +44,9 @@ __all__ = [
     'wizards',
     'xtal',
 ]
+
+if pymol_version < 1.6:
+    __all__.append('morphing')
 
 def make_global():
     '''

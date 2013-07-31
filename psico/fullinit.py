@@ -9,8 +9,9 @@ License: BSD-2-Clause
 if __name__.endswith('.fullinit'):
     from . import init
     from . import guitweak
+    from . import pymol_version
 
-    init(1, 1, 1)
+    init(1, pymol_version < 1.6, 1)
 else:
     import os, sys, imp
 

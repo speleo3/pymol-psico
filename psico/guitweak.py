@@ -25,11 +25,6 @@ def colorramps(self_cmd, sele):
 
 @menuappend
 def mol_generate(self_cmd, sele):
-    try:
-        from epymol import rigimol
-        cmd = 'morpheasy'
-    except ImportError:
-        cmd = 'morpheasy_linear'
     r = [
         [ 0, '', '' ],
         [ 1, 'electrostatics (APBS)', 'psico.electrostatics.apbs_surface("'+sele+'")' ],
@@ -47,12 +42,18 @@ def mol_generate(self_cmd, sele):
             [ 1, 'Fasta', 'psico.fasta.fasta("'+sele+'")' ],
             [ 1, 'PIR', 'psico.fasta.pir("'+sele+'")' ],
         ]],
-        [ 0, '', '' ],
-        [ 1, 'morphing to ...', [
-            [ 1, a, 'psico.morphing.%s(%s,%s)' % (cmd, repr(sele), repr(a)) ]
-                for a in self_cmd.get_object_list()[0:25] if a != sele
-        ]],
     ]
+    from . import pymol_version
+    if pymol_version < 1.6:
+        r += [
+            [ 0, '', '' ],
+            [ 1, 'morphing to (rigimol) ...', [
+                [ 1, a, 'psico.morphing.morpheasy(%s,%s)' % (repr(sele), repr(a)) ]
+                    for a in self_cmd.get_object_list()[0:25] if a != sele]],
+            [ 1, 'morphing to (linear) ...', [
+                [ 1, a, 'psico.morphing.morpheasy_linear(%s,%s)' % (repr(sele), repr(a)) ]
+                    for a in self_cmd.get_object_list()[0:25] if a != sele]],
+        ]
     return r
 
 @menuappend
