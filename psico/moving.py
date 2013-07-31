@@ -141,9 +141,42 @@ DESCRIPTION
         else:
             cmd.set_object_ttt(object, matrix)
 
+def get_keyframes(quiet=1):
+    '''
+DESCRIPTION
+
+    Get the list of camera keyframes for the current movie.
+    '''
+    s = cmd.get_session("none")
+    viewelem_list = s["movie"][6]
+    if not viewelem_list:
+        return []
+    r = [i for (i,v) in enumerate(viewelem_list, 1) if v[12] == 2]
+    if not int(quiet):
+        print r
+    return r
+
+def closest_keyframe(quiet=1):
+    '''
+DESCRIPTION
+
+    Jump to the closest movie keyframe.
+    '''
+    keyframes = get_keyframes()
+    if not keyframes:
+        return 0
+    current = cmd.get_frame()
+    r = min(keyframes, key=lambda i: abs(i - current))
+    cmd.frame(r)
+    if not int(quiet):
+        print ' Closest Keyframe:', r
+    return r
+
 cmd.extend('frames2states', frames2states)
 cmd.extend('save_movie_mpeg1', save_movie_mpeg1)
 cmd.extend('matrix_to_ttt', matrix_to_ttt)
+cmd.extend("get_keyframes", get_keyframes)
+cmd.extend("closest_keyframe", closest_keyframe)
 
 cmd.auto_arg[0]['matrix_to_ttt'] = cmd.auto_arg[0]['disable']
 cmd.auto_arg[0]['frames2states'] = cmd.auto_arg[0]['zoom']
