@@ -247,7 +247,7 @@ SEE ALSO
 
     volume
     '''
-    from pmg_tk.skins.normal.ColorRampModel import ColorRamp
+    from pymol.colorramping import ColorRamp
     from .setting import set_temporary
 
     opacity, quiet = float(opacity), int(quiet)
