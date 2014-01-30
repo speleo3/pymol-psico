@@ -158,6 +158,8 @@ SEE ALSO
 
     extra_shift = [[float(i)] for i in (a,b,c)]
 
+    spacegroup = xray.space_group_map.get(spacegroup, spacegroup)
+
     i = 0
     matrices = xray.sg_sym_to_mat_list(spacegroup)
     for mat in matrices:
