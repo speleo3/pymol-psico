@@ -141,7 +141,7 @@ quit
             if r == 0:
                 break
 
-            if r == -6:
+            if r in (-6, -9):
                 grid *= 2.0
                 if not quiet:
                     print ' Warning: retry with grid =', grid
