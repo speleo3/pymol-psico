@@ -30,7 +30,7 @@ defaults_apbs_in = {
 }
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
-        preserve=0, exe='apbs', assign=-1, quiet=1):
+        preserve=0, exe='apbs', assign=-1, focus='', quiet=1):
     '''
 DESCRIPTION
 
@@ -90,7 +90,8 @@ SEE ALSO
 
     # grid dimensions
     extent = cmd.get_extent(tmpname)
-    fglen = [(emax-emin + 2*buffer) for (emin, emax) in zip(*extent)]
+    extentfocus = cmd.get_extent(focus) if focus else extent
+    fglen = [(emax-emin + 2*buffer) for (emin, emax) in zip(*extentfocus)]
     cglen = [(emax-emin + 4*buffer) for (emin, emax) in zip(*extent)]
 
     if not preserve:
@@ -101,6 +102,10 @@ SEE ALSO
     apbs_in['cglen'] = '%f %f %f' % tuple(cglen)
     apbs_in['srad'] = cmd.get('solvent_radius')
     apbs_in['write'] = 'pot dx "%s"' % (stem)
+
+    if focus:
+        apbs_in['fgcent'] = '%f %f %f' % tuple((emax + emin) / 2.0
+                for (emin, emax) in zip(*extentfocus))
 
     # apbs input file
     def write_input_file():
