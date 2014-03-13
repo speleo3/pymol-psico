@@ -430,6 +430,89 @@ SEE ALSO
         shutil.rmtree(tmpdir)
     _common_ss_alter(selection, ss_dict, ss_map, raw)
 
+def sst(selection='(all)', raw='', state=-1, quiet=1):
+    '''
+DESCRIPTION
+
+    Secondary structure assignment with SST.
+    http://lcb.infotech.monash.edu.au/sstweb/
+
+SEE ALSO
+
+    dss, dssp, stride
+    '''
+    import urllib, urllib2
+
+    state, quiet = int(state), int(quiet)
+
+    ss_map = {
+        'C': 'L',
+        'E': 'S',
+        'G': 'H',
+        'H': 'H',
+        'I': 'H',
+        'g': 'H',
+        'h': 'H',
+        'i': 'H',
+        '3': 'L',
+        '4': 'L',
+        '5': 'L',
+        'T': 'L',
+        '-': 'L',
+        '|': 'L',
+        ':': 'H',
+    }
+    ss_dict = {}
+    boundary = '192.168.1.80.500.9981.1375391031.267.10'
+
+    for model in cmd.get_object_list(selection):
+        pdbstr = cmd.get_pdbstr('%s & guide & (%s)' % (model, selection), state)
+
+        body = '\r\n'.join([
+            '--' + boundary,
+            'Content-Disposition: file; name="pdb_file"; filename="abc.pdb"',
+            'Content-Type: text/plain',
+            '',
+            pdbstr,
+            '--' + boundary + '--',
+            '',
+        ])
+
+        try:
+            request = urllib2.Request(
+                    'http://lcb.infotech.monash.edu.au/sstweb/formaction_pdbfile.php')
+            request.add_header('User-agent', 'PyMOL ' + cmd.get_version()[0] + ' ' +
+                    cmd.sys.platform)
+            request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
+            request.add_header('Content-length', len(body))
+            request.add_data(body)
+            lines = urllib2.urlopen(request).readlines()
+        except urllib2.URLError:
+            print ' Error: URL request failed'
+            raise CmdException
+
+        lines = iter(lines)
+
+        for line in lines:
+            if line.startswith('..........RESIDUE LEVEL'):
+                break
+        else:
+            if not quiet:
+                print ' Warning: SST assignment failed'
+            return
+
+        lines.next()
+
+        for line in lines:
+            if line.startswith('...................................END'):
+                break
+            chain = line[2].strip()
+            resi = line[3:9].strip()
+            ss = line[21]
+            ss_dict[model,chain,resi] = ss
+
+    _common_ss_alter(selection, ss_dict, ss_map, raw)
+
 def set_phipsi(selection, phi=None, psi=None, state=1, quiet=1):
     '''
 DESCRIPTION
@@ -485,6 +568,7 @@ cmd.extend('remove_alt', remove_alt)
 cmd.extend('dssp', dssp)
 cmd.extend('stride', stride)
 cmd.extend('dss_promotif', dss_promotif)
+cmd.extend('sst', sst)
 cmd.extend('set_phipsi', set_phipsi)
 cmd.extend('update_identifiers', update_identifiers)
 
@@ -500,6 +584,7 @@ cmd.auto_arg[0].update({
     'dssp'           : cmd.auto_arg[0]['zoom'],
     'stride'         : cmd.auto_arg[0]['zoom'],
     'dss_promotif'   : cmd.auto_arg[0]['zoom'],
+    'sst'            : cmd.auto_arg[0]['zoom'],
     'set_phipsi'     : cmd.auto_arg[0]['zoom'],
 })
 cmd.auto_arg[1].update({
