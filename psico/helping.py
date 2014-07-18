@@ -160,6 +160,8 @@ SEE ALSO
         if a.startswith('_'):
             continue
         func = cmd.keyword[a][0]
+        if (func.__module__, func.__name__) == ('pymol.helping', 'python_help'):
+            continue
         if func.__module__.startswith(prefix) and hasattr(func, '__doc__'):
             if cmd.is_string(func.__doc__):
                 ref.append([a, func])
@@ -178,6 +180,7 @@ SEE ALSO
         return
 
     f.write("<html><head><style type='text/css'>")
+    f.write("body {font-family:sans-serif}")
     f.write("p.api {font:small monospace;color:#999}")
     f.write("</style></head><body><h1>pymol psico reference</h1><ul>")
     for (a,_) in ref:

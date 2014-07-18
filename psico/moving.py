@@ -134,7 +134,8 @@ DESCRIPTION
         if ostate < 1:
             state = querying.get_object_state(object)
         matrix = cmd.get_object_matrix(object, state)
-        cmd.matrix_reset(object)
+        for i in range(cmd.count_states(object)):
+            cmd.matrix_reset(object, i+1)
         if reverse:
             cmd.reset(object)
             cmd.transform_object(object, matrix, homogenous=1)
