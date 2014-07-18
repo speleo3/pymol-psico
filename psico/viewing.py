@@ -8,7 +8,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-def nice(selection='(all)'):
+def nice(selection='(all)', simple=1e5):
     '''
 DESCRIPTION
 
@@ -23,12 +23,18 @@ USAGE
 
     nice [ selection ]
     '''
+    simple = int(simple)
     cmd.util.cbc(selection)
     cmd.color('atomic', '(%s) and not elem C' % (selection))
-    cmd.show_as('cartoon', selection)
-    cmd.show_as('sticks', '(%s) and organic' % (selection))
-    cmd.show_as('spheres', '(%s) and inorganic' % (selection))
-    cmd.show_as('nonbonded', '(%s) and solvent' % (selection))
+    if simple and cmd.count_atoms(selection) >= simple:
+        cmd.show_as('ribbon', selection)
+        cmd.show_as('lines', '(%s) and organic' % (selection))
+        cmd.show_as('nonbonded', '(%s) and inorganic' % (selection))
+    else:
+        cmd.show_as('cartoon', selection)
+        cmd.show_as('sticks', '(%s) and organic' % (selection))
+        cmd.show_as('spheres', '(%s) and inorganic' % (selection))
+        cmd.show_as('nonbonded', '(%s) and solvent' % (selection))
 
 def get_color_family(color):
     '''
@@ -259,6 +265,22 @@ SEE ALSO
         col_name = '0x%02x%02x%02x' % (col_list[0] * 255, col_list[1] * 255, col_list[2] * 255)
         for s in settings:
             cmd.set(s, col_name, selection, state=i+first)
+
+class scene_preserve(object):
+    '''
+DESCRIPTION
+
+    API only. Context manager to restore the current scene on exit.
+    '''
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+    def __enter__(self):
+        import random
+        self.name = 'tmp_%d' % (random.randint(0, 1e8))
+        cmd.scene(self.name, 'store', **self.kwargs)
+    def __exit__(self, type, value, traceback):
+        cmd.scene(self.name, 'recall')
+        cmd.scene(self.name, 'delete')
 
 # commands
 cmd.alias('z', 'zoom visible')
