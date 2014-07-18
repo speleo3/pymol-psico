@@ -30,7 +30,7 @@ defaults_apbs_in = {
 }
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
-        preserve=0, exe='apbs', assign=-1, focus='', quiet=1):
+        preserve=0, exe='', assign=-1, focus='', quiet=1):
     '''
 DESCRIPTION
 
@@ -56,7 +56,25 @@ SEE ALSO
     selection = '(%s) and not solvent' % (selection)
     grid, buffer, state = float(grid), float(buffer), int(state)
     preserve, assign, quiet = int(preserve), int(assign), int(quiet)
-    exe = cmd.exp_path(exe)
+
+    if exe:
+        exe = cmd.exp_path(exe)
+    else:
+        try:
+            import freemol.apbs
+            exe = freemol.apbs.get_exe_path()
+        except:
+            pass
+        if not exe:
+            exe = "apbs"
+
+    try:
+        r = subprocess.call([exe, "--version"],
+                stdout=open(os.devnull, "w"), stderr=subprocess.STDOUT)
+        if r < 0:
+            raise CmdException("Broken executable: " + exe)
+    except OSError:
+        raise CmdException("Cannot execute: " + exe)
 
     # temporary directory
     tempdir = tempfile.mkdtemp()
@@ -252,13 +270,29 @@ SEE ALSO
 
     volume
     '''
-    from pymol.colorramping import ColorRamp
     from .setting import set_temporary
 
     opacity, quiet = float(opacity), int(quiet)
 
     if isinstance(stops, str):
         stops = cmd.safe_list_eval(stops)
+
+    try:
+        from pymol.colorramping import ColorRamp
+    except ImportError:
+        print ' Warning: volume_esp is deprecated'
+        stdevD = cmd.get_volume_histogram(map, 0)[3]
+        stops = [s * stdevD for s in stops]
+        ramp = [
+            -stops[1], neg, opacity,
+            -stops[0], neg, 0.0,
+            stops[0], pos, 0.0,
+            stops[1], pos, opacity,
+        ]
+        if len(stops) == 3:
+            ramp = [-stops[2], neg, opacity] + ramp + [stops[2], pos, opacity]
+        cmd.volume(name, map, ramp, quiet=quiet)
+        return
 
     c_neg = cmd.get_color_tuple(neg)
     c_pos = cmd.get_color_tuple(pos)
