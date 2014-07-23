@@ -64,7 +64,7 @@ SEE ALSO
             cmd.create(name, '(%s) and model %s and chain %s' % (selection, model, chain))
         cmd.disable(model)
 
-def rmsf2b(selection='name CA', linearscale=1.0, quiet=1):
+def rmsf2b(selection='all', linearscale=1.0, var='b', quiet=1):
     '''
 DESCRIPTION
 
@@ -82,7 +82,7 @@ SEE ALSO
 
     spheroid, rmsf_states.py from Robert Campbell
     '''
-    from numpy import array, sqrt, pi
+    from numpy import asfarray, sqrt, pi
     linearscale = float(linearscale)
     n_atoms = cmd.count_atoms(selection)
     n_states = cmd.count_states(selection)
@@ -90,17 +90,13 @@ SEE ALSO
         print ' Error: not enough atoms or states'
         raise CmdException
     coords = []
-    for state in range(1, n_states + 1):
-        state_coords = cmd.get_model(selection, state).get_coord_list()
-        if len(state_coords) != n_atoms:
-            print ' Error: number of atoms in states not equal'
-            raise CmdException
-        coords.append(state_coords)
-    coords = array(coords)
+    cmd.iterate_state(0, selection, 'coords.append((x,y,z))', atomic=0,
+            space={'coords': coords})
+    coords = asfarray(coords).reshape((cmd.count_states(selection), -1, 3))
     u_sq = coords.var(0).sum(1) # var over states, sum over x,y,z
     b_array = sqrt(u_sq) * linearscale if linearscale > 0.0 \
             else 8 * pi**2 * u_sq
-    cmd.alter(selection, 'b = b_iter.next()', space={'b_iter': iter(b_array)})
+    cmd.alter(selection, var + ' = b_iter.next()', space={'b_iter': iter(b_array)})
     if not int(quiet):
         print ' Average RMSF: %.2f' % (sqrt(u_sq).mean())
     return b_array
