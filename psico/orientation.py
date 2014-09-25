@@ -226,7 +226,7 @@ SEE ALSO
     _common_orientation(selection, center, vec, visualize, 1.5*len(vec_list), quiet)
     return center, vec
 
-def plane_orientation(selection, state=-1, visualize=1, guide=1, quiet=1):
+def plane_orientation(selection, state=-1, visualize=1, guide=0, quiet=1):
     '''
 DESCRIPTION
 

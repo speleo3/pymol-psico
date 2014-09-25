@@ -753,8 +753,12 @@ DESCRIPTION
 
 SEE ALSO
 
+    cmd.load_coordset (new in 1.7.3.0)
     pymol.experimenting.load_coords (considered broken!)
     '''
+    if hasattr(cmd, 'load_coordset'):
+        return cmd.load_coordset(coords, object, int(state))
+
     if not (isinstance(coords, list) and isinstance(coords[0], list)):
         coords = map(list, coords)
     r = cmd._cmd.load_coords(cmd._COb, object, coords, int(state)-1,
