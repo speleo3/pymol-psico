@@ -19,6 +19,11 @@ USAGE
 
     consurfdb code [, chain [, selection [, palette ]]]
 
+EXAMPLE
+
+    fetch 1ubq, async=0
+    consurfdb 3nhe, B, 1ubq
+
 SEE ALSO
 
     load_consurf
@@ -26,7 +31,7 @@ SEE ALSO
     import urllib2
 
     code = code.upper()
-    url = 'http://consurfdb.tau.ac.il/consurf_db/%s/%s/r4s.res' % (code, chain)
+    url = 'http://bental.tau.ac.il/new_ConSurfDB/DB/%s/%s/r4s.res' % (code, chain)
 
     try:
         handle = urllib2.urlopen(url)
