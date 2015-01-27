@@ -8,7 +8,6 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 from chempy import cpv
-from .fitting import align_methods_sc
 
 def _vec_sum(vec_list):
     # this is the same as
@@ -456,7 +455,16 @@ SEE ALSO
         raise CmdException
 
     if not quiet:
-        from .querying import centerofmass, gyradius
+        try:
+            # make this import optional to support running this script standalone
+            from .querying import centerofmass, gyradius
+        except ValueError:
+            gyradius = None
+            try:
+                # PyMOL 1.7.1.6+
+                centerofmass = cmd.centerofmass
+            except AttributeError:
+                centerofmass = lambda s: cpv.scale(cpv.add(*cmd.get_extent(s)), 0.5)
 
         center1 = centerofmass(selection1)
         center2 = centerofmass(selection2)
@@ -467,7 +475,10 @@ SEE ALSO
             center2 = numpy.array(center2, float)
             center = (center1 + center2) / 2.0
 
-            rg = numpy.array(gyradius(selection1), float)
+            if gyradius is not None:
+                rg = numpy.array(gyradius(selection1), float)
+            else:
+                rg = 10.0
 
             h1 = numpy.cross(center2 - center1, direction)
             h2 = numpy.dot(R33, h1)
@@ -513,7 +524,15 @@ for func in [angle_between_helices, angle_between_domains]:
 
 cmd.auto_arg[2].update([
     ('angle_between_helices', [ methods_sc, 'method', '' ]),
-    ('angle_between_domains', [ align_methods_sc, 'alignment method', '' ]),
 ])
+
+try:
+    # make this import optional to support running this script standalone
+    from .fitting import align_methods_sc
+    cmd.auto_arg[2].update([
+        ('angle_between_domains', [ align_methods_sc, 'alignment method', '' ]),
+    ])
+except ValueError:
+    pass
 
 # vi: expandtab:smarttab
