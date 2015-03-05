@@ -9,6 +9,16 @@ License: BSD-2-Clause
 from pymol import cmd, CmdException
 from chempy import cpv
 
+if cmd.get_version()[1] < 1.2:
+    # legacy support to run this script standalone with PyMOL 0.99
+    def get_unused_name(name):
+        import random
+        return name + '%04d' % random.randint(0, 1000)
+    STATE = 1
+else:
+    from pymol.cmd import get_unused_name
+    STATE = -1
+
 def _vec_sum(vec_list):
     # this is the same as
     # return numpy.array(vec_list).sum(0).tolist()
@@ -72,9 +82,9 @@ DESCRIPTION
     obj.extend([
         1.0, 1.0, # Caps
     ])
-    cmd.load_cgo(obj, cmd.get_unused_name('oriVec'), zoom=0)
+    cmd.load_cgo(obj, get_unused_name('oriVec'), zoom=0)
 
-def cafit_orientation(selection, state=-1, visualize=1, guide=1, quiet=1):
+def cafit_orientation(selection, state=STATE, visualize=1, guide=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -119,7 +129,7 @@ SEE ALSO
     _common_orientation(selection, center, vec, visualize, s[0], quiet)
     return center, vec
 
-def loop_orientation(selection, state=-1, visualize=1, quiet=1):
+def loop_orientation(selection, state=STATE, visualize=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -162,7 +172,7 @@ SEE ALSO
     _common_orientation(selection, center, vec, visualize, 2.0*len(coords), quiet)
     return center, vec
 
-def helix_orientation(selection, state=-1, visualize=1, cutoff=3.5, quiet=1):
+def helix_orientation(selection, state=STATE, visualize=1, cutoff=3.5, quiet=1):
     '''
 DESCRIPTION
 
@@ -225,7 +235,7 @@ SEE ALSO
     _common_orientation(selection, center, vec, visualize, 1.5*len(vec_list), quiet)
     return center, vec
 
-def plane_orientation(selection, state=-1, visualize=1, guide=0, quiet=1):
+def plane_orientation(selection, state=STATE, visualize=1, guide=0, quiet=1):
     '''
 DESCRIPTION
 
@@ -284,12 +294,12 @@ DESCRIPTION
             obj.append(cgo.VERTEX)
             obj.extend(cpv.add(center, vertex))
         obj.append(cgo.END)
-        cmd.load_cgo(obj, cmd.get_unused_name('planeFit'))
+        cmd.load_cgo(obj, get_unused_name('planeFit'))
 
     return center, vec
 
 def angle_between_helices(selection1, selection2, method='helix',
-        state1=-1, state2=-1, visualize=1, quiet=1):
+        state1=STATE, state2=STATE, visualize=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -347,12 +357,12 @@ SEE ALSO
     if visualize:
         # measurement object for angle
         center = cpv.scale(cpv.add(cen1, cen2), 0.5)
-        tmp = cmd.get_unused_name('_')
+        tmp = get_unused_name('_')
         for pos in [center,
                 cpv.add(center, cpv.scale(dir1, 5.0)),
                 cpv.add(center, cpv.scale(dir2, 5.0))]:
             cmd.pseudoatom(tmp, pos=list(pos), state=1)
-        name = cmd.get_unused_name('angle')
+        name = get_unused_name('angle')
         cmd.angle(name, *[(tmp, i) for i in [2,1,3]])
         cmd.delete(tmp)
 
@@ -362,7 +372,7 @@ SEE ALSO
     return angle
 
 def angle_between_domains(selection1, selection2, method='align',
-        state1=-1, state2=-1, visualize=1, quiet=1):
+        state1=STATE, state2=STATE, visualize=1, quiet=1):
     '''
 DESCRIPTION
 
@@ -415,7 +425,7 @@ SEE ALSO
             print 'no such method:', method
             raise CmdException
 
-    mobile_tmp = cmd.get_unused_name('_')
+    mobile_tmp = get_unused_name('_')
     cmd.create(mobile_tmp, selection1, state1, 1,  zoom=0)
     try:
         method(mobile=mobile_tmp, target=selection2, mobile_state=1,
@@ -458,7 +468,7 @@ SEE ALSO
         try:
             # make this import optional to support running this script standalone
             from .querying import centerofmass, gyradius
-        except ValueError:
+        except (ValueError, ImportError):
             gyradius = None
             try:
                 # PyMOL 1.7.1.6+
@@ -489,7 +499,7 @@ SEE ALSO
                 cmd.pseudoatom(mobile_tmp, pos=list(pos), state=1)
 
             # measurement object for angle and displacement
-            name = cmd.get_unused_name('measurement')
+            name = get_unused_name('measurement')
             cmd.distance(name, *['%s`%d' % (mobile_tmp, i) for i in [1,2]])
             cmd.angle(name, *['%s`%d' % (mobile_tmp, i) for i in [3,1,4]])
 
@@ -532,7 +542,7 @@ try:
     cmd.auto_arg[2].update([
         ('angle_between_domains', [ align_methods_sc, 'alignment method', '' ]),
     ])
-except ValueError:
+except (ValueError, ImportError):
     pass
 
 # vi: expandtab:smarttab
