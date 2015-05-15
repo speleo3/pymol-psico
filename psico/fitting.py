@@ -633,6 +633,7 @@ DESCRIPTION
 
     translations = []
     rotations = []
+    t_type = float
 
     try:
         if quiet:
@@ -645,10 +646,20 @@ DESCRIPTION
             for line in process.stdout:
                 print unesc('', line.rstrip())
 
-        handle = open(os.path.join(tempdir, 'theseus_transf2.txt'))
+        filename = os.path.join(tempdir, 'theseus_transf2.txt')
+
+        if not os.path.exists(filename):
+            # THESEUS 3.x
+            filename = os.path.join(tempdir, 'theseus_transf.txt')
+            if not os.path.exists(filename):
+                raise CmdException('no theseus_transf2.txt or '
+                        'theseus_transf.txt output file')
+            t_type = lambda t: float(t) * -1.
+
+        handle = open(filename)
         for line in handle:
             if line[10:13] == ' t:':
-                translations.append(map(float, line[13:].split()))
+                translations.append(map(t_type, line[13:].split()))
             elif line[10:13] == ' R:':
                 rotations.append(map(float, line[13:].split()))
         handle.close()
