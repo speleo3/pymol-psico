@@ -225,7 +225,7 @@ ARGUMENTS
     s_dict = defaultdict(set)
     cmd.iterate(selection, 's_dict[model,segi,chain].add(resv)', space=locals())
     r_all = []
-    for key, s in s_dict.iteritems():
+    for key, s in s_dict.items():
         s = sorted(s)
         r = [[s[0], s[0]]]
         for i in s[1:]:
@@ -275,7 +275,7 @@ SEE ALSO
     from .querying import get_raw_distances
 
     state, cutoff, quiet = int(state), float(cutoff), int(quiet)
-    states = [state] if state else range(1, cmd.count_states(selection)+1)
+    states = [state] if state else list(range(1, cmd.count_states(selection)+1))
 
     sele_dict = defaultdict(set)
     for state in states:

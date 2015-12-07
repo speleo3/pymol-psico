@@ -65,7 +65,7 @@ EXAMPLE
     cmd.select(so_sel, '%s and %s' % (so_obj, alnobj))
     cmd.select(ta_sel, '%s and %s' % (ta_obj, alnobj))
     alnmap = dict(cmd.get_raw_alignment(alnobj))
-    alnmap.update(dict((v,k) for (k,v) in alnmap.iteritems()))
+    alnmap.update(dict((v,k) for (k,v) in alnmap.items()))
 
     # copy source atom identifiers to temporary target
     idmap = dict()

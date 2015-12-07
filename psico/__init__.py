@@ -111,7 +111,7 @@ def init_cmd(force=0):
     '''
     from pymol import cmd
 
-    for name, value in cmd.keyword.iteritems():
+    for name, value in cmd.keyword.items():
         function = value[0]
         if function.__module__.startswith(__name__):
             if force or not hasattr(cmd, function.__name__):

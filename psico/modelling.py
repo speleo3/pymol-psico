@@ -277,7 +277,7 @@ SEE ALSO
     sele_dict = defaultdict(list)
     tmp_name = cmd.get_unused_name('_')
 
-    for key, namelist in namelists.iteritems():
+    for key, namelist in namelists.items():
         resn = key[3]
         if resn not in reference:
             if not quiet:

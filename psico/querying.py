@@ -39,7 +39,7 @@ SEE ALSO
     if state < 0:
         states = [cmd.get_state()]
     elif state == 0:
-        states = range(1, cmd.count_states(selection)+1)
+        states = list(range(1, cmd.count_states(selection)+1))
     else:
         states = [state]
     com = cpv.get_null()
@@ -70,12 +70,11 @@ SEE ALSO
     centerofmass
     '''
     from chempy import cpv
-    from itertools import izip
     state, quiet = int(state), int(quiet)
     if state < 0:
         states = [cmd.get_state()]
     elif state == 0:
-        states = range(1, cmd.count_states(selection)+1)
+        states = list(range(1, cmd.count_states(selection)+1))
     else:
         states = [state]
     rg_sq_list = []
@@ -83,10 +82,10 @@ SEE ALSO
         model = cmd.get_model(selection, state)
         x = [i.coord for i in model.atom]
         mass = [i.get_mass() * i.q for i in model.atom if i.q > 0]
-        xm = [cpv.scale(v,m) for v,m in izip(x,mass)]
+        xm = [cpv.scale(v,m) for v,m in zip(x,mass)]
         tmass = sum(mass)
-        rr = sum(cpv.dot_product(v,vm) for v,vm in izip(x,xm))
-        mm = sum((sum(i)/tmass)**2 for i in izip(*xm))
+        rr = sum(cpv.dot_product(v,vm) for v,vm in zip(x,xm))
+        mm = sum((sum(i)/tmass)**2 for i in zip(*xm))
         rg_sq_list.append(rr/tmass - mm)
     rg = (sum(rg_sq_list)/len(rg_sq_list))**0.5
     if not quiet:
@@ -214,7 +213,11 @@ SEE ALSO
     from MMTK.PDB import PDBConfiguration
     from MMTK.Proteins import Protein
     from MMTK.MolecularSurface import surfaceAndVolume
-    from cStringIO import StringIO
+
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from io import StringIO
 
     selection = selector.process(selection)
     state, quiet = int(state), int(quiet)

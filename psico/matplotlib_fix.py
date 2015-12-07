@@ -40,7 +40,11 @@ def overload():
 
         backend_tkagg.show._needmain = False
 
-        import Tkinter as Tk
+        try:
+            import Tkinter as Tk
+        except ImportError:
+            import tkinter as Tk
+
         from matplotlib.figure import Figure
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, FigureManagerTkAgg
 

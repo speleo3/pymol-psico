@@ -8,6 +8,11 @@ License: BSD-2-Clause
 
 from __future__ import print_function
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 from pymol import cmd, stored, CmdException
 from pymol import selector
 
@@ -206,7 +211,7 @@ def _normalmodes(selection, cutoff, force, mass,
 
     except OSError:
         print('Cannot execute "%s", please provide full path to executable' % (exe))
-    except CmdException, e:
+    except CmdException as e:
         print(' normalmodes: failed!', e)
     finally:
         if clean:
@@ -215,8 +220,7 @@ def _normalmodes(selection, cutoff, force, mass,
             print(' normalmodes: Working directory "%s" not removed!' % (tempdir))
         # cmd.delete(sele_name)
         if wiz is not None:
-            cmd.set_wizard_stack(filter(lambda w: w != wiz,
-                cmd.get_wizard_stack()))
+            cmd.set_wizard_stack([w for w in cmd.get_wizard_stack() if w != wiz])
 
 def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
     line_it = iter(open(filename))
@@ -231,12 +235,12 @@ def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
             if number > readmax:
                 break
             value = float(a[3])
-            line_it.next()
+            next(line_it)
             vector = []
             eigenfacs.append(vector)
             values.append(value)
         else:
-            a = map(float, a)
+            a = list(map(float, a))
             vector.append(a)
     return eigenfacs, values
 
@@ -291,7 +295,6 @@ DESCRIPTION
     if model == 'calpha':
         selection = '(%s) and polymer and name CA' % (selection)
 
-    from cStringIO import StringIO
     f = StringIO(cmd.get_pdbstr(selection))
     conf = PDBConfiguration(f)
     items = conf.createPeptideChains(model)
@@ -382,7 +385,6 @@ DESCRIPTION
     tmpsele = cmd.get_unused_name('_')
     cmd.select(tmpsele, selection)
 
-    from cStringIO import StringIO
     f = StringIO(cmd.get_pdbstr(tmpsele))
     conf = prody.parsePDBStream(f)
 

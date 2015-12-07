@@ -439,7 +439,10 @@ SEE ALSO
 
     dss, dssp, stride
     '''
-    import urllib, urllib2
+    try:
+        import urllib2
+    except ImportError:
+        import urllib.request as urllib2
 
     state, quiet = int(state), int(quiet)
 
@@ -499,7 +502,7 @@ SEE ALSO
                 print(' Warning: SST assignment failed')
             return
 
-        lines.next()
+        next(lines)
 
         for line in lines:
             if line.startswith('...................................END'):

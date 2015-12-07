@@ -65,7 +65,7 @@ class AAindex(dict):
             pattern = pattern.lower()
             whatcase = lambda i: i.lower()
         matches = []
-        for record in self.itervalues():
+        for record in self.values():
             if pattern in whatcase(record.desc) or searchtitle and pattern in whatcase(record.title):
                 matches.append(record)
         return matches
@@ -91,7 +91,10 @@ class AAindex(dict):
             return float(x)
 
         if not os.path.exists(filename):
-            import urllib
+            try:
+                import urllib.request as urllib
+            except ImportError:
+                import urllib
             url = 'ftp://ftp.genome.jp/pub/db/community/aaindex/' + os.path.basename(filename)
             if not quiet:
                 print('Downloading "%s"' % (url))
@@ -190,7 +193,7 @@ class Record(object):
     def __getitem__(self, aai):
         return self.get(aai)
     def median(self):
-        x = sorted(filter(None, self.index.values()))
+        x = sorted([_f for _f in list(self.index.values()) if _f])
         half = len(x)/2
         if len(x) % 2 == 1:
             return x[half]
@@ -230,7 +233,7 @@ class MatrixRecord(Record):
     def median(self):
         x = []
         for y in self.index:
-            x.extend(filter(None, y))
+            x.extend([_f for _f in y if _f])
         x.sort()
         if len(x) % 2 == 1:
             return x[len(x)/2]

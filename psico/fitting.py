@@ -122,7 +122,7 @@ ARGUMENTS
     for line in line_it:
         if 4 >= rowcount > 0:
             if rowcount >= 2:
-                a = map(float, line.split())
+                a = list(map(float, line.split()))
                 matrix.extend(a[2:5])
                 matrix.append(a[1])
             rowcount += 1
@@ -307,7 +307,7 @@ DESCRIPTION
 
     Global Distance Test Total Score (GDT_TS)
     '''
-    cutoffs = map(float, cutoffs.split())
+    cutoffs = list(map(float, cutoffs.split()))
     quiet = int(quiet)
     mobile = '(' + mobile + ') and guide'
     target = '(' + target + ') and guide'
@@ -661,9 +661,9 @@ DESCRIPTION
         handle = open(filename)
         for line in handle:
             if line[10:13] == ' t:':
-                translations.append(map(t_type, line[13:].split()))
+                translations.append(list(map(t_type, line[13:].split())))
             elif line[10:13] == ' R:':
-                rotations.append(map(float, line[13:].split()))
+                rotations.append(list(map(float, line[13:].split())))
         handle.close()
 
     except OSError:
@@ -827,7 +827,7 @@ DESCRIPTION
             f = iter(f)
             for line in f:
                 if line.startswith('ROTATION'):
-                    matrix = [map(float, next(f).split()) + [0] for _ in range(3)]
+                    matrix = [list(map(float, next(f).split())) + [0] for _ in range(3)]
                 elif line.startswith('TRANSLATION'):
                     matrix.append([-float(v) for v in next(f).split()] + [1])
                     break
@@ -841,7 +841,7 @@ DESCRIPTION
         if object:
             from .importing import load_aln
             alnfiles = xglob('Residue_Alignment_Scores/*/*.txt')
-            alnfiles = filter(lambda x: not x.endswith('_clusters.txt'), alnfiles)
+            alnfiles = [x for x in alnfiles if not x.endswith('_clusters.txt')]
             load_aln(alnfiles[0], object, mobile, target)
 
     except OSError:
@@ -1182,7 +1182,7 @@ REFERENCE
 def _promix(**kwargs):
     conformers = 0
 
-    exec ','.join(kwargs) + ', = kwargs.values()'
+    exec(','.join(kwargs) + ', = kwargs.values()')
 
     if not prefix:
         if conformers:

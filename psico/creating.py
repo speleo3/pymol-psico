@@ -133,7 +133,7 @@ SEE ALSO
         raise CmdException
 
     model = models.Indexed()
-    for centeratoms in atmap.itervalues():
+    for centeratoms in atmap.values():
         center = cpv.get_null()
         for at in centeratoms:
             center = cpv.add(center, at.coord)
@@ -294,7 +294,7 @@ DESCRIPTION
             print(stdout)
 
         trclines = open(trcfile).readlines()
-        trcerror = filter(lambda line: 'ERROR' in line, trclines)
+        trcerror = [line for line in trclines if 'ERROR' in line]
         if trcerror:
             raise CmdException("corina failed: " + trcerror[0].strip())
 

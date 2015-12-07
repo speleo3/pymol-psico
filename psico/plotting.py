@@ -203,7 +203,7 @@ EXAMPLE
         extra_fit(selection, cycles=0, transform=0, object=aln_object)
 
     if state == 0:
-        states = range(1, cmd.count_states()+1)
+        states = list(range(1, cmd.count_states()+1))
     elif state < 0:
         states = [cmd.get_state()]
     else:
@@ -224,7 +224,7 @@ EXAMPLE
 
     model_count = len(models)
     coords = dict((model, []) for model in models)
-    aln = filter(lambda pos: len(pos) == model_count, aln)
+    aln = [pos for pos in aln if len(pos) == model_count]
 
     for state in states:
         idx2xyz = dict()
@@ -351,7 +351,7 @@ EXAMPLE
         cmd.iterate(selection, '_values.append(' + expr_y + ')', space=space)
 
         if expr_x is None:
-            x_values = range(len(y_values))
+            x_values = list(range(len(y_values)))
         else:
             space['_values'] = x_values = []
             cmd.iterate(selection, '_values.append(' + expr_x + ')', space=space)

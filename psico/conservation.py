@@ -30,7 +30,10 @@ SEE ALSO
 
     load_consurf
     '''
-    import urllib2
+    try:
+        import urllib2
+    except ImportError:
+        import urllib.request as urllib2
 
     code = code.upper()
     url = 'http://bental.tau.ac.il/new_ConSurfDB/DB/%s/%s/r4s.res' % (code, chain)
@@ -79,7 +82,7 @@ SEE ALSO
     scores = []
     seqlist = []
 
-    if isinstance(filename, basestring):
+    if cmd.is_string(filename):
         handle = open(filename)
     else:
         handle = filename

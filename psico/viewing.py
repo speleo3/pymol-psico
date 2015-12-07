@@ -77,7 +77,7 @@ USAGE
     else:
         col_it = itertools.count(int(first_color))
     for model in cmd.get_object_list('(' + selection + ')'):
-        col = col_it.next()
+        col = next(col_it)
         if selection in ['*', 'all']:
             # explicit model coloring for cmd.get_object_color_index to work
             cmd.color(col, model)
@@ -99,7 +99,7 @@ DESCRIPTION
     segi_colors = dict()
     def callback(segi):
         if segi not in segi_colors:
-            segi_colors[segi] = col_it.next()
+            segi_colors[segi] = next(col_it)
         return segi_colors[segi]
     cmd.alter(selection, 'color = callback(segi)', space=locals())
     cmd.rebuild()

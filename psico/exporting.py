@@ -11,6 +11,11 @@ License: BSD-2-Clause
 
 from __future__ import print_function
 
+try:
+    file
+except NameError:
+    from io import FileIO as file
+
 from pymol import cmd, CmdException
 from pymol import selector
 
@@ -131,7 +136,7 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         Write a 3xNATOMS coord matrix.
         '''
         if not transposed:
-            xyz = zip(*xyz)
+            xyz = list(zip(*xyz))
         assert len(xyz) == 3, 'Wrong number of dimensions'
         for coor in xyz:
             assert len(coor) == self.natoms, 'Wrong number of atoms'
@@ -157,7 +162,7 @@ http://ambermd.org/formats.html#trajectory
         Write a NATOMSx3 coord matrix.
         '''
         if transposed:
-            xyz = zip(*xyz)
+            xyz = list(zip(*xyz))
         if self.natoms > -1:
             assert len(xyz) == self.natoms, 'Wrong number of atoms'
         assert len(xyz[0]) == 3, 'Wrong number of dimensions'

@@ -29,11 +29,11 @@ Triangulation using qdelaunay. (http://www.qhull.org)
     process.stdin.close()
     # output
     out_it = iter(process.stdout)
-    n_regions = out_it.next()
+    n_regions = next(out_it)
     for line in out_it:
         a = line.split()
         assert len(a) == n + 1, 'Wrong number of vertices in output'
-        yield map(int, a)
+        yield list(map(int, a))
 
 def delaunay(selection='enabled', name=None, cutoff=10.0, as_cgo=0,
         qdelaunay_exe='qdelaunay', state=-1, quiet=1):

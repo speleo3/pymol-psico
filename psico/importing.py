@@ -6,6 +6,11 @@ License: BSD-2-Clause
 
 from __future__ import print_function
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 import os.path
 from pymol import cmd, CmdException
 
@@ -85,7 +90,10 @@ def cath_parse_domall(filename=''):
         basename = 'CathDomall.seqreschopping'
         filename = os.path.join(fetch_path, basename)
         if not os.path.exists(filename):
-            import urllib2
+            try:
+                import urllib2
+            except ImportError:
+                import urllib.request as urllib2
             handle = urllib2.urlopen('http://release.cathdb.info/latest/' + basename)
             out = open(filename, 'w')
             out.write(handle.read())
@@ -265,7 +273,7 @@ SEE ALSO
         if frame < start:
             continue
 
-        coordset = map(list, zip(*XYZ))
+        coordset = list(map(list, list(zip(*XYZ))))
         assert len(coordset) == natom
 
         load_coords(coordset, object, state)
@@ -297,7 +305,7 @@ SEE ALSO
         state = cmd.count_states(object) + 1
     natom = cmd.count_atoms(object)
     line_it = iter(open(filename))
-    line_it.next() # skip title
+    next(line_it) # skip title
     def crd_coord_iter():
         '''
         Iterator that yields True at the beginning of a coord set, followed
@@ -319,7 +327,7 @@ SEE ALSO
                     # assume number of atoms in second line
                     _natom = int(line)
                     assert _natom == natom, 'Numbers differ: %d, %d' % (natom, _natom)
-                    line = line_it.next()
+                    line = next(line_it)
                     second_dot = line.find('.', 8)
                 if second_dot == 12:
                     width = 8
@@ -347,8 +355,8 @@ SEE ALSO
         yield False
     frame = 1
     coord_it = crd_coord_iter()
-    while coord_it.next() == True:
-        coordset = [[coord_it.next(), coord_it.next(), coord_it.next()]
+    while next(coord_it) == True:
+        coordset = [[next(coord_it), next(coord_it), next(coord_it)]
                 for _ in range(natom)]
         if frame >= start:
             load_coords(coordset, object, state)
@@ -531,7 +539,7 @@ DESCRIPTION
             continue
 
     model = models.Indexed()
-    for (xyz,s) in survey.iteritems():
+    for (xyz,s) in survey.items():
         l0, _, l1 = s.labels[0].rpartition('.')
         resi, name = l1[:5], l1[5:]
         segi, chain, resn = l0[-8:-4], l0[-4:-3], l0[-3:]
@@ -548,8 +556,8 @@ DESCRIPTION
             atom.vdw = sum(s.lrud)/400.0
         model.add_atom(atom)
 
-    s2i = dict((s,i) for (i,s) in enumerate(survey.itervalues()))
-    for (s,i) in s2i.iteritems():
+    s2i = dict((s,i) for (i,s) in enumerate(survey.values()))
+    for (s,i) in s2i.items():
         for o in s.adjacent:
             bnd = Bond()
             bnd.index = [i, s2i[o]]
@@ -724,7 +732,7 @@ DESCRIPTION
 
     pdb = ['']
     stream = open(filename)
-    for model in xrange(1, 9999):
+    for model in range(1, 9999):
         title = stream.readline()
         natoms = stream.readline().strip()
         if natoms == '':
@@ -762,7 +770,7 @@ SEE ALSO
         return cmd.load_coordset(coords, object, int(state))
 
     if not (isinstance(coords, list) and isinstance(coords[0], list)):
-        coords = map(list, coords)
+        coords = list(map(list, coords))
     r = cmd._cmd.load_coords(cmd._COb, object, coords, int(state)-1,
             cmd.loadable.model)
     if cmd._raising(r): raise CmdException

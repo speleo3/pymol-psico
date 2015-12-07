@@ -157,10 +157,10 @@ SEE ALSO
     center = cpv.get_null()
 
     count = 0
-    for x in coords.itervalues():
+    for x in coords.values():
         if 'C' in x and 'N' in x:
             vec = cpv.add(vec, cpv.sub(x['C'], x['N']))
-        for coord in x.itervalues():
+        for coord in x.values():
             center = cpv.add(center, coord)
             count += 1
 
@@ -230,7 +230,7 @@ SEE ALSO
         print('warning: count == 0')
         raise CmdException
 
-    center = cpv.scale(_vec_sum(atoms['O'].itervalues()), 1./len(atoms['O']))
+    center = cpv.scale(_vec_sum(atoms['O'].values()), 1./len(atoms['O']))
     vec = _vec_sum(vec_list)
     vec = cpv.normalize(vec)
 

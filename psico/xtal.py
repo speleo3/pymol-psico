@@ -188,7 +188,7 @@ DESCRIPTION
     remarkNum as key and list of lines as value.
     '''
     remarks = dict()
-    if not isinstance(filename, basestring):
+    if not cmd.is_string(filename):
         f = filename
     elif filename[-3:] == '.gz':
         import gzip
@@ -281,7 +281,7 @@ EXAMPLE
             row = int(line[7])
             num = int(line[8:12])
             vec = line[12:].split()
-            vec = map(float, vec)
+            vec = list(map(float, vec))
             biomt[current].setdefault(chains, dict()).setdefault(num, []).extend(vec)
 
     if number not in biomt or len(biomt[number]) == 0:
@@ -292,7 +292,7 @@ EXAMPLE
         mat_source = numpy.reshape(cmd.get_object_matrix(name), (4,4))
         mat_source = numpy.matrix(mat_source)
 
-    for chains, matrices in biomt[number].iteritems():
+    for chains, matrices in biomt[number].items():
         for num in matrices:
             mat = matrices[num][0:12]
             mat.extend([0,0,0,1])
