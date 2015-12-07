@@ -98,7 +98,7 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
 
         # Header
         fmt='4s 9i d 9i'
-        header = ['CORD', # 4s
+        header = [b'CORD', # 4s
                 nstates, 1, 1, 0, 0, 0, 0, 0, 0, # 9i
                 1.0, # d
                 0, 0, 0, 0, 0, 0, 0, 0, 0, # 9i
@@ -112,8 +112,8 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         # Title
         fmt = 'i80s80s'
         title = [2, # 1i
-                '* TITLE'.ljust(80), # 80s
-                ('* Created by ' + vendor).ljust(80), # 80s
+                b'* TITLE'.ljust(80), # 80s
+                (b'* Created by ' + vendor.encode()).ljust(80), # 80s
                 ]
         self.writeFortran(title,fmt,length=160+4)
  
