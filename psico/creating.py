@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def join_states(name, selection='all', discrete=-1, zoom=0, quiet=1):
@@ -127,7 +129,7 @@ SEE ALSO
         for at in modelAll.atom:
             atmap.setdefault((at.segi, at.chain, at.resn, at.resi), []).append(at)
     else:
-        print 'Error: unknown method:', method
+        print('Error: unknown method:', method)
         raise CmdException
 
     model = models.Indexed()
@@ -171,11 +173,11 @@ SEE ALSO
             raise TypeError('not a ramp')
         data = odata[5]
     except:
-        print ' Error: Get session data for ramp "%s" failed' % (name)
+        print(' Error: Get session data for ramp "%s" failed' % (name))
         raise CmdException
 
     if len(levels) != len(data[3]):
-        print ' Error: number of levels must agree with existing object'
+        print(' Error: number of levels must agree with existing object')
         raise CmdException
 
     map_name = data[6]
@@ -246,19 +248,19 @@ ARGUMENTS
         subprocess.check_call(args, cwd=tmpdir)
         cmd.load(outfile, name)
     except OSError:
-        print ' Error: Cannot execute "%s"' % (exe)
+        print(' Error: Cannot execute "%s"' % (exe))
         raise CmdException
     except subprocess.CalledProcessError as e:
-        print ' Error: %s failed with exit status %d' % (args[0], e.returncode)
+        print(' Error: %s failed with exit status %d' % (args[0], e.returncode))
         raise CmdException
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
         elif not quiet:
-            print ' Notice: not deleting', tmpdir
+            print(' Notice: not deleting', tmpdir)
 
     if not quiet:
-        print ' pdb2pqr: done'
+        print(' pdb2pqr: done')
 
 def corina(name, selection, exe='corina', state=-1, preserve=0, quiet=1):
     '''
@@ -289,7 +291,7 @@ DESCRIPTION
                 stderr=subprocess.PIPE).communicate()
 
         if not quiet and stdout.strip():
-            print stdout
+            print(stdout)
 
         trclines = open(trcfile).readlines()
         trcerror = filter(lambda line: 'ERROR' in line, trclines)
@@ -306,10 +308,10 @@ DESCRIPTION
         if not preserve:
             shutil.rmtree(tmpdir)
         elif not quiet:
-            print ' Notice: not deleting', tmpdir
+            print(' Notice: not deleting', tmpdir)
 
     if not quiet:
-        print ' corina: done'
+        print(' corina: done')
 
 cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)

@@ -6,6 +6,8 @@ Orientation, displacement and angle measurments of helices and domains.
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 from chempy import cpv
 
@@ -32,7 +34,7 @@ def _common_orientation(selection, center, vec, visualize=1, scale=1.0, quiet=1)
         visualize_orientation(vec, center, scale, True)
         cmd.zoom(selection, buffer=2)
     if not quiet:
-        print ' Center: (%.2f, %.2f, %.2f) Direction: (%.2f, %.2f, %.2f)' % tuple(center + vec)
+        print(' Center: (%.2f, %.2f, %.2f) Direction: (%.2f, %.2f, %.2f)' % tuple(center + vec))
 
 def visualize_orientation(direction, center=[0.0]*3, scale=1.0, symmetric=False, color='green', color2='red'):
     '''
@@ -106,7 +108,7 @@ SEE ALSO
     try:
         import numpy
     except ImportError:
-        print ' Error: numpy not available'
+        print(' Error: numpy not available')
         raise CmdException
 
     state, visualize, quiet = int(state), int(visualize), int(quiet)
@@ -163,7 +165,7 @@ SEE ALSO
             count += 1
 
     if count == 0:
-        print 'warning: count == 0'
+        print('warning: count == 0')
         raise CmdException
 
     vec = cpv.normalize(vec)
@@ -220,12 +222,12 @@ SEE ALSO
 
         if dist_weight > 0.0 and angle_weight > 0.0:
             if not quiet:
-                print ' weight:', angle_weight * dist_weight
+                print(' weight:', angle_weight * dist_weight)
             vec = cpv.scale(cpv.sub(aN, aC), angle_weight * dist_weight)
             vec_list.append(vec)
 
     if len(vec_list) == 0:
-        print 'warning: count == 0'
+        print('warning: count == 0')
         raise CmdException
 
     center = cpv.scale(_vec_sum(atoms['O'].itervalues()), 1./len(atoms['O']))
@@ -247,7 +249,7 @@ DESCRIPTION
     try:
         import numpy
     except ImportError:
-        print ' Error: numpy not available'
+        print(' Error: numpy not available')
         raise CmdException
 
     state, visualize, quiet = int(state), int(visualize), int(quiet)
@@ -260,7 +262,7 @@ DESCRIPTION
             'coords.append([x,y,z])', space=locals())
 
     if len(coords) < 3:
-        print 'not enough guide atoms in selection'
+        print('not enough guide atoms in selection')
         raise CmdException
 
     x = numpy.array(coords)
@@ -339,11 +341,11 @@ SEE ALSO
     try:
         orientation = globals()[methods_sc[str(method)]]
     except KeyError:
-        print 'no such method:', method
+        print('no such method:', method)
         raise CmdException
 
     if not int(quiet):
-        print ' Using method:', orientation.__name__
+        print(' Using method:', orientation.__name__)
 
     cen1, dir1 = orientation(selection1, state1, visualize, quiet=1)
     cen2, dir2 = orientation(selection2, state2, visualize, quiet=1)
@@ -352,7 +354,7 @@ SEE ALSO
     angle = math.degrees(angle)
 
     if not quiet:
-        print ' Angle: %.2f deg' % (angle)
+        print(' Angle: %.2f deg' % (angle))
 
     if visualize:
         # measurement object for angle
@@ -412,7 +414,7 @@ SEE ALSO
     try:
         import numpy
     except ImportError:
-        print ' Error: numpy not available'
+        print(' Error: numpy not available')
         raise CmdException
 
     state1, state2 = int(state1), int(state2)
@@ -422,7 +424,7 @@ SEE ALSO
         try:
             method = cmd.keyword[method][0]
         except KeyError:
-            print 'no such method:', method
+            print('no such method:', method)
             raise CmdException
 
     mobile_tmp = get_unused_name('_')
@@ -432,7 +434,7 @@ SEE ALSO
                 target_state=state2, quiet=quiet)
         mat = cmd.get_object_matrix(mobile_tmp)
     except:
-        print ' Error: superposition with method "%s" failed' % (method.__name__)
+        print(' Error: superposition with method "%s" failed' % (method.__name__))
         raise CmdException
     finally:
         cmd.delete(mobile_tmp)
@@ -461,7 +463,7 @@ SEE ALSO
         angle = math.atan2(sina, cosa)
         angle = abs(math.degrees(angle))
     except:
-        print ' Error: rotation from matrix failed'
+        print(' Error: rotation from matrix failed')
         raise CmdException
 
     if not quiet:
@@ -478,7 +480,7 @@ SEE ALSO
 
         center1 = centerofmass(selection1)
         center2 = centerofmass(selection2)
-        print ' Angle: %.2f deg, Displacement: %.2f angstrom' % (angle, cpv.distance(center1, center2))
+        print(' Angle: %.2f deg, Displacement: %.2f angstrom' % (angle, cpv.distance(center1, center2)))
 
         if visualize:
             center1 = numpy.array(center1, float)

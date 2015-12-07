@@ -5,6 +5,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 from pymol import selector
 
@@ -52,7 +54,7 @@ SEE ALSO
             totmass += m
     com = cpv.scale(com, 1./totmass)
     if not quiet:
-        print ' Center of Mass: [%8.3f,%8.3f,%8.3f]' % tuple(com)
+        print(' Center of Mass: [%8.3f,%8.3f,%8.3f]' % tuple(com))
     return com
 
 def gyradius(selection='(all)', state=-1, quiet=1):
@@ -88,7 +90,7 @@ SEE ALSO
         rg_sq_list.append(rr/tmass - mm)
     rg = (sum(rg_sq_list)/len(rg_sq_list))**0.5
     if not quiet:
-        print ' Radius of gyration: %.2f' % (rg)
+        print(' Radius of gyration: %.2f' % (rg))
     return rg
 
 def get_alignment_coords(name, active_only=0, state=-1, quiet=0):
@@ -159,7 +161,7 @@ DESCRIPTION
     try:
         import BALL
     except ImportError:
-        print ' ImportError: please install BALL python bindings'
+        print(' ImportError: please install BALL python bindings')
         raise CmdException
 
     import tempfile, os
@@ -186,7 +188,7 @@ DESCRIPTION
     sas(system)
     area = sas.getTotalArea()
     if not quiet:
-        print ' get_sasa_ball: %.3f Angstroms^2.' % (area)
+        print(' get_sasa_ball: %.3f Angstroms^2.' % (area))
     return area
 
 def get_sasa_mmtk(selection, state=-1, hydrogens='auto', quiet=1):
@@ -206,7 +208,7 @@ SEE ALSO
     try:
         import MMTK
     except ImportError:
-        print ' ImportError: please install MMTK'
+        print(' ImportError: please install MMTK')
         raise CmdException
 
     from MMTK.PDB import PDBConfiguration
@@ -232,11 +234,11 @@ SEE ALSO
     try:
         area, volume = surfaceAndVolume(system, radius * 0.1)
     except:
-        print ' Error: MMTK.MolecularSurface.surfaceAndVolume failed'
+        print(' Error: MMTK.MolecularSurface.surfaceAndVolume failed')
         raise CmdException
 
     if not quiet:
-        print ' get_sasa_mmtk: %.3f Angstroms^2 (volume: %.3f Angstroms^3).' % (area * 1e2, volume * 1e3)
+        print(' get_sasa_mmtk: %.3f Angstroms^2 (volume: %.3f Angstroms^3).' % (area * 1e2, volume * 1e3))
     return area * 1e2
 
 def get_raw_distances(names='', state=1, selection='all', quiet=1):
@@ -274,7 +276,7 @@ SEE ALSO
     else:
         for name in names.split():
             if name not in valid_names:
-                print ' Error: no such distance object:', name
+                print(' Error: no such distance object:', name)
                 raise CmdException
 
     raw_objects = cmd.get_session(names, 1, 1, 0, 0)['names']
@@ -297,10 +299,10 @@ SEE ALSO
             try:
                 r.append((xyz2idx[xyz1], xyz2idx[xyz2], cpv.distance(xyz1, xyz2)))
                 if not quiet:
-                    print ' get_raw_distances:', r[-1]
+                    print(' get_raw_distances:', r[-1])
             except KeyError:
                 if quiet < 0:
-                    print ' Debug: no index for', xyz1, xyz2
+                    print(' Debug: no index for', xyz1, xyz2)
     return r
 
 def get_color(selection, which=0, mode=0):
@@ -336,7 +338,7 @@ ARGUMENTS
         if color >= 0x40000000:
             color = '0x%06x' % (color & 0xFFFFFF)
     except:
-        print ' Warning: could not get color for', selection
+        print(' Warning: could not get color for', selection)
         color = 'gray'
     if mode > 0:
         color = cmd.get_color_tuple(color)
@@ -352,10 +354,10 @@ DESCRIPTION
     '''
     names = cmd.get_object_list('(' + selection + ')')
     if len(names) == 0:
-        print ' Error: No objects in selection'
+        print(' Error: No objects in selection')
         raise CmdException
     if strict and len(names) > 1:
-        print ' Error: Selection spans more than one object'
+        print(' Error: Selection spans more than one object')
         raise CmdException
     return names[0]
 
@@ -370,7 +372,7 @@ DESCRIPTION
         return 1
     state = cmd.get_setting_int('state', name)
     if state > states:
-        print ' Error: Invalid state %d for object %s' % (state, name)
+        print(' Error: Invalid state %d for object %s' % (state, name))
         raise CmdException
     return state
 
@@ -386,7 +388,7 @@ DESCRIPTION
     if len(state_set) != 1:
         if len(state_set) == 0:
             return 1
-        print ' Error: Selection spans multiple object states'
+        print(' Error: Selection spans multiple object states')
         raise CmdException
     return state_set.pop()
 

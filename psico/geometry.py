@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd
 
 def qdelaunay(X, n=0, m=0, options='Qt', qdelaunay_exe='qdelaunay'):
@@ -20,10 +22,10 @@ Triangulation using qdelaunay. (http://www.qhull.org)
     process = subprocess.Popen([qdelaunay_exe, 'i'] + options.split(),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     # input
-    print >> process.stdin, n
-    print >> process.stdin, m
+    print(n, file=process.stdin)
+    print(m, file=process.stdin)
     for coord in X:
-        print >> process.stdin, '%f %f %f' % tuple(coord)
+        print('%f %f %f' % tuple(coord), file=process.stdin)
     process.stdin.close()
     # output
     out_it = iter(process.stdout)

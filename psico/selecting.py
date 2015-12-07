@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1):
@@ -66,9 +68,9 @@ SEE ALSO
     matches = list(re.finditer(pattern.upper(), ''.join(seq_list)))
     if not quiet:
         if len(matches) == 0:
-            print ' select_pepseq: Pattern not found in selection'
+            print(' select_pepseq: Pattern not found in selection')
         else:
-            print ' select_pepseq: Pattern found %d time(s)' % (len(matches))
+            print(' select_pepseq: Pattern found %d time(s)' % (len(matches)))
 
     sel_list = []
     for m in matches:
@@ -133,13 +135,13 @@ ARGUMENTS
                 sele += '/CA'
             sele_list.append(sele)
             if not quiet:
-                print ss_names.get(ss, ss).ljust(6), sele
+                print(ss_names.get(ss, ss).ljust(6), sele)
 
     sele = ' '.join(sele_list)
     if name is not None:
         cmd.select(name, sele)
     elif not quiet:
-        print ' Selection:', sele
+        print(' Selection:', sele)
 
     return sele
 
@@ -235,7 +237,7 @@ ARGUMENTS
         r_all.append('/%s/%s/%s/' % key + resi)
     if not int(quiet):
         for r in r_all:
-            print ' collapse_resi:', r
+            print(' collapse_resi:', r)
     return ' '.join(r_all)
 
 def wait_for(name, state=0, quiet=1):
@@ -293,7 +295,7 @@ SEE ALSO
         cmd.delete(tmp_name)
 
     if not quiet:
-        print ' Selector: selection "%s" defined with %d atoms.' % (name, r)
+        print(' Selector: selection "%s" defined with %d atoms.' % (name, r))
     return r
 
 # commands

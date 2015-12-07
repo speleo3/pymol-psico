@@ -6,6 +6,8 @@ Simplified morphing workflow
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd
 
 def morpheasy(source, target, source_state=0, target_state=0, name=None,
@@ -28,8 +30,8 @@ EXAMPLE
     try:
         from epymol import rigimol
     except ImportError:
-        print 'No epymol available, please use a "Incentive PyMOL" build'
-        print 'You may use "morpheasy_linear" instead'
+        print('No epymol available, please use a "Incentive PyMOL" build')
+        print('You may use "morpheasy_linear" instead')
         return
 
     from .editing import mse2met

@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd
 
 def fasta(selection='(all)', gapped=1, wrap=70):
@@ -38,12 +40,12 @@ SEE ALSO
                     seq.extend('-' * gap_len)
                     prev_resi = atom.resi_number
                 seq.append(one_letter.get(atom.resn, 'X'))
-            print '>%s_%s' % (obj, chain)
+            print('>%s_%s' % (obj, chain))
             if wrap < 1:
-                print ''.join(seq)
+                print(''.join(seq))
                 continue
             for i in range(0, len(seq), wrap):
-                print ''.join(seq[i:i+wrap])
+                print(''.join(seq[i:i+wrap]))
 
 def pir(selection='(all)', wrap=70):
     '''
@@ -68,15 +70,15 @@ SEE ALSO
             prev_coord = atom.coord
             seq.append(one_letter.get(atom.resn, 'X'))
         seq.append('*')
-        print '>P1;%s' % (obj)
-        print 'structure:%s:%s:%s:%s:%s::::' % (obj,
+        print('>P1;%s' % (obj))
+        print('structure:%s:%s:%s:%s:%s::::' % (obj,
                 model.atom[0].resi,model.atom[0].chain,
-                model.atom[-1].resi,model.atom[-1].chain)
+                model.atom[-1].resi,model.atom[-1].chain))
         if wrap < 1:
-            print ''.join(seq)
+            print(''.join(seq))
             continue
         for i in range(0, len(seq), wrap):
-            print ''.join(seq[i:i+wrap])
+            print(''.join(seq[i:i+wrap]))
 
 def save_colored_fasta(filename, selection='(all)', gapped=1, quiet=1):
     '''
@@ -116,9 +118,9 @@ DESCRIPTION
             cmd.iterate(sele, 'callback(resv, resn, color)', space=locals())
             html.append('</font>')
     handle = open(filename, 'w')
-    print >> handle, '<html><body style="font-family:monospace">'
-    print >> handle, ''.join(html)
-    print >> handle, '</body></html>'
+    print('<html><body style="font-family:monospace">', file=handle)
+    print(''.join(html), file=handle)
+    print('</body></html>', file=handle)
     handle.close()
 
 cmd.extend('fasta', fasta)

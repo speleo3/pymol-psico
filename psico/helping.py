@@ -5,6 +5,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
  
 def grepset(regexp=''):
@@ -47,8 +49,8 @@ SEE ALSO
     maxlen = max([len(s[0]) for s in matches] + [0])
     fmt = "%%-%ds : %%s" % (maxlen,)
     for setting in matches:
-        print fmt % setting
-    print '%d settings matched' % (count,)
+        print(fmt % setting)
+    print('%d settings matched' % (count,))
 
  
 def apropos(regexp=''):
@@ -86,7 +88,7 @@ SEE ALSO
     maxcclen=0
     for cc in cmd.keyword:
         if cc == regexp:
-            print '\n###EXACT MATCH FOR: %s ==> try \'help %s\' at the prompt.' % (cc,cc)
+            print('\n###EXACT MATCH FOR: %s ==> try \'help %s\' at the prompt.' % (cc,cc))
  
         doc = cmd.keyword[cc][0].__doc__
  
@@ -110,14 +112,14 @@ SEE ALSO
  
  
     if len(matches_without_help) > 0:
-        print '\n###The following commands are NOT documented.\n'
+        print('\n###The following commands are NOT documented.\n')
         for cc in matches_without_help:
-            print '%*s' % (maxcclen, cc)
+            print('%*s' % (maxcclen, cc))
  
     if len(matches_with_help) > 0:
-        print '\n###The following commands are documented.  \'help command\' \n'
+        print('\n###The following commands are documented.  \'help command\' \n')
         for cc,desc in matches_with_help:
-            print '%*s : %s' % (maxcclen, cc,desc)
+            print('%*s : %s' % (maxcclen, cc,desc))
 
 def api_info(name):
     '''
@@ -134,13 +136,13 @@ ARGUMENTS
     try:
         func = cmd.keyword[name][0]
     except KeyError:
-        print ' Error: No such command'
+        print(' Error: No such command')
         raise CmdException
-    print ' CMD:', name
-    print ' API: %s.%s' % (func.__module__, func.__name__)
+    print(' CMD:', name)
+    print(' API: %s.%s' % (func.__module__, func.__name__))
     if func == getattr(cmd, func.__name__, None):
-        print ' API: cmd.' + func.__name__
-    print ' FILE:', sys.modules[func.__module__].__file__
+        print(' API: cmd.' + func.__name__)
+    print(' FILE:', sys.modules[func.__module__].__file__)
     return func
 
 def write_html_ref(filename, prefix='psico', format='html'):

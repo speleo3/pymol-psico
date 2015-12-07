@@ -6,6 +6,8 @@ Normal mode calculation using external apps or libraries.
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, stored, CmdException
 from pymol import selector
 
@@ -89,7 +91,7 @@ def _normalmodes(selection, cutoff, force, mass,
     tempdir = tempfile.mkdtemp()
 
     if not quiet:
-        print ' normalmodes: Temporary directory is', tempdir
+        print(' normalmodes: Temporary directory is', tempdir)
 
     try:
         sele_name = cmd.get_unused_name('__pdbmat')
@@ -116,7 +118,7 @@ def _normalmodes(selection, cutoff, force, mass,
         f.close()
 
         if not quiet:
-            print ' normalmodes: running', exe, '...'
+            print(' normalmodes: running', exe, '...')
         if wiz is not None:
             wiz.message[1] = 'running pdbmat'
             cmd.refresh_wizard()
@@ -129,7 +131,7 @@ def _normalmodes(selection, cutoff, force, mass,
 
         natoms = len(open(os.path.join(tempdir, 'pdbmat.xyzm')).readlines())
         if natoms != cmd.count_atoms(sele_name):
-            print 'Error: pdbmat did not recognize all atoms'
+            print('Error: pdbmat did not recognize all atoms')
             raise CmdException
 
         commandfile = os.path.join(tempdir, 'diagrtb.dat')
@@ -151,7 +153,7 @@ def _normalmodes(selection, cutoff, force, mass,
 
         exe = diag_exe
         if not quiet:
-            print ' normalmodes: running', exe, '...'
+            print(' normalmodes: running', exe, '...')
         if wiz is not None:
             wiz.message[1] = 'running diagrtb'
             cmd.refresh_wizard()
@@ -178,8 +180,8 @@ def _normalmodes(selection, cutoff, force, mass,
             cmd.delete(name)
 
             if not quiet:
-                print ' normalmodes: object "%s" for mode %d with freq. %.6f' % \
-                        (name, mode, frequencies[mode-1])
+                print(' normalmodes: object "%s" for mode %d with freq. %.6f' % \
+                        (name, mode, frequencies[mode-1]))
 
             for state in range(1, states+1):
                 cmd.create(name, sele_name, 1, state, zoom=0)
@@ -203,14 +205,14 @@ def _normalmodes(selection, cutoff, force, mass,
         })
 
     except OSError:
-        print 'Cannot execute "%s", please provide full path to executable' % (exe)
+        print('Cannot execute "%s", please provide full path to executable' % (exe))
     except CmdException, e:
-        print ' normalmodes: failed!', e
+        print(' normalmodes: failed!', e)
     finally:
         if clean:
             shutil.rmtree(tempdir)
         elif not quiet:
-            print ' normalmodes: Working directory "%s" not removed!' % (tempdir)
+            print(' normalmodes: Working directory "%s" not removed!' % (tempdir))
         # cmd.delete(sele_name)
         if wiz is not None:
             cmd.set_wizard_stack(filter(lambda w: w != wiz,
@@ -251,7 +253,7 @@ DESCRIPTION
     try:
         import MMTK
     except ImportError:
-        print 'Failed to import MMTK, please add to PYTHONPATH'
+        print('Failed to import MMTK, please add to PYTHONPATH')
         raise CmdException
 
     selection = selector.process(selection)
@@ -284,7 +286,7 @@ DESCRIPTION
     else:
         raise NotImplementedError('unknown ff = ' + str(ff))
     if not quiet:
-        print ' Forcefield:', forcefield.__class__.__name__
+        print(' Forcefield:', forcefield.__class__.__name__)
 
     if model == 'calpha':
         selection = '(%s) and polymer and name CA' % (selection)
@@ -300,7 +302,7 @@ DESCRIPTION
     nbasis = max(10, universe.numberOfAtoms()/5)
     cutoff, nbasis = estimateCutoff(universe, nbasis)
     if not quiet:
-        print " Calculating %d low-frequency modes." % nbasis
+        print(" Calculating %d low-frequency modes." % nbasis)
 
     if cutoff is None:
         modes = NormalModes(universe)
@@ -314,7 +316,7 @@ DESCRIPTION
     if factor < 0:
         factor = log(natoms)
         if not quiet:
-            print ' set factor to %.2f' % (factor)
+            print(' set factor to %.2f' % (factor))
 
     if True: # cmd.count_atoms(selection) != natoms:
         import tempfile, os
@@ -327,7 +329,7 @@ DESCRIPTION
         os.remove(filename)
 
         if cmd.count_atoms(selection) != natoms:
-            print 'hmm... still wrong number of atoms'
+            print('hmm... still wrong number of atoms')
 
     def eigenfacs_iter(mode):
         x = modes[mode-1].array
@@ -338,8 +340,8 @@ DESCRIPTION
         cmd.delete(name)
 
         if not quiet:
-            print ' normalmodes: object "%s" for mode %d with freq. %.6f' % \
-                    (name, mode, frequencies[mode-1])
+            print(' normalmodes: object "%s" for mode %d with freq. %.6f' % \
+                    (name, mode, frequencies[mode-1]))
 
         for state in range(1, states+1):
             cmd.create(name, selection, 1, state, zoom=0)
@@ -368,7 +370,7 @@ DESCRIPTION
     try:
         import prody
     except ImportError:
-        print 'Failed to import prody, please add to PYTHONPATH'
+        print('Failed to import prody, please add to PYTHONPATH')
         raise CmdException
 
     first, last, guide = int(first), int(last), int(guide)
@@ -393,14 +395,14 @@ DESCRIPTION
         natoms = modes.numAtoms()
         factor = log(natoms) * 10
         if not quiet:
-            print ' set factor to %.2f' % (factor)
+            print(' set factor to %.2f' % (factor))
 
     for mode in range(first, last + 1):
         name = prefix + '%d' % mode
         cmd.delete(name)
 
         if not quiet:
-            print ' normalmodes: object "%s" for mode %d' % (name, mode)
+            print(' normalmodes: object "%s" for mode %d' % (name, mode))
 
         for state in range(1, states+1):
             xyz_it = iter(modes[mode-7].getArrayNx3() * (factor *

@@ -9,6 +9,8 @@ formats.
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 from pymol import selector
 
@@ -52,7 +54,7 @@ ARGUMENTS
     elif format in ['rst', 'rst7']:
         Outfile = RSTOutfile
     else:
-        print 'Unknown format:', format
+        print('Unknown format:', format)
         raise CmdException
 
     f = open(filename, 'wb')
@@ -77,7 +79,7 @@ ARGUMENTS
 
     if not int(quiet):
         fmt = 'Wrote trajectory in %s format with %d atoms and %d frames to file %s'
-        print fmt % (format, NATOMS, NSTATES, filename)
+        print(fmt % (format, NATOMS, NSTATES, filename))
 
 class DCDOutfile(file):
     '''
@@ -148,7 +150,7 @@ http://ambermd.org/formats.html#trajectory
         self.box = box
 
         # Write Trajectory Header Information
-        print >> self, 'TITLE : Created by %s with %d atoms' % (vendor, natoms)
+        print('TITLE : Created by %s with %d atoms' % (vendor, natoms), file=self)
 
     def writeCoordSet(self, xyz, transposed=0):
         '''
@@ -186,7 +188,7 @@ http://ambermd.org/formats.html#restart
     def __init__(self, *args, **kwargs):
         super(RSTOutfile, self).__init__(*args, **kwargs)
 
-        print >> self, '%5i%s' % (self.natoms, '  0.0000000e+00' * 5)
+        print('%5i%s' % (self.natoms, '  0.0000000e+00' * 5), file=self)
 
 ## pdb header stuff
 
@@ -287,7 +289,7 @@ SEE ALSO
     
     filename = cmd.exp_path(filename)
     f = open(filename, 'w')
-    print >> f, 'REMARK 200 Generated with PyMOL and psico'.ljust(80)
+    print('REMARK 200 Generated with PyMOL and psico'.ljust(80), file=f)
 
     # Write the CRYST1 line if possible
     if symm:
@@ -298,10 +300,10 @@ SEE ALSO
                 raise
             f.write("CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-10s%4d\n" % tuple(sym + [1]))
             if not quiet:
-                print ' Info: Wrote unit cell and space group info'
+                print(' Info: Wrote unit cell and space group info')
         except:
             if not quiet:
-                print ' Info: No crystal information'
+                print(' Info: No crystal information')
 
     # Write secondary structure
     if ss:
@@ -311,10 +313,10 @@ SEE ALSO
                 raise
             f.write(sss)
             if not quiet:
-                print ' Info: Wrote secondary structure info'
+                print(' Info: Wrote secondary structure info')
         except:
             if not quiet:
-                print ' Info: No secondary structure information'
+                print(' Info: No secondary structure information')
     
     # Write coordinates of selection
     pdbstr = cmd.get_pdbstr(selection, state)
@@ -341,7 +343,7 @@ SEE ALSO
     f.close()
 
     if not quiet:
-        print 'Wrote PDB to \''+filename+'\''
+        print('Wrote PDB to \''+filename+'\'')
 
 def save(filename, selection='(all)', state=-1, format='',
         ref='', ref_state=-1, quiet=1, *args, **kwargs):

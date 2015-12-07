@@ -8,6 +8,8 @@ Only load on demand to prevent unnecessary "Bio" import (biopython).
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from Bio.SeqIO import _FormatToIterator
 from pymol import cmd, CmdException
 
@@ -132,7 +134,7 @@ DESCRIPTION
             aa1 = one_letter[a[2]]
             aa2 = one_letter[a[3]]
         except:
-            print ' Warning: Exception while parsing ProSMART alignment'
+            print(' Warning: Exception while parsing ProSMART alignment')
             continue
         seqs[0].append(aa1)
         seqs[1].append(aa2)

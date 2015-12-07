@@ -6,6 +6,8 @@ Viewing and Coloring Stuff
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def nice(selection='(all)', simple=1e5):
@@ -54,7 +56,7 @@ DESCRIPTION
                 col = col[1:-1]
             colors.append(col)
     except:
-        print ' Error:', color
+        print(' Error:', color)
         raise CmdException
     return colors
 
@@ -141,7 +143,7 @@ SEE ALSO
     quiet = int(quiet)
     colors = color_list.split()
     if len(colors) < 2:
-        print 'failed! please provide at least 2 colors'
+        print('failed! please provide at least 2 colors')
         return
 
     colvec = [cmd.get_color_tuple(i) for i in colors]
@@ -153,7 +155,7 @@ SEE ALSO
     discrete_expr = ['index', 'resi']
 
     if cmd.count_atoms(selection) == 0:
-        print 'empty selection'
+        print('empty selection')
         return
 
     if None in [minimum, maximum]:
@@ -165,10 +167,10 @@ SEE ALSO
             maximum = max(e_list)
     minimum, maximum = float(minimum), float(maximum)
     if not quiet:
-        print ' Spectrum: range (%.5f to %.5f)' % (minimum, maximum)
+        print(' Spectrum: range (%.5f to %.5f)' % (minimum, maximum))
 
     if maximum == minimum:
-        print 'no spectrum possible, only equal %s values' % (expression)
+        print('no spectrum possible, only equal %s values' % (expression))
         return
 
     if expression in discrete_expr:
@@ -227,7 +229,7 @@ SEE ALSO
     first, last, quiet = int(first), int(last), int(quiet)
     colors = color_list.split()
     if len(colors) < 2:
-        print ' Error: please provide at least 2 colors'
+        print(' Error: please provide at least 2 colors')
         raise CmdException
 
     colvec = [cmd.get_color_tuple(i) for i in colors]
@@ -241,12 +243,12 @@ SEE ALSO
         if s in cmd.setting.name_list:
             settings.append(s)
         elif not quiet:
-            print ' Warning: no such setting:', s
+            print(' Warning: no such setting:', s)
 
     # object names only
     selection = ' '.join(cmd.get_object_list('(' + selection + ')'))
     if cmd.count_atoms(selection) == 0:
-        print ' Error: empty selection'
+        print(' Error: empty selection')
         raise CmdException
 
     if last < 1:
@@ -254,7 +256,7 @@ SEE ALSO
 
     val_range = int(last - first + 1)
     if val_range < 2:
-        print ' Error: no spectrum possible, need more than 1 state'
+        print(' Error: no spectrum possible, need more than 1 state')
         raise CmdException
 
     for i in range(val_range):

@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def consurfdb(code, chain='A', selection=None, palette='red_white_blue', quiet=1):
@@ -36,7 +38,7 @@ SEE ALSO
     try:
         handle = urllib2.urlopen(url)
     except urllib2.HTTPError:
-        print ' error: no pre-calculated profile for %s/%s' % (code, chain)
+        print(' error: no pre-calculated profile for %s/%s' % (code, chain))
         raise CmdException
 
     if selection is None:
@@ -83,7 +85,7 @@ SEE ALSO
         handle = filename
 
     if len(cmd.get_chains(selection)) > 1:
-        print ' Warning: selection spans multiple chains'
+        print(' Warning: selection spans multiple chains')
 
     for line in handle:
         if line.startswith('#') or line.strip() == '':

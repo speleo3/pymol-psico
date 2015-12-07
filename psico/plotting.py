@@ -6,6 +6,8 @@ Plotting with matplotlib
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def _showfigure(fig, filename, quiet):
@@ -18,7 +20,7 @@ DESCRIPTION
         try:
             fig.show()
         except AttributeError:
-            print ' Warning: matplotlib.pyplot.figure.show failed'
+            print(' Warning: matplotlib.pyplot.figure.show failed')
             filename, quiet = 'psico-plot-failsafe.pdf', False
         else:
             from . import matplotlib_fix_prefs
@@ -29,9 +31,9 @@ DESCRIPTION
     try:
         fig.savefig(filename)
         if not quiet:
-            print ' Plot written to', filename
+            print(' Plot written to', filename)
     except ValueError as e:
-        print ' Error:', e
+        print(' Error:', e)
 
 def get_model_color(model):
     '''
@@ -192,7 +194,7 @@ EXAMPLE
         which = cmd.safe_list_eval(which)
 
     if aln_object not in cmd.get_names_of_type('object:'):
-        print ' Warning: first argument should be an alignment object'
+        print(' Warning: first argument should be an alignment object')
 
         from .fitting import extra_fit
 
@@ -213,11 +215,11 @@ EXAMPLE
     aln = cmd.get_raw_alignment(aln_object)
 
     if not quiet:
-        print ' PCA References:', ', '.join(references)
-        print ' PCA Others:', ', '.join(others)
+        print(' PCA References:', ', '.join(references))
+        print(' PCA Others:', ', '.join(others))
 
     if len(references) == 0:
-        print ' PCA Error: No reference objects'
+        print(' PCA Error: No reference objects')
         raise CmdException
 
     model_count = len(models)
@@ -249,7 +251,7 @@ EXAMPLE
     try:
         U, L, V = svd(X)
     except LinAlgError as e:
-        print ' PCA Error: ', e
+        print(' PCA Error: ', e)
         raise CmdException
 
     if int(load_b):

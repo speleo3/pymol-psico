@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 import os.path
 from pymol import cmd, CmdException
 
@@ -55,14 +57,14 @@ PSICO NOTES
             elif code[0].isdigit():
                 fetch_cath(code, name, **kwargs)
             else:
-                print ' Warning: 7 character ID but does not look like SCOP or CATH'
-                print ' Warning: skipping', code
+                print(' Warning: 7 character ID but does not look like SCOP or CATH')
+                print(' Warning: skipping', code)
             code_list.remove(code)
         else:
             filename = local_mirror_pdb(code)
             if os.path.exists(filename):
                 if not quiet:
-                    print ' Using local mirror:', filename
+                    print(' Using local mirror:', filename)
                 cmd.load(filename, name if len(name) else code, **load_kwargs)
                 code_list.remove(code)
     if len(code_list) > 0:
@@ -120,7 +122,7 @@ def fetch_cath(code, name='', **kwargs):
                 rsele += ')'
             cmd.remove(name + ' and not (' + rsele + ')')
         except:
-            print ' Warning: CATH domain resiude range handling failed'
+            print(' Warning: CATH domain resiude range handling failed')
             return -1
 
 def fetch_scop(code, name='', **kwargs):
@@ -145,7 +147,7 @@ def fetch_scop(code, name='', **kwargs):
                 rsele += ')'
             cmd.remove(name + ' and not (' + rsele + ')')
     except:
-        print ' Warning: SCOP domain resiude range handling failed'
+        print(' Warning: SCOP domain resiude range handling failed')
         return -1
 
 def fetch_chain(code, name='', **kwargs):
@@ -167,11 +169,11 @@ DESCRIPTION
     filenames = glob.glob(cmd.exp_path(pattern))
     for filename in filenames:
         if not quiet:
-            print ' Loading', filename
+            print(' Loading', filename)
         cmd.load(filename, **kwargs)
     if len(group):
         if kwargs.get('object', '') != '':
-            print ' Warning: group and object arguments given'
+            print(' Warning: group and object arguments given')
             members = [kwargs['object']]
         else:
             from pymol.cmd import file_ext_re, gz_ext_re, safe_oname_re
@@ -201,7 +203,7 @@ SEE ALSO
     if object == '':
         object = os.path.splitext(os.path.basename(filename))[0]
     if object not in cmd.get_object_list():
-        print ' Error: must load object topology before loading trajectory'
+        print(' Error: must load object topology before loading trajectory')
         raise CmdException
 
     if state < 1:
@@ -217,7 +219,7 @@ SEE ALSO
     length = read('i')[0]
     if length != 0x54:
         if not quiet:
-            print ' Info: big-endian'
+            print(' Info: big-endian')
         endian = '>'
 
     fmt = '4s i i i 5i i d 9i i'
@@ -289,7 +291,7 @@ SEE ALSO
     if object == '':
         object = os.path.splitext(os.path.basename(filename))[0]
     if object not in cmd.get_object_list():
-        print ' Error: must load object topology before loading trajectory'
+        print(' Error: must load object topology before loading trajectory')
         raise CmdException
     if state < 1:
         state = cmd.count_states(object) + 1
@@ -313,7 +315,7 @@ SEE ALSO
                 second_dot = line.find('.', 8)
                 if second_dot == -1:
                     if not quiet:
-                        print 'Number of atoms in second line'
+                        print('Number of atoms in second line')
                     # assume number of atoms in second line
                     _natom = int(line)
                     assert _natom == natom, 'Numbers differ: %d, %d' % (natom, _natom)
@@ -324,16 +326,16 @@ SEE ALSO
                 elif second_dot == 16:
                     width = 12
                 else:
-                    print 'WARNING: could neither detect 6F12.7 nor 10F8.3 format'
+                    print('WARNING: could neither detect 6F12.7 nor 10F8.3 format')
                     raise CmdException
             if count > ncoord:
-                print 'Error!', ncoord, count
+                print('Error!', ncoord, count)
                 raise CmdException
             if count == ncoord:
                 count = 0
                 if box:
                     if not quiet:
-                        print 'skipping box'
+                        print('skipping box')
                     # skip box line
                     continue
             for i in range(0, len(line.rstrip()), width):
@@ -374,7 +376,7 @@ DESCRIPTION
 
     line = f.readline() # File ID
     if not line.startswith('Survex 3D Image File'):
-        print " Error: not a Survex 3D File"
+        print(" Error: not a Survex 3D File")
         raise CmdException
 
     line = f.readline() # File format version
@@ -638,7 +640,7 @@ EXAMPLE
         mobile_obj = cmd.get_object_list('(' + mobile + ')')[0]
         target_obj = cmd.get_object_list('(' + target + ')')[0]
     except:
-        print ' Error: selection "%s" or "%s" does not exist' % (mobile, target)
+        print(' Error: selection "%s" or "%s" does not exist' % (mobile, target))
         raise CmdException
 
     # get structure models and sequences
@@ -786,7 +788,7 @@ USAGE
 
     for coltype in ('F', 'P'):
         if not header.getColumnsOfType(coltype):
-            print ' Error: could not find %s type column' % coltype
+            print(' Error: could not find %s type column' % coltype)
             raise CmdException
 
     if not prefix:
@@ -795,7 +797,7 @@ USAGE
     for maptype in maptypes.split():
         F, P, prg = header.guessCols(maptype)
         if None in (F, P):
-            print ' Warning: No %s map' % (maptype)
+            print(' Warning: No %s map' % (maptype))
             continue
 
         name = prefix + '.' + maptype
@@ -804,8 +806,8 @@ USAGE
 
         cmd.map_generate(name, filename, F, P, 'None', 0, 0, quiet)
         if name not in cmd.get_names('objects'):
-            print ' Error: Loading %s map failed.' % (maptype)
-            print ' This PyMOL version might not be capable of loading MTZ files'
+            print(' Error: Loading %s map failed.' % (maptype))
+            print(' This PyMOL version might not be capable of loading MTZ files')
             raise CmdException
 
 # commands

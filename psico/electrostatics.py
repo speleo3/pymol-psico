@@ -6,6 +6,8 @@ Electrostatics (simple alternative to the APBS Tools Plugin)
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 defaults_apbs_in = {
@@ -79,7 +81,7 @@ SEE ALSO
     # temporary directory
     tempdir = tempfile.mkdtemp()
     if not quiet:
-        print ' Tempdir:', tempdir
+        print(' Tempdir:', tempdir)
 
     # filenames
     pqrfile = os.path.join(tempdir, 'mol.pqr')
@@ -102,7 +104,7 @@ SEE ALSO
         add_missing_atoms(tmpname, quiet=quiet)
         protein_assign_charges_and_radii(tmpname)
     elif not quiet:
-        print ' Notice: using exsiting charges and radii'
+        print(' Notice: using exsiting charges and radii')
 
     cmd.save(pqrfile, tmpname, 1, format='pqr', quiet=quiet)
 
@@ -128,27 +130,27 @@ SEE ALSO
     # apbs input file
     def write_input_file():
         f = open(infile, 'w')
-        print >> f, '''
+        print('''
 read
     mol pqr "%s"
 end
 elec
     mg-auto
-''' % (pqrfile)
+''' % (pqrfile), file=f)
 
         for (k,v) in apbs_in.items():
             if v is None:
-                print >> f, k
+                print(k, file=f)
             elif isinstance(v, list):
                 for vi in v:
-                    print >> f, k, vi
+                    print(k, vi, file=f)
             else:
-                print >> f, k, v
+                print(k, v, file=f)
 
-        print >> f, '''
+        print('''
 end
 quit
-'''
+''', file=f)
         f.close()
 
     try:
@@ -167,27 +169,27 @@ quit
             if r in (-6, -9):
                 grid *= 2.0
                 if not quiet:
-                    print ' Warning: retry with grid =', grid
+                    print(' Warning: retry with grid =', grid)
                 continue
 
-            print ' Error: apbs failed with code', r
+            print(' Error: apbs failed with code', r)
             raise CmdException
 
         dx_list = glob.glob(stem + '*.dx')
         if len(dx_list) != 1:
-            print ' Error: dx file missing'
+            print(' Error: dx file missing')
             raise CmdException
 
         # load map
         cmd.load(dx_list[0], name, quiet=quiet)
     except OSError:
-        print ' Error: Cannot execute "%s"' % (exe)
+        print(' Error: Cannot execute "%s"' % (exe))
         raise CmdException
     finally:
         if not preserve:
             shutil.rmtree(tempdir)
         elif not quiet:
-            print ' Notice: not deleting %s' % (tempdir)
+            print(' Notice: not deleting %s' % (tempdir))
 
 def apbs_surface(selection='all', maximum=None, minimum=None, map_name=None,
         ramp_name=None, grid=0.5, quiet=1):
@@ -280,7 +282,7 @@ SEE ALSO
     try:
         from pymol.colorramping import ColorRamp
     except ImportError:
-        print ' Warning: volume_esp is deprecated'
+        print(' Warning: volume_esp is deprecated')
         stdevD = cmd.get_volume_histogram(map, 0)[3]
         stops = [s * stdevD for s in stops]
         ramp = [
@@ -310,7 +312,7 @@ SEE ALSO
                 (c_neg_0, -stops[0]), (c_pos_0, stops[0]), (c_pos_1, stops[1]),
                 (c_pos_0, stops[2]), (c_pos_0, 999)]
     else:
-        print ' Error: need 2 or 3 stops'
+        print(' Error: need 2 or 3 stops')
         raise CmdException
 
     cmd.volume(name, map, quiet=quiet)

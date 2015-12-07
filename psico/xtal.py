@@ -6,6 +6,8 @@ Crystallographic symmetry related commands.
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def cellbasis(angles, edges):
@@ -253,14 +255,14 @@ EXAMPLE
             if os.path.exists(filename):
                 break
         else:
-            print 'please provide filename'
+            print('please provide filename')
             raise CmdException
         if not quiet:
-            print 'loading from %s' % (filename)
+            print('loading from %s' % (filename))
 
     remarks = pdbremarks(filename)
     if 350 not in remarks:
-        print 'There is no REMARK 350 in', filename
+        print('There is no REMARK 350 in', filename)
         raise CmdException
 
     current = 1
@@ -283,7 +285,7 @@ EXAMPLE
             biomt[current].setdefault(chains, dict()).setdefault(num, []).extend(vec)
 
     if number not in biomt or len(biomt[number]) == 0:
-        print ' Error: no BIOMOLECULE number %d' % (number)
+        print(' Error: no BIOMOLECULE number %d' % (number))
         raise CmdException
 
     if numpy is not None:
@@ -296,7 +298,7 @@ EXAMPLE
             mat.extend([0,0,0,1])
             copy = '%s_%s_%d' % (prefix, suffix, num)
             if not quiet:
-                print 'creating %s' % (copy)
+                print('creating %s' % (copy))
             cmd.create(copy, 'model %s and chain %s' % (name, '+'.join(chains)))
             cmd.alter(copy, 'segi="%d"' % (num))
 

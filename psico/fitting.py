@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def alignwithanymethod(mobile, target, methods=None, async=1, quiet=1):
@@ -36,11 +38,11 @@ ARGUMENTS
         start = time.time()
         cmd.do('%s mobile=%s in %s, target=%s' % (method, newmobile, mobile, target))
         if not quiet:
-            print 'Finished: %s (%.2f sec)' % (method, time.time() - start)
+            print('Finished: %s (%.2f sec)' % (method, time.time() - start))
     for method in methods:
         if method not in cmd.keyword:
             if not quiet:
-                print 'No such method:', method
+                print('No such method:', method)
             continue
         if async:
             t = threading.Thread(target=myalign, args=(method,))
@@ -99,7 +101,7 @@ ARGUMENTS
         process = subprocess.Popen(args, stdout=subprocess.PIPE)
         lines = process.stdout.readlines()
     except OSError:
-        print 'Cannot execute "%s", please provide full path to TMscore or TMalign executable' % (exe)
+        print('Cannot execute "%s", please provide full path to TMscore or TMalign executable' % (exe))
         raise CmdException
     finally:
         os.remove(mobile_filename)
@@ -137,13 +139,13 @@ ARGUMENTS
             if match is not None:
                 r = float(match.group(1))
         if not quiet:
-            print line.rstrip()
+            print(line.rstrip())
         
     if not quiet:
         for i in range(0, len(alignment[0])-1, 78):
             for line in alignment:
-                print line[i:i+78]
-            print ''
+                print(line[i:i+78])
+            print('')
 
     assert len(matrix) == 3*4
     matrix.extend([0,0,0,1])
@@ -170,13 +172,13 @@ ARGUMENTS
                     ' '.join(idx for (idx, m) in zip(target_idx, alignment[1]) if m in ':.'),
                     cycles=0, matchmaker=4, object=object)
         else:
-            print 'Could not load alignment object'
+            print('Could not load alignment object')
 
     if not quiet:
         if headercheck:
-            print 'Finished Program:', headercheck
+            print('Finished Program:', headercheck)
         if r is not None:
-            print 'Found in output TM-score = %.4f' % (r)
+            print('Found in output TM-score = %.4f' % (r))
 
     return r
 
@@ -205,7 +207,7 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
             resi = resi.replace(',', '+')
             resi = resi.replace(' ', '')
             if not quiet:
-                print 'Domain ' + dom_nr + ' (' + color + '): resi ' + resi
+                print('Domain ' + dom_nr + ' (' + color + '): resi ' + resi)
             name = 'domain_' + dom_nr
             cmd.select(name, '(%s) and (resi %s)' % (selection, resi))
             cmd.color(color, name)
@@ -247,12 +249,12 @@ USAGE
 
     chains = cmd.get_chains(mobile)
     if len(chains) != 1:
-        print 'mobile selection must be single chain'
+        print('mobile selection must be single chain')
         raise CmdException
     chain1id = chains[0]
     chains = cmd.get_chains(target)
     if len(chains) != 1:
-        print 'target selection must be single chain'
+        print('target selection must be single chain')
         raise CmdException
     chain2id = chains[0]
 
@@ -260,7 +262,7 @@ USAGE
         from . import which
         exe = which('DynDom', 'dyndom')
         if not exe:
-            print ' Error: Cannot find DynDom executable'
+            print(' Error: Cannot find DynDom executable')
             raise CmdException
     else:
         exe = cmd.exp_path(exe)
@@ -291,7 +293,7 @@ USAGE
         cmd.color('gray', mobile)
         fixed_name = dyndom_parse_info(infofile, mobile, quiet)
     except OSError:
-        print 'Cannot execute "%s", please provide full path to DynDom executable' % (exe)
+        print('Cannot execute "%s", please provide full path to DynDom executable' % (exe))
         raise CmdException
     finally:
         shutil.rmtree(tempdir)
@@ -315,11 +317,11 @@ DESCRIPTION
         x = cmd.align(mobile, target, cutoff=cutoff, transform=0)
         p = float(x[1]) / N
         if not quiet:
-            print ' GDT_TS: GDT_P%.1f = %.2f' % (cutoff, p)
+            print(' GDT_TS: GDT_P%.1f = %.2f' % (cutoff, p))
         ts += p
     ts /= len(cutoffs)
     if not quiet:
-        print ' GDT_TS: Total Score = %.2f' % (ts)
+        print(' GDT_TS: Total Score = %.2f' % (ts))
     return ts
 
 def get_rmsd_func():
@@ -400,7 +402,7 @@ RESULT
         elif match in cmd.get_names('all') and cmd.get_type(match) in ('object:', 'object:alignment'):
             self.from_alignment(mobile, target, match)
         else:
-            print ' Error: unkown match method', match
+            print(' Error: unkown match method', match)
             raise CmdException
 
     def check(self):
@@ -526,7 +528,7 @@ EXAMPLE
     model_target = cmd.get_model(mm.target)
 
     if len(model_mobile.atom) != len(model_mobile.atom):
-        print 'Error: number of atoms differ, please check match method'
+        print('Error: number of atoms differ, please check match method')
         raise CmdException
 
     seq_start = model_mobile.atom[0].resi_number
@@ -557,7 +559,7 @@ EXAMPLE
         resv2b[resv] = rmsd(x, y)
 
         if not quiet:
-            print ' resi %4d: RMS = %6.3f (%4d atoms)' % (resv, resv2b[resv], i_to - i_from + 1)
+            print(' resi %4d: RMS = %6.3f (%4d atoms)' % (resv, resv2b[resv], i_to - i_from + 1))
 
     if load_b:
         cmd.alter(mobile, 'b=resv2b.get(resv, -1.0)', space={'resv2b': resv2b})
@@ -609,16 +611,16 @@ SEE ALSO
         if method in cmd.keyword:
             method = cmd.keyword[method][0]
         else:
-            print 'Unknown method:', method
+            print('Unknown method:', method)
             raise CmdException
     for model in models:
         x = method(mobile='%s and model %s' % (sele_name, model),
                 target='%s and model %s' % (sele_name, reference), **kwargs)
         if not quiet:
             if cmd.is_sequence(x):
-                print '%-20s RMS = %8.3f (%d atoms)' % (model, x[0], x[1])
+                print('%-20s RMS = %8.3f (%d atoms)' % (model, x[0], x[1]))
             elif isinstance(x, float):
-                print '%-20s RMS = %8.3f' % (model, x)
+                print('%-20s RMS = %8.3f' % (model, x))
     if zoom:
         cmd.zoom(sele_name)
     cmd.delete(sele_name)
@@ -644,7 +646,7 @@ DESCRIPTION
 
             process = subprocess.Popen(args, cwd=tempdir, stdout=subprocess.PIPE)
             for line in process.stdout:
-                print unesc('', line.rstrip())
+                print(unesc('', line.rstrip()))
 
         filename = os.path.join(tempdir, 'theseus_transf2.txt')
 
@@ -665,14 +667,14 @@ DESCRIPTION
         handle.close()
 
     except OSError:
-        print ' Error: Cannot execute "%s"' % (args[0])
+        print(' Error: Cannot execute "%s"' % (args[0]))
         raise CmdException
     finally:
         if not preserve:
             import shutil
             shutil.rmtree(tempdir)
         elif not quiet:
-            print ' Not deleting temporary directory:', tempdir
+            print(' Not deleting temporary directory:', tempdir)
 
     return translations, rotations
 
@@ -730,7 +732,7 @@ SEE ALSO
         cmd.transform_object(obj, matrices[1], 0)
 
     if not quiet:
-        print ' theseus: done'
+        print(' theseus: done')
 
 def intra_theseus(selection, state=1, cov=0, cycles=200,
         exe='theseus', preserve=0, quiet=1):
@@ -790,7 +792,7 @@ SEE ALSO
             cmd.transform_object(obj, m, 0)
 
     if not quiet:
-        print ' intra_theseus: %d states aligned' % (len(matrices))
+        print(' intra_theseus: %d states aligned' % (len(matrices)))
 
 def prosmart(mobile, target, mobile_state=1, target_state=1,
         exe='prosmart', transform=1, object=None, quiet=0):
@@ -843,13 +845,13 @@ DESCRIPTION
             load_aln(alnfiles[0], object, mobile, target)
 
     except OSError:
-        print ' Error: Cannot execute "%s", please provide full path to prosmart executable' % (exe)
+        print(' Error: Cannot execute "%s", please provide full path to prosmart executable' % (exe))
         raise CmdException
     finally:
         shutil.rmtree(tempdir)
 
     if not quiet:
-        print ' prosmart: done'
+        print(' prosmart: done')
 
 def _bfit_get_prior(distribution, em=0):
     from csb.statistics import scalemixture as sm
@@ -951,7 +953,7 @@ SEE ALSO
         cmd.alter(mm.mobile, 'b = b_iter.next()', space=locals())
 
     if not quiet:
-        print ' xfit: %d atoms aligned' % (len(X))
+        print(' xfit: %d atoms aligned' % (len(X)))
 
 def intra_xfit(selection, load_b=0, cycles=20, guide=1, seed=0, quiet=1,
         bfit=0, distribution='student', _self=cmd):
@@ -1055,7 +1057,7 @@ SEE ALSO
         cmd.alter(selection, 'b = b_iter.next()', space=locals())
 
     if not quiet:
-        print ' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models)
+        print(' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models))
 
 def promix(mobile, target, K=0, prefix=None, mobile_state=-1, target_state=-1,
         match='align', guide=1, quiet=1, async=-1, _self=cmd):
@@ -1094,7 +1096,7 @@ REFERENCE
 
     if isinstance(target, str) and target.isdigit() and \
             cmd.count_atoms('?' + target) == 0 and cmd.count_states(mobile) > 1:
-        print ' Warning: sanity test suggest you want "intra_promix"'
+        print(' Warning: sanity test suggest you want "intra_promix"')
         return intra_promix(mobile, target, prefix, 0, guide, quiet, async)
 
     if guide:
@@ -1163,7 +1165,7 @@ REFERENCE
         selection = '(%s) and guide' % (selection)
 
     if n_models < 2:
-        print ' Error: object needs multiple states'
+        print(' Error: object needs multiple states')
         raise CmdException
 
     X = asarray(get_ensemble_coords(selection))
@@ -1211,10 +1213,10 @@ def _promix(**kwargs):
             cmd.color(k + 2, name)
 
     for k, (sigma, w) in enumerate(zip(mixture.sigma, mixture.w)):
-        print ' %s_%d: sigma = %6.3f, w = %.3f' % (prefix, k+1, sigma, w)
+        print(' %s_%d: sigma = %6.3f, w = %.3f' % (prefix, k+1, sigma, w))
 
-    print ' BIC: %.2f' % (mixture.BIC)
-    print ' Log Likelihood: %.2f' % (mixture.log_likelihood)
+    print(' BIC: %.2f' % (mixture.BIC))
+    print(' Log Likelihood: %.2f' % (mixture.log_likelihood))
 
 # all those have kwargs: mobile, target, mobile_state, target_state
 align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus', 'prosmart', 'xfit']

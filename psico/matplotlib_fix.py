@@ -11,13 +11,15 @@ This is likely to be fragile against matplotlib upgrades.
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 def overload():
     import matplotlib
     from . import matplotlib_fix_prefs
 
     if matplotlib_fix_prefs['verbose']:
-        print ' matplotlib_fix: If you have issues with matplotlib and PyMOL, check'
-        print ' matplotlib_fix: the values of psico.matplotlib_fix_prefs'
+        print(' matplotlib_fix: If you have issues with matplotlib and PyMOL, check')
+        print(' matplotlib_fix: the values of psico.matplotlib_fix_prefs')
 
     if matplotlib_fix_prefs['force_tkagg']:
         matplotlib.use('TkAgg')
@@ -59,6 +61,6 @@ def overload():
 try:
     overload()
 except:
-    print 'matplotlib_fix failed'
+    print('matplotlib_fix failed')
 
 # vi:expandtab:smarttab

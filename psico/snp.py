@@ -9,6 +9,8 @@ Commands: snp_uniprot, snp_ncbi
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 # Email for Entrez connections
@@ -29,7 +31,7 @@ def snp_common(record, selection, label, name, quiet):
     chains = cmd.get_chains(selection)
 
     if len(pdbids) != 1:
-        print 'please select one object'
+        print('please select one object')
         return
 
     snpi = set()
@@ -37,7 +39,7 @@ def snp_common(record, selection, label, name, quiet):
     labels = dict()
 
     for chain in chains:
-        print 'chain ' + chain
+        print('chain ' + chain)
         res_list = []
         cmd.iterate('(%s) and chain %s and name CA' % (selection, chain),
                 'res_list.append((resn,resv))', space=locals())
@@ -46,7 +48,7 @@ def snp_common(record, selection, label, name, quiet):
         if not quiet:
             align._records[0].id = record.entry_name
             align._records[1].id = pdbids[0] + '_' + chain
-            print align.format('clustal')
+            print(align.format('clustal'))
         map1 = dict(alignment_mapping(*align))
         for feature in record.features:
             if feature[0] != 'VARIANT' or feature[1] != feature[2]:
@@ -54,12 +56,12 @@ def snp_common(record, selection, label, name, quiet):
             i = feature[1]
             if (i-1) not in map1:
                 if not quiet:
-                    print 'not mapped', feature
+                    print('not mapped', feature)
                 continue
             resi = res_list[map1[i-1]][1]
             snpi.add(resi)
             if not quiet:
-                print '%s`%d' % res_list[map1[i-1]], feature[2:4]
+                print('%s`%d' % res_list[map1[i-1]], feature[2:4])
             if label:
                 labels.setdefault((chain, resi), []).append(feature[3].split(' (')[0])
         if len(snpi) > 0:
@@ -70,7 +72,7 @@ def snp_common(record, selection, label, name, quiet):
         cmd.label('(%s) and chain %s and resi %d and name CA' % (selection, chain, resi), repr(lab))
 
     if len(snpi_str) == 0:
-        print 'no missense variants'
+        print('no missense variants')
         return
 
     if name == '':
@@ -152,25 +154,25 @@ SEE ALSO
     handle = Entrez.esearch(db="protein", term='(%s) AND srcdb_refseq[PROP]' % (query), retmax=1)
     record = Entrez.read(handle)
     if int(record['Count']) == 0:
-        print 'no such protein'
+        print('no such protein')
         return
     id = record['IdList'][0]
     handle = Entrez.efetch(db="protein", id=id, rettype="gb", retmode="text")
     seq = SeqIO.read(handle, 'gb')
-    print 'Protein match: %s (%s)' % (seq.id, seq.description)
+    print('Protein match: %s (%s)' % (seq.id, seq.description))
     accn = seq.id
     try:
         protein_acc, protein_ver = accn.split('.')
     except:
-        print 'no refseq accession found'
+        print('no refseq accession found')
         return
 
     # get snp-list for protein
     handle = Entrez.esearch(db="snp", term="%s[accn]" % (accn), retmax=100)
     record = Entrez.read(handle)
-    print 'Number of SNP records: ' + record['Count']
+    print('Number of SNP records: ' + record['Count'])
     if int(record['Count']) > int(record['RetMax']):
-        print 'Warning: Maximum number of records exceeded (%s)' % (record['RetMax'])
+        print('Warning: Maximum number of records exceeded (%s)' % (record['RetMax']))
     idlist = ','.join(record['IdList'])
 
     # xml path to fxnSet nodes
@@ -191,7 +193,7 @@ SEE ALSO
             refPos = node.get('aaPosition')
             intPos = int(refPos) + 1
         except:
-            print 'no ref'
+            print('no ref')
             continue
         # snp alleles
         for node in rs.xpath(addr % ('missense'), namespaces=ns):

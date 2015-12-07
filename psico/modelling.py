@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=0, quiet=1):
@@ -115,12 +117,12 @@ EXAMPLE
         for i in range(1, cmd.count_states(tmp)+1):
             score = cmd.sculpt_iterate(tmp, state=i)
             if not quiet:
-                print 'Frame %d Score %.2f' % (i, score)
+                print('Frame %d Score %.2f' % (i, score))
             if score < best_state[1]:
                 best_state = (i, score)
         cmd.delete(tmp)
         if not quiet:
-            print ' Best: Frame %d Score %.2f' % best_state
+            print(' Best: Frame %d Score %.2f' % best_state)
         return best_state
 
     if cmd.count_states(mutagenesis.obj_name) < 2 or mode > 0:
@@ -158,7 +160,7 @@ SEE ALSO
     inplace, sculpt = int(inplace), int(sculpt)
 
     if sculpt and len(cmd.get_object_list('(' + selection + ')')) > 1:
-        print ' Error: Sculpting in multiple models not supported'
+        print(' Error: Sculpting in multiple models not supported')
         raise CmdException
 
     kwargs.pop('_self', None)
@@ -279,7 +281,7 @@ SEE ALSO
         resn = key[3]
         if resn not in reference:
             if not quiet:
-                print ' Unknown residue:', resn
+                print(' Unknown residue:', resn)
             continue
         if not reference[resn].issubset(namelist):
             try:
@@ -304,9 +306,9 @@ SEE ALSO
                 sele_dict[key[0]].append(skey)
 
                 if not quiet:
-                    print ' Mutated ', skey
+                    print(' Mutated ', skey)
             except:
-                print ' Mutating', skey, 'failed'
+                print(' Mutating', skey, 'failed')
 
     for model in sele_dict:
         cmd.sort(model)
@@ -351,7 +353,7 @@ SEE ALSO
             fname = resn.lower() if resn != 'MSE' else 'met'
             frag = fragments.get(fname)
         except IOError:
-            print ' Warning: unknown residue:', resn
+            print(' Warning: unknown residue:', resn)
             continue
 
         for a in frag.atom:
@@ -364,7 +366,7 @@ SEE ALSO
         model.merge(frag)
 
     if not quiet:
-        print ' Loading model...'
+        print(' Loading model...')
 
     cmd.load_model(model, name, 1, zoom=0)
     if cmd.get_setting_boolean('auto_remove_hydrogens'):
@@ -376,7 +378,7 @@ SEE ALSO
     cmd.delete(namedsele)
 
     if not quiet:
-        print ' Sculpting...'
+        print(' Sculpting...')
 
     cmd.set('sculpt_field_mask', 0x003, name) # bonds and angles only
     cmd.sculpt_iterate(name, 1, int(cycles / 4))
@@ -392,7 +394,7 @@ SEE ALSO
     cmd.unset('sculpt_field_mask', name)
 
     if not quiet:
-        print ' Connecting peptide...'
+        print(' Connecting peptide...')
 
     pairs = cmd.find_pairs(name + ' and name C', name + ' and name N', 1, 1, 2.0)
     for pair in pairs:
@@ -400,7 +402,7 @@ SEE ALSO
     cmd.h_fix(name)
 
     if not quiet:
-        print ' peptide_rebuild: done'
+        print(' peptide_rebuild: done')
 
 def peptide_rebuild_modeller(name, selection='all', hetatm=0, sequence=None,
         nmodels=1, hydro=0, quiet=1):
@@ -435,7 +437,7 @@ ARGUMENTS
         import modeller
         from modeller.automodel import automodel, allhmodel
     except ImportError:
-        print ' Error: failed to import "modeller"'
+        print(' Error: failed to import "modeller"')
         raise CmdException
 
     import tempfile, shutil, os
@@ -454,7 +456,7 @@ ARGUMENTS
     os.chdir(tempdir)
 
     if not quiet:
-        print ' Notice: PWD=%s' % (tempdir)
+        print(' Notice: PWD=%s' % (tempdir))
 
     try:
         modeller.log.none()
@@ -502,7 +504,7 @@ ARGUMENTS
         update_identifiers(name, selection)
 
     if not quiet:
-        print ' peptide_rebuild_modeller: done'
+        print(' peptide_rebuild_modeller: done')
 
 cmd.extend('mutate', mutate)
 cmd.extend('mutate_all', mutate_all)

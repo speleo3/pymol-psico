@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 from pymol.movie import produce_mode_dict, produce_mode_sc
 
@@ -80,11 +82,11 @@ SEE ALSO
     try:
         subprocess.call([exe])
     except OSError:
-        print ' Error: Cannot execute "%s"' % (exe)
+        print(' Error: Cannot execute "%s"' % (exe))
         raise CmdException
 
     if not quiet:
-        print ' save_movie: Rendering frames...'
+        print(' save_movie: Rendering frames...')
 
     tmp_path = tempfile.mkdtemp()
     prefix = os.path.join(tmp_path, 'frame')
@@ -97,15 +99,15 @@ SEE ALSO
     cmdline = exe + ' -quiet mf://' + prefix + '* ' + mpeg1line
 
     if not quiet:
-        print ' save_movie: Running mencoder...'
+        print(' save_movie: Running mencoder...')
 
     if twopass:
         if not quiet:
-            print ' save_movie: First pass...'
+            print(' save_movie: First pass...')
             cmdline1 = cmdline + ':vpass=1'
         subprocess.call(cmdline1.split() + ['-o', os.devnull])
         if not quiet:
-            print ' save_movie: Second pass...'
+            print(' save_movie: Second pass...')
         cmdline = cmdline + ':vpass=2'
 
     subprocess.call(cmdline.split() + ['-o', filename])
@@ -114,10 +116,10 @@ SEE ALSO
         import shutil
         shutil.rmtree(tmp_path)
     elif not quiet:
-        print ' save_movie: Not deleting temporary directory:', tmp_path
+        print(' save_movie: Not deleting temporary directory:', tmp_path)
 
     if not quiet:
-        print ' save_movie: Done'
+        print(' save_movie: Done')
 
 def matrix_to_ttt(names, reverse=0, state=-1, quiet=1):
     '''
@@ -154,7 +156,7 @@ DESCRIPTION
         return []
     r = [i for (i,v) in enumerate(viewelem_list, 1) if v[12] == 2]
     if not int(quiet):
-        print r
+        print(r)
     return r
 
 def closest_keyframe(quiet=1):
@@ -170,7 +172,7 @@ DESCRIPTION
     r = min(keyframes, key=lambda i: abs(i - current))
     cmd.frame(r)
     if not int(quiet):
-        print ' Closest Keyframe:', r
+        print(' Closest Keyframe:', r)
     return r
 
 cmd.extend('frames2states', frames2states)

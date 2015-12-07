@@ -8,6 +8,8 @@ http://www.genome.jp/aaindex/
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 _aaindex1 = None
@@ -74,7 +76,7 @@ class AAindex(dict):
         insensitive) and print results on standard output.
         '''
         for record in self.search(pattern):
-            print record
+            print(record)
 
     def parse(self, filename, rec, quiet=True):
         '''
@@ -92,10 +94,10 @@ class AAindex(dict):
             import urllib
             url = 'ftp://ftp.genome.jp/pub/db/community/aaindex/' + os.path.basename(filename)
             if not quiet:
-                print 'Downloading "%s"' % (url)
+                print('Downloading "%s"' % (url))
             filename = urllib.urlretrieve(url, filename)[0]
             if not quiet:
-                print 'Saved to "%s"' % (filename)
+                print('Saved to "%s"' % (filename))
 
         current = rec()
         lastkey = None
@@ -131,13 +133,13 @@ class AAindex(dict):
                 if a[0] != 'A/L':
                     current.extend(map(_float_or_None, a))
                 elif list(Record.aakeys) != [i[0] for i in a] + [i[-1] for i in a]:
-                    print 'Warning: wrong amino acid sequence for', current.key
+                    print('Warning: wrong amino acid sequence for', current.key)
                 else:
                     try:
                         assert list(Record.aakeys[:10]) == [i[0] for i in a]
                         assert list(Record.aakeys[10:]) == [i[2] for i in a]
                     except:
-                        print 'Warning: wrong amino acid sequence for', current.key
+                        print('Warning: wrong amino acid sequence for', current.key)
             elif key =='M ':
                 a = line[2:].split()
                 if a[0] == 'rows':
@@ -155,7 +157,7 @@ class AAindex(dict):
                 else:
                     current.extend(map(_float_or_None, a))
             elif not quiet:
-                print 'Warning: line starts with "%s"' % (key)
+                print('Warning: line starts with "%s"' % (key))
 
             lastkey = key
     
@@ -272,13 +274,13 @@ SEE ALSO
     try:
         entry = aaindex[key]
     except KeyError:
-        print ' Error: No such key in AAindex:', key
+        print(' Error: No such key in AAindex:', key)
         raise CmdException
 
     median = entry.median()
 
     if not quiet:
-        print entry.desc.strip()
+        print(entry.desc.strip())
 
     def lookup(resn):
         aa = one_letter.get(resn, 'X')

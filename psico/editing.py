@@ -4,6 +4,8 @@
 License: BSD-2-Clause
 '''
 
+from __future__ import print_function
+
 from pymol import cmd, CmdException
 
 def split(operator, selection, prefix='entity'):
@@ -40,7 +42,7 @@ SEE ALSO
     quiet = int(quiet)
     r = split('bm.', '(%s) and not solvent' % selection, prefix)
     if not quiet:
-        print ' Found %d non-solvent molecules' % r
+        print(' Found %d non-solvent molecules' % r)
 
 def split_chains(selection='(all)', prefix=None):
     '''
@@ -87,7 +89,7 @@ SEE ALSO
     n_atoms = cmd.count_atoms(selection)
     n_states = cmd.count_states(selection)
     if n_atoms == 0 or n_states < 2:
-        print ' Error: not enough atoms or states'
+        print(' Error: not enough atoms or states')
         raise CmdException
     coords = []
     cmd.iterate_state(0, selection, 'coords.append((x,y,z))', atomic=0,
@@ -98,7 +100,7 @@ SEE ALSO
             else 8 * pi**2 * u_sq
     cmd.alter(selection, var + ' = b_iter.next()', space={'b_iter': iter(b_array)})
     if not int(quiet):
-        print ' Average RMSF: %.2f' % (sqrt(u_sq).mean())
+        print(' Average RMSF: %.2f' % (sqrt(u_sq).mean()))
     return b_array
 
 def set_sequence(sequence, selection='all', start=1):
@@ -145,7 +147,7 @@ ARGUMENTS
             properties + ' = props.get((model,segi,chain,resi), ' + properties + ')',
             space=space)
     if not int(quiet):
-        print ' Modified %d residues' % (len(space['props']))
+        print(' Modified %d residues' % (len(space['props'])))
 
 def mse2met(selection='all', quiet=1):
     '''
@@ -158,7 +160,7 @@ DESCRIPTION
     cmd.flag('ignore', '(%s) and MSE/' % (selection), 'clear')
     cmd.alter('(%s) and MSE/' % selection, 'resn="MET";type="ATOM"')
     if not quiet:
-        print 'Altered %d MSE residues to MET' % (x)
+        print('Altered %d MSE residues to MET' % (x))
     cmd.sort()
 
 def polyala(selection='all', quiet=1):
@@ -205,13 +207,13 @@ SEE ALSO
         if name_tuple == ('CA', 'CB', 'CG'):
             key_str_cg = key_str + '/CG'
             if not quiet:
-                print 'Removing', key_str_cg
+                print('Removing', key_str_cg)
             cmd.remove(key_str_cg)
             name_tuple = ('CA', 'CB')
         lookslike_resn = lookslike.get(name_tuple, resn)
         if lookslike_resn != resn:
             if not quiet:
-                print 'Altering %s to %s' % (key_str, lookslike_resn)
+                print('Altering %s to %s' % (key_str, lookslike_resn))
             cmd.alter(key_str, 'resn = %s' % (repr(lookslike_resn)))
     cmd.sort()
 
@@ -307,7 +309,7 @@ SEE ALSO
         try:
             process = Popen([exe, tmpfilepdb], stdout=PIPE)
         except OSError:
-            print 'Error: Cannot execute exe=' + exe
+            print('Error: Cannot execute exe=' + exe)
             raise CmdException
         for line in process.stdout:
             if line.startswith('  #  RESIDUE'):
@@ -352,7 +354,7 @@ SEE ALSO
         try:
             process = Popen([exe, tmpfilepdb], stdout=PIPE)
         except OSError:
-            print 'Error: Cannot execute exe=' + exe
+            print('Error: Cannot execute exe=' + exe)
             raise CmdException
         for line in process.stdout:
             if not line.startswith('ASG'):
@@ -420,7 +422,7 @@ SEE ALSO
 
             os.remove(tmpfilesst)
     except OSError:
-        print ' Error: Cannot execute exe=' + exe
+        print(' Error: Cannot execute exe=' + exe)
         raise CmdException
     finally:
         shutil.rmtree(tmpdir)
@@ -484,7 +486,7 @@ SEE ALSO
             request.add_data(body)
             lines = urllib2.urlopen(request).readlines()
         except urllib2.URLError:
-            print ' Error: URL request failed'
+            print(' Error: URL request failed')
             raise CmdException
 
         lines = iter(lines)
@@ -494,7 +496,7 @@ SEE ALSO
                 break
         else:
             if not quiet:
-                print ' Warning: SST assignment failed'
+                print(' Warning: SST assignment failed')
             return
 
         lines.next()
@@ -522,7 +524,7 @@ SEE ALSO
     for idx in cmd.index('byca (' + selection + ')'):
         x = cmd.index('((%s`%d) extend 2 and name C+N+CA)' % idx)
         if len(x) != 5 or x[2] != idx:
-            print ' Warning: set_phipsi: missing atoms (%s`%d)' % idx
+            print(' Warning: set_phipsi: missing atoms (%s`%d)' % idx)
             continue
         if phi is not None:
             cmd.set_dihedral(x[0], x[1], x[2], x[3], phi, state, quiet)
