@@ -428,7 +428,7 @@ DESCRIPTION
     case of missing loops.
     '''
     v = cmd.get_setting_boolean('pdb_use_ter_records')
-    if v: cmd.unset('pdb_use_ter_records')
+    if v: cmd.set('pdb_use_ter_records', 0)
     cmd.save(filename, selection, *args, **kwargs)
     if v: cmd.set('pdb_use_ter_records')
 

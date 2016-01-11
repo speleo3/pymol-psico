@@ -248,7 +248,7 @@ DESCRIPTION
     '''
     if cmd.count_atoms('?' + name, 1, state) == 0:
         s = cmd.get_setting_boolean('suspend_updates')
-        if s: cmd.unset('suspend_updates')
+        if s: cmd.set('suspend_updates', 0)
         cmd.refresh()
         if s: cmd.set('suspend_updates')
 
