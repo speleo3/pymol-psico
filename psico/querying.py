@@ -416,7 +416,8 @@ DESCRIPTION
     return [get_coords(selection, state)
             for state in range(1, cmd.count_states(selection) + 1)]
 
-cmd.extend('centerofmass', centerofmass)
+if 'centerofmass' not in cmd.keyword:
+    cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)
 cmd.extend('get_sasa', get_sasa)
 cmd.extend('get_sasa_ball', get_sasa_ball)

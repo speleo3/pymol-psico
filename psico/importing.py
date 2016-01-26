@@ -695,6 +695,10 @@ DESCRIPTION
     Based on a script from Tsjerk Wassenaar, posted on pymol-users mailing list.
     http://www.mail-archive.com/pymol-users@lists.sourceforge.net/msg09394.html
     '''
+    from . import pymol_version
+    if pymol_version >= 1.74:
+        print(' Notice: native gro file support available in PyMOL since 1.7.4')
+
     if object == '':
         object = os.path.basename(filename).rsplit('.', 1)[0]
 
@@ -819,12 +823,14 @@ USAGE
             raise CmdException
 
 # commands
-cmd.extend('loadall', loadall)
+if 'loadall' not in cmd.keyword:
+    cmd.extend('loadall', loadall)
 cmd.extend('load_traj_crd', load_traj_crd)
 cmd.extend('load_traj_dcd', load_traj_dcd)
 cmd.extend('load_3d', load_3d)
 cmd.extend('load_aln', load_aln)
 cmd.extend('load_gro', load_gro)
-cmd.extend('load_mtz', load_mtz)
+if 'load_mtz' not in cmd.keyword:
+    cmd.extend('load_mtz', load_mtz)
 
 # vi:expandtab:smarttab

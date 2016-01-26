@@ -313,7 +313,8 @@ DESCRIPTION
     if not quiet:
         print(' corina: done')
 
-cmd.extend('join_states', join_states)
+if 'join_states' not in cmd.keyword:
+    cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
 cmd.extend('ramp_levels', ramp_levels)
 cmd.extend('pdb2pqr', pdb2pqr)

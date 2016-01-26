@@ -557,12 +557,15 @@ DESCRIPTION
     for name in tmp_names:
         cmd.delete(name)
 
-cmd.extend('split_chains', split_chains)
+if 'split_chains' not in cmd.keyword:
+    cmd.extend('split_chains', split_chains)
 cmd.extend('split_molecules', split_molecules)
 cmd.extend('rmsf2b', rmsf2b)
 cmd.extend('set_sequence', set_sequence)
-cmd.extend('alphatoall', alphatoall)
-cmd.extend('mse2met', mse2met)
+if 'alphatoall' not in cmd.keyword:
+    cmd.extend('alphatoall', alphatoall)
+if 'mse2met' not in cmd.keyword:
+    cmd.extend('mse2met', mse2met)
 cmd.extend('polyala', polyala)
 cmd.extend('stub2ala', stub2ala)
 cmd.extend('remove_alt', remove_alt)
