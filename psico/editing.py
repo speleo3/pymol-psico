@@ -290,7 +290,7 @@ SEE ALSO
 
     if exe == '':
         from . import which
-        exe = which('dsspcmbi', 'dssp', 'dssp-2')
+        exe = which('dsspcmbi', 'dssp', 'dssp-2', 'mkdssp')
     ss_map = {
         'B': 'S', # residue in isolated beta-bridge
         'E': 'S', # extended strand, participates in beta ladder
