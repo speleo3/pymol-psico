@@ -43,6 +43,7 @@ __all__ = [
     'viewing',
     'wizards',
     'xtal',
+    'load_mtz_cctbx',
 ]
 
 if pymol_version < 1.6:
