@@ -220,7 +220,7 @@ ARGUMENT
     # Get a list of CA atoms and read the secondary structure
     # annotation This loop assumes that the atoms are in consecutive
     # order i.e. sorted by chain & resi
-    for at in cmd.get_model( '(' + selection + ') and n. ca and polymer',
+    for at in cmd.get_model( '(' + selection + ') and n. CA and polymer',
                              state=state).atom:
         if at.ss == '': continue 
 
