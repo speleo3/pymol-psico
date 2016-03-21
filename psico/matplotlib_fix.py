@@ -11,8 +11,6 @@ This is likely to be fragile against matplotlib upgrades.
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 def overload():
     import matplotlib
     from . import matplotlib_fix_prefs

@@ -6,8 +6,6 @@ Viewing and Coloring Stuff
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 def nice(selection='(all)', simple=1e5):
@@ -56,7 +54,7 @@ DESCRIPTION
                 col = col[1:-1]
             colors.append(col)
     except:
-        print(' Error:', color)
+        print(' Error: ' + repr(color))
         raise CmdException
     return colors
 
@@ -243,7 +241,7 @@ SEE ALSO
         if s in cmd.setting.name_list:
             settings.append(s)
         elif not quiet:
-            print(' Warning: no such setting:', s)
+            print(' Warning: no such setting: ' + repr(s))
 
     # object names only
     selection = ' '.join(cmd.get_object_list('(' + selection + ')'))

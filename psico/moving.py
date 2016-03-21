@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 from pymol.movie import produce_mode_dict, produce_mode_sc
 
@@ -116,7 +114,7 @@ SEE ALSO
         import shutil
         shutil.rmtree(tmp_path)
     elif not quiet:
-        print(' save_movie: Not deleting temporary directory:', tmp_path)
+        print(' save_movie: Not deleting temporary directory: ' + tmp_path)
 
     if not quiet:
         print(' save_movie: Done')
@@ -172,7 +170,7 @@ DESCRIPTION
     r = min(keyframes, key=lambda i: abs(i - current))
     cmd.frame(r)
     if not int(quiet):
-        print(' Closest Keyframe:', r)
+        print(' Closest Keyframe: ' + str(r))
     return r
 
 cmd.extend('frames2states', frames2states)

@@ -5,8 +5,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
  
 def grepset(regexp=''):
@@ -138,11 +136,11 @@ ARGUMENTS
     except KeyError:
         print(' Error: No such command')
         raise CmdException
-    print(' CMD:', name)
+    print(' CMD: ' + str(name))
     print(' API: %s.%s' % (func.__module__, func.__name__))
     if func == getattr(cmd, func.__name__, None):
         print(' API: cmd.' + func.__name__)
-    print(' FILE:', sys.modules[func.__module__].__file__)
+    print(' FILE: ' + str(sys.modules[func.__module__].__file__))
     return func
 
 def write_html_ref(filename, prefix='psico', format='html'):

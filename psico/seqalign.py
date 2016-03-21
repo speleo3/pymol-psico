@@ -8,8 +8,6 @@ Only load on demand to prevent unnecessary "Bio" import (biopython).
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from Bio.SeqIO import _FormatToIterator
 from pymol import cmd, CmdException
 

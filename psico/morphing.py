@@ -6,8 +6,6 @@ Simplified morphing workflow
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd
 
 def morpheasy(source, target, source_state=0, target_state=0, name=None,

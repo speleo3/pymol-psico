@@ -6,8 +6,6 @@ Crystallographic symmetry related commands.
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 def cellbasis(angles, edges):
@@ -262,7 +260,7 @@ EXAMPLE
 
     remarks = pdbremarks(filename)
     if 350 not in remarks:
-        print('There is no REMARK 350 in', filename)
+        print('There is no REMARK 350 in ' + filename)
         raise CmdException
 
     current = 1

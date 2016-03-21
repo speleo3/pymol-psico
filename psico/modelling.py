@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=0, quiet=1):
@@ -281,7 +279,7 @@ SEE ALSO
         resn = key[3]
         if resn not in reference:
             if not quiet:
-                print(' Unknown residue:', resn)
+                print(' Unknown residue: + ' + resn)
             continue
         if not reference[resn].issubset(namelist):
             try:
@@ -306,9 +304,9 @@ SEE ALSO
                 sele_dict[key[0]].append(skey)
 
                 if not quiet:
-                    print(' Mutated ', skey)
+                    print(' Mutated ' + skey)
             except:
-                print(' Mutating', skey, 'failed')
+                print(' Mutating ' + skey + ' failed')
 
     for model in sele_dict:
         cmd.sort(model)
@@ -353,7 +351,7 @@ SEE ALSO
             fname = resn.lower() if resn != 'MSE' else 'met'
             frag = fragments.get(fname)
         except IOError:
-            print(' Warning: unknown residue:', resn)
+            print(' Warning: unknown residue: ' + resn)
             continue
 
         for a in frag.atom:

@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1):
@@ -135,13 +133,13 @@ ARGUMENTS
                 sele += '/CA'
             sele_list.append(sele)
             if not quiet:
-                print(ss_names.get(ss, ss).ljust(6), sele)
+                print("%-6s %s" % (ss_names.get(ss, ss), sele))
 
     sele = ' '.join(sele_list)
     if name is not None:
         cmd.select(name, sele)
     elif not quiet:
-        print(' Selection:', sele)
+        print(' Selection: ' + sele)
 
     return sele
 
@@ -237,7 +235,7 @@ ARGUMENTS
         r_all.append('/%s/%s/%s/' % key + resi)
     if not int(quiet):
         for r in r_all:
-            print(' collapse_resi:', r)
+            print(' collapse_resi: ' + str(r))
     return ' '.join(r_all)
 
 def wait_for(name, state=0, quiet=1):

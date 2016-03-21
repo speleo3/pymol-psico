@@ -5,8 +5,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 from pymol import selector
 
@@ -279,7 +277,7 @@ SEE ALSO
     else:
         for name in names.split():
             if name not in valid_names:
-                print(' Error: no such distance object:', name)
+                print(' Error: no such distance object: ' + name)
                 raise CmdException
 
     raw_objects = cmd.get_session(names, 1, 1, 0, 0)['names']
@@ -302,10 +300,10 @@ SEE ALSO
             try:
                 r.append((xyz2idx[xyz1], xyz2idx[xyz2], cpv.distance(xyz1, xyz2)))
                 if not quiet:
-                    print(' get_raw_distances:', r[-1])
+                    print(' get_raw_distances: ' + str(r[-1]))
             except KeyError:
                 if quiet < 0:
-                    print(' Debug: no index for', xyz1, xyz2)
+                    print(' Debug: no index for %s %s' % (xyz1, xyz2))
     return r
 
 def get_color(selection, which=0, mode=0):
@@ -341,7 +339,7 @@ ARGUMENTS
         if color >= 0x40000000:
             color = '0x%06x' % (color & 0xFFFFFF)
     except:
-        print(' Warning: could not get color for', selection)
+        print(' Warning: could not get color for ' + str(selection))
         color = 'gray'
     if mode > 0:
         color = cmd.get_color_tuple(color)

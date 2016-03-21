@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 try:
     unicode
 except NameError:
@@ -63,13 +61,13 @@ PSICO NOTES
                 fetch_cath(code, name, **kwargs)
             else:
                 print(' Warning: 7 character ID but does not look like SCOP or CATH')
-                print(' Warning: skipping', code)
+                print(' Warning: skipping ' + str(code))
             code_list.remove(code)
         else:
             filename = local_mirror_pdb(code)
             if os.path.exists(filename):
                 if not quiet:
-                    print(' Using local mirror:', filename)
+                    print(' Using local mirror: ' + str(filename))
                 cmd.load(filename, name if len(name) else code, **load_kwargs)
                 code_list.remove(code)
     if len(code_list) > 0:
@@ -177,7 +175,7 @@ DESCRIPTION
     filenames = glob.glob(cmd.exp_path(pattern))
     for filename in filenames:
         if not quiet:
-            print(' Loading', filename)
+            print(' Loading ' + filename)
         cmd.load(filename, **kwargs)
     if len(group):
         if kwargs.get('object', '') != '':
