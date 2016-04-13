@@ -10,26 +10,65 @@ from __future__ import print_function
 
 from pymol import cmd, CmdException
 
-defaults_apbs_in = {
-    'mol': 1,
-    'fgcent': 'mol 1',
-    'cgcent': 'mol 1',
-    'lpbe': None,       # l=linear, n=non-linear Poisson-Boltzmann equation
-    'bcfl': 'sdh',      # "Single Debye-Hueckel" boundary condition
-    'pdie': 2.0,        # protein dielectric
-    'sdie': 78.0,       # solvent dielectric
-    'chgm': 'spl2',     # Cubic B-spline discretization of point charges on grid
-    'srfm': 'smol',     # smoothed surface for dielectric and ion-accessibility coefficients
-    'swin': 0.3,
-    'temp': 310.0,
-    'sdens': 10.0,
-    'calcenergy': 'no',
-    'calcforce': 'no',
-    'ion': [
-        'charge +1 conc 0.15 radius 2.0',
-        'charge -1 conc 0.15 radius 1.8',
-    ],
-}
+template_apbs_in = '''
+read
+    mol pqr "{pqrfile}"
+end
+elec
+    mg-auto
+    mol 1
+
+    fgcent {fgcent} # fine grid center
+    cgcent mol 1    # coarse grid center
+    fglen {fglen}
+    cglen {cglen}
+    dime {dime}
+    lpbe          # l=linear, n=non-linear Poisson-Boltzmann equation
+    bcfl sdh      # "Single Debye-Hueckel" boundary condition
+    pdie 2.0      # protein dielectric
+    sdie 78.0     # solvent dielectric
+    chgm spl2     # Cubic B-spline discretization of point charges on grid
+    srfm smol     # smoothed surface for dielectric and ion-accessibility coefficients
+    swin 0.3
+    temp 310.0    # temperature
+    sdens 10.0
+    calcenergy no
+    calcforce no
+    srad {srad}   # solvent radius
+
+    ion charge +1 conc 0.15 radius 2.0
+    ion charge -1 conc 0.15 radius 1.8
+
+    write pot dx "{mapfile}"
+end
+quit
+'''
+
+def validate_apbs_exe(exe):
+    '''Get and validate apbs executable.
+    Raise CmdException if not found or broken.'''
+    import os, subprocess
+
+    if exe:
+        exe = cmd.exp_path(exe)
+    else:
+        try:
+            import freemol.apbs
+            exe = freemol.apbs.get_exe_path()
+        except:
+            pass
+        if not exe:
+            exe = "apbs"
+
+    try:
+        r = subprocess.call([exe, "--version"],
+                stdout=open(os.devnull, "w"), stderr=subprocess.STDOUT)
+        if r < 0:
+            raise CmdException("Broken executable: " + exe)
+    except OSError:
+        raise CmdException("Cannot execute: " + exe)
+
+    return exe
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
         preserve=0, exe='', assign=-1, focus='', quiet=1):
@@ -59,24 +98,8 @@ SEE ALSO
     grid, buffer, state = float(grid), float(buffer), int(state)
     preserve, assign, quiet = int(preserve), int(assign), int(quiet)
 
-    if exe:
-        exe = cmd.exp_path(exe)
-    else:
-        try:
-            import freemol.apbs
-            exe = freemol.apbs.get_exe_path()
-        except:
-            pass
-        if not exe:
-            exe = "apbs"
-
-    try:
-        r = subprocess.call([exe, "--version"],
-                stdout=open(os.devnull, "w"), stderr=subprocess.STDOUT)
-        if r < 0:
-            raise CmdException("Broken executable: " + exe)
-    except OSError:
-        raise CmdException("Cannot execute: " + exe)
+    # path to apbs executable
+    exe = validate_apbs_exe(exe)
 
     # temporary directory
     tempdir = tempfile.mkdtemp()
@@ -117,41 +140,18 @@ SEE ALSO
     if not preserve:
         cmd.delete(tmpname)
 
-    apbs_in = defaults_apbs_in.copy()
-    apbs_in['fglen'] = '%f %f %f' % tuple(fglen)
-    apbs_in['cglen'] = '%f %f %f' % tuple(cglen)
-    apbs_in['srad'] = cmd.get('solvent_radius')
-    apbs_in['write'] = 'pot dx "%s"' % (stem)
+    apbs_in = {
+        'pqrfile': pqrfile,
+        'fgcent': 'mol 1',
+        'fglen': '%f %f %f' % tuple(fglen),
+        'cglen': '%f %f %f' % tuple(cglen),
+        'srad': cmd.get('solvent_radius'),
+        'mapfile': stem,
+    }
 
     if focus:
         apbs_in['fgcent'] = '%f %f %f' % tuple((emax + emin) / 2.0
                 for (emin, emax) in zip(*extentfocus))
-
-    # apbs input file
-    def write_input_file():
-        f = open(infile, 'w')
-        print('''
-read
-    mol pqr "%s"
-end
-elec
-    mg-auto
-''' % (pqrfile), file=f)
-
-        for (k,v) in apbs_in.items():
-            if v is None:
-                print(k, file=f)
-            elif isinstance(v, list):
-                for vi in v:
-                    print(k, vi, file=f)
-            else:
-                print(k, v, file=f)
-
-        print('''
-end
-quit
-''', file=f)
-        f.close()
 
     try:
         # apbs will fail if grid does not fit into memory
@@ -159,7 +159,10 @@ quit
         for _ in range(3):
             dime = [1 + max(64, n / grid) for n in fglen]
             apbs_in['dime'] = '%d %d %d' % tuple(dime)
-            write_input_file()
+
+            # apbs input file
+            with open(infile, 'w') as f:
+                f.write(template_apbs_in.format(**apbs_in))
 
             # run apbs
             r = subprocess.call([exe, infile], cwd=tempdir)
