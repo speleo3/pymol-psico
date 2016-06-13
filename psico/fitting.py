@@ -8,6 +8,8 @@ from __future__ import print_function
 
 from pymol import cmd, CmdException
 
+from .mcsalign import mcsalign
+
 def alignwithanymethod(mobile, target, methods=None, async=1, quiet=1):
     '''
 DESCRIPTION
@@ -1219,7 +1221,8 @@ def _promix(**kwargs):
     print(' Log Likelihood: %.2f' % (mixture.log_likelihood))
 
 # all those have kwargs: mobile, target, mobile_state, target_state
-align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus', 'prosmart', 'xfit']
+align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus',
+        'prosmart', 'xfit', 'mcsalign']
 align_methods_sc = cmd.Shortcut(align_methods)
 
 # pymol commands

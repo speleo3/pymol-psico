@@ -34,6 +34,8 @@ EXTERNAL PROGRAMS AND LIBRARIES
      * csb (http://csb.codeplex.com)
      * modeller
      * prody
+     * rdkit (http://www.rdkit.org/)
+     * indigo (https://github.com/epam/Indigo)
 
     psico has several wrappers for external tools. For full support, you need
     these binaries:
