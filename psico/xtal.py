@@ -175,7 +175,7 @@ SEE ALSO
 
         name = '%s%d' % (prefix, i)
         cmd.create(name, object)
-        cmd.transform_object(name, mat_list)
+        cmd.transform_object(name, mat_list, 0)
         cmd.color(i+1, name)
 
 def pdbremarks(filename):
