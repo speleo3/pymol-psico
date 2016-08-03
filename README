@@ -56,13 +56,15 @@ EXTERNAL PROGRAMS AND LIBRARIES
      * pdb2pqr
      * prosmart
      * p_sstruc3
+     * msms
 
 AUTHORS
 
-    Thomas Holder (1,2) <thomas.holder@tuebingen.mpg.de>
+    Thomas Holder (1,2,3) <thomas.holder@schrodinger.com>
     Steffen Schmidt (1) <steffen.schmidt@tuebingen.mpg.de>
 
     (1) Max Planck Institute for Developmental Biology, Germany
     (2) Warren L. DeLano Memorial PyMOL Open-Source Fellowship 2011-2012
+    (3) Schrodinger, Inc.
 
 vi: expandtab:smarttab:sw=4

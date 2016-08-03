@@ -34,6 +34,7 @@ __all__ = [
     'importing',
     'modelling',
     'moving',
+    'msms',
     'nma',
     'plotting',
     'querying',
