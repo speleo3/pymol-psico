@@ -256,7 +256,45 @@ ARGUMENT
                         0))
     return ''.join(ssstr)
 
-def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0, quiet=1):
+def get_pdb_seqres(selection='all', quiet=1):
+    '''
+DESCRIPTION
+
+    Get PDB SEQRES records for a given selection.
+    '''
+    prev = [None, None]
+    sequences = []
+
+    def callback(modelchain, resi, resn):
+        if prev[0] != modelchain:
+            prev[0] = modelchain
+            sequences.append((modelchain[1], []))
+        elif prev[1] == resi:
+            # same residue
+            return
+        prev[1] = resi
+        sequences[-1][1].append(resn)
+
+    cmd.iterate('polymer & (%s)' % selection,
+            'callback((model, chain), resi, resn)', space=locals())
+
+    buf = []
+    for (chain, seq) in sequences:
+        numRes = len(seq)
+        for i in range(0, numRes, 13):
+            buf.append('SEQRES %3i %1.1s %4i  ' % ((i / 13) + 1, chain, numRes))
+            for j in range(i, min(i + 13, numRes)):
+                buf.append('%3.3s ' % seq[j])
+            buf.append('\n')
+
+    buf = ''.join(buf)
+
+    if not int(quiet):
+        print(buf)
+
+    return buf
+
+def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0, seqres=0, quiet=1):
     '''
 DESCRIPTION
 
@@ -295,6 +333,10 @@ SEE ALSO
     filename = cmd.exp_path(filename)
     f = open(filename, 'w')
     print('REMARK 200 Generated with PyMOL and psico'.ljust(80), file=f)
+
+    # Write sequence
+    if int(seqres):
+        f.write(get_pdb_seqres(selection))
 
     # Write the CRYST1 line if possible
     if symm:
