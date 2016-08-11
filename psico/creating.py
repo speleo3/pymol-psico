@@ -318,12 +318,87 @@ DESCRIPTION
     if not quiet:
         print(' corina: done')
 
+def prepwizard(name, selection='all', options='', state=-1,
+        preserve=0, exe='$SCHRODINGER/utilities/prepwizard', quiet=1):
+    '''
+DESCRIPTION
+
+    Run the SCHRODINGER Protein Preparation Wizard. Builds missing side
+    chains and converts MSE to MET. Other non-default options need to be
+    passed with the "options=" argument.
+
+USAGE
+
+    prepwizard name [, selection [, options [, state ]]]
+
+ARGUMENTS
+
+    name = str: name of object to create
+
+    selection = str: atoms to send to the wizard {default: all}
+
+    options = str: additional command line options for prepwizard
+
+    state = int: object state {default: -1 (current)}
+    '''
+    import os, tempfile, subprocess, shutil, shlex
+
+    state, preserve, quiet = int(state), int(preserve), int(quiet)
+
+    exe = cmd.exp_path(exe)
+    if not os.path.exists(exe):
+        if 'SCHRODINGER' not in os.environ:
+            print(' Warning: SCHRODINGER environment variable not set')
+        raise CmdException('no such script: ' + exe)
+
+    args = [exe, '-mse', '-fillsidechains', '-WAIT']
+
+    if options:
+        if cmd.is_string(options):
+            options = shlex.split(options)
+        args.extend(options)
+
+    tmpdir = tempfile.mkdtemp()
+    infile = 'in.pdb'
+    outfile = 'out.mae'
+    args.extend([infile, outfile])
+
+    try:
+        cmd.save(os.path.join(tmpdir, infile), selection, state)
+
+        p = subprocess.Popen(args, cwd=tmpdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+
+        print(p.communicate()[0].rstrip())
+
+        if p.returncode != 0:
+            logfile = os.path.join(tmpdir, 'in.log')
+            if os.path.exists(logfile):
+                with open(logfile) as handle:
+                    print(handle.read())
+
+            raise CmdException('%s failed with exit status %d' % (args[0], p.returncode))
+
+        cmd.load(os.path.join(tmpdir, outfile), name)
+    except OSError:
+        raise CmdException('Cannot execute "%s"' % (exe))
+    finally:
+        if not preserve:
+            shutil.rmtree(tmpdir)
+        elif not quiet:
+            print(' Notice: not deleting', tmpdir)
+
+    if not quiet:
+        print(' prepwizard: done')
+
 if 'join_states' not in cmd.keyword:
     cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
 cmd.extend('ramp_levels', ramp_levels)
 cmd.extend('pdb2pqr', pdb2pqr)
 cmd.extend('corina', corina)
+cmd.extend('prepwizard', prepwizard)
 
 cmd.auto_arg[0].update([
     ('ramp_levels', [lambda: cmd.Shortcut(cmd.get_names_of_type('object:')), 'ramp object', '']),
@@ -333,6 +408,7 @@ cmd.auto_arg[1].update([
     ('sidechaincenters'     , cmd.auto_arg[0]['zoom']),
     ('pdb2pqr'              , cmd.auto_arg[0]['zoom']),
     ('corina'               , cmd.auto_arg[0]['zoom']),
+    ('prepwizard'           , cmd.auto_arg[0]['zoom']),
 ])
 cmd.auto_arg[2].update([
     ('sidechaincenters', [cmd.Shortcut(sidechaincentermethods), 'method', '']),
