@@ -58,7 +58,9 @@ def validate_apbs_exe(exe):
         except:
             pass
         if not exe:
-            exe = "apbs"
+            exe = cmd.exp_path('$SCHRODINGER/utilities/apbs')
+            if not os.path.exists(exe):
+                exe = "apbs"
 
     try:
         r = subprocess.call([exe, "--version"],
@@ -71,7 +73,7 @@ def validate_apbs_exe(exe):
     return exe
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
-        preserve=0, exe='', assign=-1, focus='', quiet=1):
+        preserve=0, exe='', assign=-1, focus='', quiet=1, _template=''):
     '''
 DESCRIPTION
 
@@ -119,8 +121,8 @@ SEE ALSO
     assign = [assign]
     if assign[0] == -1:
         # auto detect if selection has charges and radii
-        cmd.iterate('first ((%s) and elem O)' % (tmpname),
-                'assign[0] = (elec_radius * partial_charge) == 0.0',
+        cmd.iterate(tmpname,
+                'assign[0] *= (elec_radius * partial_charge) == 0.0',
                 space=locals())
     if assign[0]:
         cmd.remove('hydro and model ' + tmpname)
@@ -162,7 +164,7 @@ SEE ALSO
 
             # apbs input file
             with open(infile, 'w') as f:
-                f.write(template_apbs_in.format(**apbs_in))
+                f.write((_template or template_apbs_in).format(**apbs_in))
 
             # run apbs
             r = subprocess.call([exe, infile], cwd=tempdir)
@@ -175,19 +177,16 @@ SEE ALSO
                     print(' Warning: retry with grid =', grid)
                 continue
 
-            print(' Error: apbs failed with code', r)
-            raise CmdException
+            raise CmdException('apbs failed with code ' + str(r))
 
         dx_list = glob.glob(stem + '*.dx')
         if len(dx_list) != 1:
-            print(' Error: dx file missing')
-            raise CmdException
+            raise CmdException('dx file missing')
 
         # load map
         cmd.load(dx_list[0], name, quiet=quiet)
     except OSError:
-        print(' Error: Cannot execute "%s"' % (exe))
-        raise CmdException
+        raise CmdException('Cannot execute "%s"' % (exe))
     finally:
         if not preserve:
             shutil.rmtree(tempdir)

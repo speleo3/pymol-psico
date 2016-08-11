@@ -245,14 +245,19 @@ ARGUMENTS
 
     try:
         cmd.save(infile, selection, state)
-        subprocess.check_call(args, cwd=tmpdir)
+
+        p = subprocess.Popen(args, cwd=tmpdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+
+        print(p.communicate()[0].rstrip())
+
+        if p.returncode != 0:
+            raise CmdException('%s failed with exit status %d' % (args[0], p.returncode))
+
         cmd.load(outfile, name)
     except OSError:
-        print(' Error: Cannot execute "%s"' % (exe))
-        raise CmdException
-    except subprocess.CalledProcessError as e:
-        print(' Error: %s failed with exit status %d' % (args[0], e.returncode))
-        raise CmdException
+        raise CmdException('Cannot execute "%s"' % (exe))
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
