@@ -82,9 +82,7 @@ SEE ALSO
     obj = [
         cgo.BEGIN,
         cgo.LINES,
-        cgo.COLOR,
     ]
-    obj.extend(cmd.get_color_tuple(color))
 
     for t in ts:
         shift = basis[0:3,0:3] * t
@@ -113,6 +111,7 @@ SEE ALSO
 
     cmd.delete(name)
     cmd.load_cgo(obj, name)
+    cmd.color(color, name)
 
 def symexpcell(prefix='mate', object=None, a=0, b=0, c=0):
     '''
