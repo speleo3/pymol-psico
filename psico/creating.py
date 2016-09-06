@@ -255,6 +255,10 @@ ARGUMENTS
         if p.returncode != 0:
             raise CmdException('%s failed with exit status %d' % (args[0], p.returncode))
 
+        remark5 = [L for L in open(outfile) if L.startswith('REMARK   5')]
+        if remark5:
+            print(''.join(remark5))
+
         cmd.load(outfile, name)
     except OSError:
         raise CmdException('Cannot execute "%s"' % (exe))
