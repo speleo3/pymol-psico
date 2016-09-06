@@ -396,6 +396,100 @@ ARGUMENTS
     if not quiet:
         print(' prepwizard: done')
 
+def fiber(seq, num=4, name='', rna=0, single=0, repeats=0,
+        preserve=0, exe='$X3DNA/bin/fiber', quiet=1):
+    '''
+DESCRIPTION
+
+    Run X3DNA's "fiber" tool.
+
+    For the list of structure identification numbers, see for example:
+    http://xiang-jun.blogspot.com/2009/10/fiber-models-in-3dna.html
+
+USAGE
+
+    fiber seq [, num [, name [, rna [, single ]]]]
+
+ARGUMENTS
+
+    seq = str: single letter code sequence or number of repeats for
+    repeat models.
+
+    num = int: structure identification number {default: 4}
+
+    name = str: name of object to create {default: random unused name}
+
+    rna = 0/1: 0=DNA, 1=RNA {default: 0}
+
+    single = 0/1: 0=double stranded, 1=single stranded {default: 0}
+
+EXAMPLES
+
+    # environment (this could go into ~/.pymolrc or ~/.bashrc)
+    os.environ["X3DNA"] = "/opt/x3dna-v2.3"
+
+    # B or A DNA from sequence
+    fiber CTAGCG
+    fiber CTAGCG, 1, ADNA
+
+    # double or single stranded RNA from sequence
+    fiber AAAGGU, name=dsRNA, rna=1
+    fiber AAAGGU, name=ssRNA, rna=1, single=1
+
+    # poly-GC Z-DNA repeat model with 10 repeats
+    fiber 10, 15
+    '''
+    import os, tempfile, subprocess, shutil
+
+    rna, single = int(rna), int(single)
+    preserve, quiet = int(preserve), int(quiet)
+
+    if 'X3DNA' not in os.environ:
+        raise CmdException('please set X3DNA environment variable')
+
+    args = [cmd.exp_path(exe), '-seq=' + seq, '-' + str(num)]
+
+    if rna:
+        args.append('-rna')
+    if single:
+        args.append('-single')
+
+    if not name:
+        name = cmd.get_unused_name('fiber-' + str(num) + '_')
+
+    tmpdir = tempfile.mkdtemp()
+    outfile = os.path.join(tmpdir, 'out.pdb')
+    args.append(outfile)
+
+    if seq.endswith('help'):
+        # call fiber with no arguments to get help page
+        args[1:] = []
+
+    try:
+        p = subprocess.Popen(args, cwd=tmpdir,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+
+        stdout, _ = p.communicate(str(int(repeats) or seq))
+
+        if not quiet:
+            print(stdout)
+
+        if len(args) != 1:
+            if p.returncode != 0:
+                raise CmdException('Returned non-zero status: ' + str(args))
+
+            cmd.load(outfile, name, quiet=quiet)
+
+    except OSError:
+        raise CmdException('Cannot execute "%s"' % (exe))
+    finally:
+        if not preserve:
+            shutil.rmtree(tmpdir)
+        elif not quiet:
+            print(' Notice: not deleting', tmpdir)
+
 if 'join_states' not in cmd.keyword:
     cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
@@ -403,6 +497,7 @@ cmd.extend('ramp_levels', ramp_levels)
 cmd.extend('pdb2pqr', pdb2pqr)
 cmd.extend('corina', corina)
 cmd.extend('prepwizard', prepwizard)
+cmd.extend('fiber', fiber)
 
 cmd.auto_arg[0].update([
     ('ramp_levels', [lambda: cmd.Shortcut(cmd.get_names_of_type('object:')), 'ramp object', '']),
