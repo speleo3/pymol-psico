@@ -6,7 +6,6 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-@cmd.extend
 def save_xyzr(filename, selection='all', state=1, _colorsout=None):
     '''
 DESCRIPTION
@@ -24,12 +23,14 @@ DESCRIPTION
     if isinstance(_colorsout, list):
         expr += ';_colorsout.append(color)'
 
-    with open(filename, 'w') as handle:
+    handle = open(filename, 'w')
+    try:
         cmd.iterate_state(state, selection, expr, space={
             'callback': lambda *args: handle.write(fmt % args),
             '_colorsout': _colorsout})
+    finally:
+        handle.close()
 
-@cmd.extend
 def load_msms_surface(filename, name='', _colors=None):
     '''
 DESCRIPTION
@@ -91,7 +92,6 @@ DESCRIPTION
 
     cmd.load_cgo(cgobuf, name)
 
-@cmd.extend
 def msms_surface(selection='polymer', state=1, density=3, name='', atomcolors=0, exe='msms'):
     '''
 DESCRIPTION
@@ -153,7 +153,6 @@ EXAMPLE
     finally:
         shutil.rmtree(tmpdir)
 
-@cmd.extend
 def atmtypenumbers(filename='atmtypenumbers', selection='all', united=1,
         quiet=1):
     '''
@@ -229,6 +228,11 @@ EXAMPLE
     cmd.alter(selection, 'vdw = callback(resn, name, vdw)',
             space={'callback': callback})
     cmd.rebuild(selection)
+
+cmd.extend('save_xyzr', save_xyzr)
+cmd.extend('load_msms_surface', load_msms_surface)
+cmd.extend('msms_surface', msms_surface)
+cmd.extend('atmtypenumbers', atmtypenumbers)
 
 # auto-completion
 cmd.auto_arg[0]['msms_surface'] = cmd.auto_arg[1]['select']
