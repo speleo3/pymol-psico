@@ -6,9 +6,11 @@ License: BSD-2-Clause
 
 from __future__ import print_function
 
+import sys
+
 from pymol import cmd
 
-def fasta(selection='(all)', gapped=1, wrap=70):
+def fasta(selection='(all)', gapped=1, wrap=70, filename='', quiet=1):
     '''
 DESCRIPTION
 
@@ -28,24 +30,52 @@ SEE ALSO
     '''
     from . import one_letter
     gapped, wrap = int(gapped), int(wrap)
-    selection = '(%s) and guide' % (selection)
-    for obj in cmd.get_object_list(selection):
-        for chain in cmd.get_chains('%s and (%s)' % (obj, selection)):
-            seq = []
-            model = cmd.get_model('/%s//%s//CA and (%s)' % (obj, chain, selection))
-            prev_resi = 999999999
-            for atom in model.atom:
-                if gapped:
-                    gap_len = max(0, atom.resi_number - prev_resi - 1)
-                    seq.extend('-' * gap_len)
-                    prev_resi = atom.resi_number
-                seq.append(one_letter.get(atom.resn, 'X'))
-            print('>%s_%s' % (obj, chain))
-            if wrap < 1:
-                print(''.join(seq))
-                continue
-            for i in range(0, len(seq), wrap):
-                print(''.join(seq[i:i+wrap]))
+
+    class prev:
+        key = None
+        col = 0
+
+    if filename:
+        out = open(filename, 'w')
+    else:
+        out = sys.stdout
+
+    def write(c):
+        if wrap > 0 and prev.col == wrap:
+            out.write('\n')
+            prev.col = 0
+        prev.col += 1
+        out.write(c)
+
+    def callback(key, resv, resn):
+        if key != prev.key:
+            # different chain
+            if prev.col > 0:
+                out.write('\n')
+            out.write('>%s_%s\n' % key)
+            prev.key = key
+            prev.col = 0
+        elif resv == prev.resv:
+            # same residue
+            return
+        elif gapped:
+            for _ in range(resv - prev.resv - 1):
+                # gap
+                write('-')
+        prev.resv = resv
+        write(one_letter.get(resn, 'X'))
+
+    cmd.iterate('(%s) & polymer' % (selection),
+            '_cb((model, chain), resv, resn)',
+            space={'_cb': callback})
+
+    if prev.col > 0:
+        out.write('\n')
+
+    if filename:
+        if not int(quiet):
+            print(' Wrote sequence to "%s"' % filename)
+        out.close()
 
 def pir(selection='(all)', wrap=70):
     '''
