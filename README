@@ -40,23 +40,23 @@ EXTERNAL PROGRAMS AND LIBRARIES
     psico has several wrappers for external tools. For full support, you need
     these binaries:
 
-     * dssp (recommended)
-     * stride (recommended)
-     * TMalign (recommended)
+     * dssp (http://www.cmbi.ru.nl/dssp.html)
+     * stride (http://webclu.bio.wzw.tum.de/stride/)
+     * TMalign (http://zhanglab.ccmb.med.umich.edu/TM-align/)
      * TMscore
      * MMalign
-     * theseus (recommended)
-     * needle (recommended)
-     * DynDom
-     * qdelaunay
-     * mencoder
-     * pdbmat
+     * theseus (http://www.theseus3d.org)
+     * needle (http://emboss.sourceforge.net)
+     * DynDom (http://fizz.cmp.uea.ac.uk/dyndom/)
+     * qdelaunay (http://www.qhull.org)
+     * mencoder (http://www.mplayerhq.hu)
+     * pdbmat (http://ecole.modelisation.free.fr/modes.html)
      * diagrtb
-     * apbs
+     * apbs (http://www.poissonboltzmann.org/)
      * pdb2pqr
-     * prosmart
+     * prosmart (http://www2.mrc-lmb.cam.ac.uk/groups/murshudov/)
      * p_sstruc3
-     * msms
+     * msms (http://mgltools.scripps.edu/packages/MSMS)
 
 AUTHORS
 
