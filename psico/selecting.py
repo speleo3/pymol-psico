@@ -6,7 +6,8 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1):
+def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1,
+        cutoff=4.0, one_letter=None):
     '''
 DESCRIPTION
 
@@ -44,16 +45,19 @@ SEE ALSO
     '''
     import re
     from chempy import cpv
-    from . import one_letter
+
+    if not one_letter:
+        from . import one_letter
 
     state, quiet = int(state), int(quiet)
+    cutoff = float(cutoff)
 
     seq_list = []
     idx_list = []
     prev = [1e300, 1e300, 1e300]
 
     def callback(model, index, resn, coord):
-        if cpv.distance(coord, prev) > 4.0:
+        if cpv.distance(coord, prev) > cutoff:
             seq_list.append('#')
             idx_list.append(None)
         seq_list.append(one_letter.get(resn, '#'))
@@ -76,6 +80,17 @@ SEE ALSO
         sel_list.extend('%s`%d' % idx for idx in idx_list[start:stop] if idx is not None)
 
     return cmd.select(name, '(' + selection + ') and byres (none ' + ' '.join(sel_list) + ')')
+
+
+def select_nucseq(pattern, selection='all', name='sele', state=1, quiet=1):
+    '''
+DESCRIPTION
+
+    Find a nucleic acid sequence pattern in given atom selection.
+    '''
+    one_letter = dict(["AA", "CC", "TT", "GG", "UU"])
+    return select_pepseq(pattern, selection, name, state, quiet, 6.5, one_letter)
+
 
 def select_sspick(selection, name=None, caonly=0, quiet=0):
     '''
@@ -298,6 +313,7 @@ SEE ALSO
 
 # commands
 cmd.extend('select_pepseq', select_pepseq)
+cmd.extend('select_nucseq', select_nucseq)
 cmd.extend('select_sspick', select_sspick)
 cmd.extend('symdiff', symdiff)
 cmd.extend('diff', diff)
@@ -316,6 +332,7 @@ cmd.auto_arg[0].update([
 ])
 cmd.auto_arg[1].update([
     ('select_pepseq', cmd.auto_arg[1]['select']),
+    ('select_nucseq', cmd.auto_arg[1]['select']),
     ('symdiff',     cmd.auto_arg[1]['align']),
     ('diff',        cmd.auto_arg[1]['align']),
 ])
