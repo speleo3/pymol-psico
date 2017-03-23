@@ -93,6 +93,8 @@ ARGUMENTS
         if stderr:
             raise pymol.CmdException(stderr)
         outdir = stdout.strip()
+        if not isinstance(outdir, str):
+            outdir = outdir.decode()
     except OSError:
         try:
             # try inside this Python interpreter
