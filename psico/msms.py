@@ -92,7 +92,8 @@ DESCRIPTION
 
     cmd.load_cgo(cgobuf, name)
 
-def msms_surface(selection='polymer', state=1, density=3, name='', atomcolors=0, exe='msms'):
+def msms_surface(selection='polymer', state=1, density=3, name='',
+        atomcolors=0, exe='msms', preserve=0, quiet=1):
     '''
 DESCRIPTION
 
@@ -151,7 +152,10 @@ EXAMPLE
     except OSError:
         raise CmdException('Cannot execute exe=' + exe)
     finally:
-        shutil.rmtree(tmpdir)
+        if not int(preserve):
+            shutil.rmtree(tmpdir)
+        elif not int(quiet):
+            print(' Notice: not deleting ' + tmpdir)
 
 def atmtypenumbers(filename='atmtypenumbers', selection='all', united=1,
         quiet=1):
