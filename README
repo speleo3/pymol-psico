@@ -31,7 +31,7 @@ EXTERNAL PROGRAMS AND LIBRARIES
      * numpy
      * Bio (biopython)
      * MMTK
-     * csb (http://csb.codeplex.com)
+     * csb (https://github.com/csb-toolbox/CSB)
      * modeller
      * prody
      * rdkit (http://www.rdkit.org/)

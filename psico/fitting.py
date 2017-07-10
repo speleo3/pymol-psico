@@ -887,7 +887,7 @@ DESCRIPTION
 
     The result should be very similar to "theseus".
 
-    Requires CSB, http://csb.codeplex.com
+    Requires CSB, https://github.com/csb-toolbox/CSB
 
 ARGUMENTS
 
@@ -975,7 +975,7 @@ DESCRIPTION
 
     The result should be very similar to "intra_theseus".
 
-    Requires CSB, http://csb.codeplex.com
+    Requires CSB, https://github.com/csb-toolbox/CSB
 
 ARGUMENTS
 
@@ -1075,7 +1075,7 @@ DESCRIPTION
 
     Finds rigid segments in two objects with different conformation.
 
-    Requires CSB, http://csb.codeplex.com
+    Requires CSB, https://github.com/csb-toolbox/CSB
 
 ARGUMENTS
 
@@ -1137,7 +1137,7 @@ DESCRIPTION
 
     Finds rigid segments in a multi-state object.
 
-    Requires CSB, http://csb.codeplex.com
+    Requires CSB, https://github.com/csb-toolbox/CSB
 
 ARGUMENTS
 
