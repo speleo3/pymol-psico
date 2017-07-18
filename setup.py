@@ -7,7 +7,7 @@ from distutils.core import setup
 try:
 	from psico import __version__
 except:
-	print 'Warning: could not import version'
+	print('Warning: could not import version')
 	__version__ = '0.0'
 
 distribution = setup(
