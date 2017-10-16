@@ -4,7 +4,8 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import with_statement
 
 import sys
 
@@ -209,7 +210,7 @@ SEE ALSO
         if name_tuple == ('CA', 'CB', 'CG'):
             key_str_cg = key_str + '/CG'
             if not quiet:
-                print('Removing', key_str_cg)
+                print('Removing ' + str(key_str_cg))
             cmd.remove(key_str_cg)
             name_tuple = ('CA', 'CB')
         lookslike_resn = lookslike.get(name_tuple, resn)
@@ -251,6 +252,7 @@ DESCRIPTION
     if raw != '':
         cmd.alter(selection, raw + ' = ss_dict.get((model,chain,resi), "")',
                 space={'ss_dict': ss_dict})
+    cmd.cartoon('auto', selection)
     cmd.rebuild(selection, 'cartoon')
 
 def dssp(selection='(all)', exe='', raw='', state=-1, quiet=1):
