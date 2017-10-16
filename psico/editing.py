@@ -6,6 +6,8 @@ License: BSD-2-Clause
 
 from __future__ import print_function
 
+import sys
+
 from pymol import cmd, CmdException
 
 def split(operator, selection, prefix='entity'):
@@ -479,18 +481,23 @@ SEE ALSO
             '',
         ])
 
+        body = body.encode('ascii', 'ignore')
+
         try:
             request = urllib2.Request(
+                    data=body, url=
                     'http://lcb.infotech.monash.edu.au/sstweb/formaction_pdbfile.php')
             request.add_header('User-agent', 'PyMOL ' + cmd.get_version()[0] + ' ' +
                     cmd.sys.platform)
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
             request.add_header('Content-length', len(body))
-            request.add_data(body)
             lines = urllib2.urlopen(request).readlines()
         except urllib2.URLError:
             print(' Error: URL request failed')
             raise CmdException
+
+        if sys.version_info[0] > 2:
+            lines = (line.decode('ascii', 'ignore') for line in lines)
 
         lines = iter(lines)
 

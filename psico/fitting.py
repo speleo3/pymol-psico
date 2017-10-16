@@ -1188,10 +1188,10 @@ REFERENCE
         t.setDaemon(1)
         t.start()
 
-def _promix(**kwargs):
-    conformers = 0
-
-    exec(','.join(kwargs) + ', = kwargs.values()')
+def _promix(conformers=0, prefix=None,
+        obj=NotImplemented, selection=NotImplemented,
+        X=NotImplemented, K=NotImplemented, Mixture=NotImplemented,
+        **_):
 
     if not prefix:
         if conformers:
