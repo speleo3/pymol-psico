@@ -10,7 +10,7 @@ from pymol import cmd, CmdException
 
 def mcsalign(mobile, target,
         mobile_state=-1, target_state=-1,
-        cycles=5, timeout=10, method='', quiet=1):
+        cycles=5, timeout=10, method='', exact=0, quiet=1):
     '''
 DESCRIPTION
 
@@ -37,6 +37,8 @@ ARGUMENTS
 
     method = indigo or rdkit {default: check availability}
 
+    exact = 0/1: match elements and bond orders {default: 0}
+
 EXAMPLE
 
     fetch 3zcf 4n8t, async=0
@@ -60,7 +62,7 @@ EXAMPLE
     t_sdf = get_molstr(target, target_state)
 
     # find maximum common substructure
-    m_indices, t_indices = get_mcs_indices(method, quiet, m_sdf, t_sdf, timeout)
+    m_indices, t_indices = get_mcs_indices(method, quiet, m_sdf, t_sdf, timeout, int(exact))
 
     if len(m_indices) < 3:
         raise CmdException('not enough atoms in MCS')
@@ -127,12 +129,20 @@ def get_mcs_indices(method, quiet, *args, **kwargs):
 
     return methods[method](*args, **kwargs)
 
-def get_mcs_indices_rdkit(m_sdf, t_sdf, timeout):
+def get_mcs_indices_rdkit(m_sdf, t_sdf, timeout, exact=False):
     try:
         from rdkit.Chem.rdFMCS import FindMCS
     except ImportError:
         # backwards compatibility
         from rdkit.Chem.MCS import FindMCS
+        kwargs = {'bondCompare': 'any', 'atomCompare': 'any'}
+    else:
+        from rdkit.Chem import rdFMCS
+        kwargs = {'bondCompare': rdFMCS.BondCompare.CompareAny,
+                  'atomCompare': rdFMCS.AtomCompare.CompareAny}
+
+    if exact:
+        kwargs.clear()
 
     from rdkit import Chem
 
@@ -141,7 +151,7 @@ def get_mcs_indices_rdkit(m_sdf, t_sdf, timeout):
 
     # find maximum common substructure
     timeout = int(timeout) if timeout else None
-    mcs = FindMCS([m_mol, t_mol], timeout=timeout)
+    mcs = FindMCS([m_mol, t_mol], timeout=timeout, **kwargs)
 
     # backwards compatibility
     if hasattr(mcs, 'completed'):
@@ -158,7 +168,7 @@ def get_mcs_indices_rdkit(m_sdf, t_sdf, timeout):
 
     return m_indices, t_indices
 
-def get_mcs_indices_indigo(m_sdf, t_sdf, timeout=None):
+def get_mcs_indices_indigo(m_sdf, t_sdf, timeout=None, exact=False):
     import indigo
     indigo = indigo.Indigo()
 
@@ -169,7 +179,7 @@ def get_mcs_indices_indigo(m_sdf, t_sdf, timeout=None):
     arr = indigo.createArray()
     arr.arrayAdd(m_mol)
     arr.arrayAdd(t_mol)
-    mcs = indigo.extractCommonScaffold(arr, 'approx')
+    mcs = indigo.extractCommonScaffold(arr, 'exact' if exact else 'approx')
 
     # match to scaffold
     query = indigo.loadQueryMolecule(mcs.smiles())
@@ -177,8 +187,10 @@ def get_mcs_indices_indigo(m_sdf, t_sdf, timeout=None):
     t_match = indigo.substructureMatcher(t_mol).match(query)
 
     # atom indices of match
-    m_indices = [m_match.mapAtom(a).index() for a in query.iterateAtoms()]
-    t_indices = [t_match.mapAtom(a).index() for a in query.iterateAtoms()]
+    m_atoms = [m_match.mapAtom(a) for a in query.iterateAtoms()]
+    t_atoms = [t_match.mapAtom(a) for a in query.iterateAtoms()]
+    m_indices = [a.index() for a in m_atoms if a is not None]
+    t_indices = [a.index() for a in t_atoms if a is not None]
 
     return m_indices, t_indices
 
