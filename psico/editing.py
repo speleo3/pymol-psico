@@ -101,7 +101,7 @@ SEE ALSO
     u_sq = coords.var(0).sum(1) # var over states, sum over x,y,z
     b_array = sqrt(u_sq) * linearscale if linearscale > 0.0 \
             else 8 * pi**2 * u_sq
-    cmd.alter(selection, var + ' = b_iter.next()', space={'b_iter': iter(b_array)})
+    cmd.alter(selection, var + ' = next(b_iter)', space={'b_iter': iter(b_array), 'next': next})
     if not int(quiet):
         print(' Average RMSF: %.2f' % (sqrt(u_sq).mean()))
     return b_array

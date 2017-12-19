@@ -191,8 +191,9 @@ def _normalmodes(selection, cutoff, force, mass,
             for state in range(1, states+1):
                 cmd.create(name, sele_name, 1, state, zoom=0)
                 cmd.alter_state(state, name,
-                        '(x,y,z) = cpv.add([x,y,z], cpv.scale(myit.next(), myfac))',
+                        '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
                         space={'cpv': cpv, 'myit': iter(eigenfacs[mode-1]),
+                            'next': next,
                             'myfac': factor * (state - (states+1)/2.0)})
 
         # if CA only selection, show ribbon trace
@@ -349,8 +350,9 @@ DESCRIPTION
         for state in range(1, states+1):
             cmd.create(name, selection, 1, state, zoom=0)
             cmd.alter_state(state, name,
-                    '(x,y,z) = cpv.add([x,y,z], cpv.scale(myit.next(), myfac))',
+                    '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
                     space={'cpv': cpv, 'myit': eigenfacs_iter(mode),
+                        'next': next,
                         'myfac': 1e2 * factor * ((state-1.0)/(states-1.0) - 0.5)})
 
     cmd.delete(selection)
@@ -410,8 +412,8 @@ DESCRIPTION
             xyz_it = iter(modes[mode-7].getArrayNx3() * (factor *
                     ((state-1.0)/(states-1.0) - 0.5)))
             cmd.create(name, tmpsele, 1, state, zoom=0)
-            cmd.alter_state(state, name, '(x,y,z) = xyz_it.next() + (x,y,z)',
-                    space=locals())
+            cmd.alter_state(state, name, '(x,y,z) = next(xyz_it) + (x,y,z)',
+                    space={'xyz_it': xyz_it, 'next': next})
 
     cmd.delete(tmpsele)
 

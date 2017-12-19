@@ -135,7 +135,7 @@ ARGUMENTS
         elif line.lower().startswith(' -------- rotation matrix'):
             rowcount = 1
         elif line.startswith('(":" denotes'):
-            alignment = [line_it.next().rstrip() for i in range(3)]
+            alignment = [next(line_it).rstrip() for i in range(3)]
         else:
             match = re_score.search(line)
             if match is not None:
@@ -291,6 +291,9 @@ USAGE
         for line in process.stdout:
             if not quiet:
                 sys.stdout.write(line)
+
+        if process.poll() != 0:
+            raise CmdException('"%s" failed with status %d' % (exe, process.returncode))
 
         cmd.color('gray', mobile)
         fixed_name = dyndom_parse_info(infofile, mobile, quiet)
@@ -959,7 +962,7 @@ SEE ALSO
 
     if int(load_b):
         b_iter = iter(-log(scales))
-        cmd.alter(mm.mobile, 'b = b_iter.next()', space=locals())
+        cmd.alter(mm.mobile, 'b = next(b_iter)', space={'b_iter': b_iter, 'next': next})
 
     if not quiet:
         print(' xfit: %d atoms aligned' % (len(X)))
@@ -1063,7 +1066,7 @@ SEE ALSO
 
     if int(load_b):
         b_iter = iter(-log(scales))
-        cmd.alter(selection, 'b = b_iter.next()', space=locals())
+        cmd.alter(mm.mobile, 'b = next(b_iter)', space={'b_iter': b_iter, 'next': next})
 
     if not quiet:
         print(' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models))

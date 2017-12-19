@@ -382,7 +382,7 @@ SEE ALSO
                 yield line
                 if line[:6] in ['ATOM  ', 'HETATM']:
                     yield 'ANISOU' + line[6:28] + \
-                            ''.join('%7.0f' % (u*1e4) for u in atom_it.next().u_aniso) + \
+                            ''.join('%7.0f' % (u*1e4) for u in next(atom_it).u_aniso) + \
                             line[70:]
         pdbstr = ''.join(mergeaniso())
 
