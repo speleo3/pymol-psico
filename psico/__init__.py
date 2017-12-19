@@ -32,6 +32,7 @@ __all__ = [
     'orientation',
     'helping',
     'importing',
+    'minimizing',
     'modelling',
     'moving',
     'msms',
