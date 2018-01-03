@@ -211,7 +211,7 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
             if not quiet:
                 print('Domain ' + dom_nr + ' (' + color + '): resi ' + resi)
             name = 'domain_' + dom_nr
-            cmd.select(name, '(%s) and (resi %s)' % (selection, resi))
+            cmd.select(name, '(%s) and (resi %s)' % (selection, resi), 0)
             cmd.color(color, name)
             if fixed:
                 fixed_name = name
@@ -224,7 +224,7 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
             bending.append(resi)
     if len(bending) > 0:
         name = 'bending'
-        cmd.select(name, '(%s) and (resi %s)' % (selection, '+'.join(bending)))
+        cmd.select(name, '(%s) and (resi %s)' % (selection, '+'.join(bending)), 0)
         cmd.color('green', name)
     return fixed_name
 
