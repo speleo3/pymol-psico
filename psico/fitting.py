@@ -228,7 +228,8 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
         cmd.color('green', name)
     return fixed_name
 
-def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='', transform=1, quiet=1):
+def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='', transform=1,
+        quiet=1, mobile_state=1, target_state=1, match='align', preserve=0):
     '''
 DESCRIPTION
 
@@ -248,13 +249,18 @@ USAGE
 
     window, domain, ratio = int(window), int(domain), float(ratio)
     transform, quiet = int(transform), int(quiet)
+    mobile_state, target_state = int(mobile_state), int(target_state)
 
-    chains = cmd.get_chains(mobile)
+    mm = MatchMaker(
+            '(%s) & polymer & state %d' % (mobile, mobile_state),
+            '(%s) & polymer & state %d' % (target, target_state), match)
+
+    chains = cmd.get_chains(mm.mobile)
     if len(chains) != 1:
         print('mobile selection must be single chain')
         raise CmdException
     chain1id = chains[0]
-    chains = cmd.get_chains(target)
+    chains = cmd.get_chains(mm.target)
     if len(chains) != 1:
         print('target selection must be single chain')
         raise CmdException
@@ -276,8 +282,8 @@ USAGE
         commandfile = os.path.join(tempdir, 'command.txt')
         infofile = os.path.join(tempdir, 'out_info')
 
-        save_pdb_without_ter(filename1, '(%s) and polymer' % mobile)
-        save_pdb_without_ter(filename2, '(%s) and polymer' % target)
+        save_pdb_without_ter(filename1, mm.mobile, state=mobile_state)
+        save_pdb_without_ter(filename2, mm.target, state=target_state)
 
         f = open(commandfile, 'w')
         f.write('title=out\nfilename1=%s\nchain1id=%s\nfilename2=%s\nchain2id=%s\n' \
@@ -296,12 +302,15 @@ USAGE
             raise CmdException('"%s" failed with status %d' % (exe, process.returncode))
 
         cmd.color('gray', mobile)
-        fixed_name = dyndom_parse_info(infofile, mobile, quiet)
+        fixed_name = dyndom_parse_info(infofile, mm.mobile, quiet)
     except OSError:
         print('Cannot execute "%s", please provide full path to DynDom executable' % (exe))
         raise CmdException
     finally:
-        shutil.rmtree(tempdir)
+        if not int(preserve):
+            shutil.rmtree(tempdir)
+        elif not quiet:
+            print(' Not deleting temporary directory:', tempdir)
 
     if transform and fixed_name is not None:
         cmd.align(fixed_name, target)
