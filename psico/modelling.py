@@ -402,6 +402,33 @@ SEE ALSO
     if not quiet:
         print(' peptide_rebuild: done')
 
+
+def get_seq(selection, chainbreak='/', unknown='A'):
+    '''Gets the one-letter sequence, including residues without coordinates
+    '''
+    seq_list = []
+
+    cmd.iterate('(%s) & polymer' % (selection),
+            'seq_list.append((resn, resv))',
+            space={'seq_list': seq_list})
+
+    def seqbuilder():
+        from . import one_letter
+        prev_resv = None
+        for resn, resv in seq_list:
+            if resv != prev_resv:
+                if prev_resv is not None and resv != prev_resv + 1:
+                    yield chainbreak
+                if resn in one_letter:
+                    yield one_letter[resn]
+                else:
+                    print('Warning: unknown residue "%s"' % (resn))
+                    yield unknown
+                prev_resv = resv
+
+    return ''.join(seqbuilder())
+
+
 def peptide_rebuild_modeller(name, selection='all', hetatm=0, sequence=None,
         nmodels=1, hydro=0, quiet=1):
     '''
@@ -469,6 +496,11 @@ ARGUMENTS
 
         aln = modeller.alignment(env)
         aln.append_model(mdl, align_codes='foo', atom_files=pdbfile)
+
+        # get sequence from non-present atoms
+        if not sequence and cmd.count_atoms('(%s) & !present' % (selection)):
+            sequence = get_seq(selection)
+
         if sequence:
             aln.append_sequence(sequence)
             aln[-1].code = 'bar'
