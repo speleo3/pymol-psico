@@ -16,8 +16,25 @@ def needle_alignment(s1, s2):
 DESCRIPTION
 
     Does a Needleman-Wunsch Alignment of sequence s1 and s2 and
-    returns a Bio.Align.Generic.Alignment object.
+    returns a Bio.Align.MultipleSeqAlignment object.
     '''
+    from Bio import pairwise2
+    from Bio.Align import MultipleSeqAlignment
+    from Bio.SubsMat.MatrixInfo import blosum62
+
+    def match_callback(c1, c2):
+        return blosum62.get((c1, c2), 1 if c1 == c2 else -4)
+
+    alns = pairwise2.align.globalcs(s1, s2,
+            match_callback, -10., -.5,
+            one_alignment_only=True)
+
+    a = MultipleSeqAlignment([])
+    a.add_sequence("s1", alns[0][0])
+    a.add_sequence("s2", alns[0][1])
+    return a
+
+def needle_alignment_emboss(s1, s2):
     import subprocess
     from Bio.Emboss.Applications import NeedleCommandline
     from Bio import AlignIO
