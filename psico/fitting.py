@@ -10,7 +10,7 @@ from pymol import cmd, CmdException
 
 from .mcsalign import mcsalign
 
-def alignwithanymethod(mobile, target, methods=None, async=1, quiet=1):
+def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1, **kwargs):
     '''
 DESCRIPTION
 
@@ -32,7 +32,7 @@ ARGUMENTS
         methods = align_methods
     else:
         methods = methods.split()
-    async, quiet = int(async), int(quiet)
+    async_, quiet = int(kwargs.pop('async', async_)), int(quiet)
     mobile_obj = cmd.get_object_list('first (' + mobile + ')')[0]
     def myalign(method):
         newmobile = cmd.get_unused_name(mobile_obj + '_' + method)
@@ -46,7 +46,7 @@ ARGUMENTS
             if not quiet:
                 print('No such method:', method)
             continue
-        if async:
+        if async_:
             t = threading.Thread(target=myalign, args=(method,))
             t.setDaemon(1)
             t.start()
@@ -122,6 +122,8 @@ ARGUMENTS
     headercheck = False
     alignment = []
     for line in line_it:
+        if isinstance(line, bytes):
+            line = line.decode()
         if 4 >= rowcount > 0:
             if rowcount >= 2:
                 a = list(map(float, line.split()))
@@ -1081,7 +1083,7 @@ SEE ALSO
         print(' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models))
 
 def promix(mobile, target, K=0, prefix=None, mobile_state=-1, target_state=-1,
-        match='align', guide=1, quiet=1, async=-1, _self=cmd):
+        match='align', guide=1, quiet=1, async_=-1, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -1110,15 +1112,16 @@ REFERENCE
     from csb.statistics.mixtures import SegmentMixture as Mixture
     from .querying import get_coords, get_object_name
 
-    K, guide, quiet, async = int(K), int(guide), int(quiet), int(async)
+    K, guide, quiet = int(K), int(guide), int(quiet)
+    async_ = int(kwargs.pop('async', async_))
     mobile_state, target_state = int(mobile_state), int(target_state)
-    if async < 0:
-        async = not quiet
+    if async_ < 0:
+        async_ = not quiet
 
     if isinstance(target, str) and target.isdigit() and \
             cmd.count_atoms('?' + target) == 0 and cmd.count_states(mobile) > 1:
         print(' Warning: sanity test suggest you want "intra_promix"')
-        return intra_promix(mobile, target, prefix, 0, guide, quiet, async)
+        return intra_promix(mobile, target, prefix, 0, guide, quiet, async_)
 
     if guide:
         mobile = '(%s) and guide' % (mobile)
@@ -1134,7 +1137,7 @@ REFERENCE
         get_coords(mm.target, target_state),
     ])
 
-    if not async:
+    if not async_:
         _promix(**locals())
     else:
         import threading
@@ -1143,7 +1146,7 @@ REFERENCE
         t.start()
 
 def intra_promix(selection, K=0, prefix=None, conformers=0, guide=1,
-        quiet=1, async=-1, _self=cmd):
+        quiet=1, async_=-1, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -1173,9 +1176,9 @@ REFERENCE
     from .querying import get_ensemble_coords, get_object_name
 
     K, conformers = int(K), int(conformers)
-    guide, quiet, async = int(guide), int(quiet), int(async)
-    if async < 0:
-        async = not quiet
+    guide, quiet, async_ = int(guide), int(quiet), int(kwargs.pop('async', async_))
+    if async_ < 0:
+        async_ = not quiet
 
     Mixture = mixtures.ConformerMixture if conformers else mixtures.SegmentMixture
 
@@ -1192,7 +1195,7 @@ REFERENCE
     X = asarray(get_ensemble_coords(selection))
     assert X.shape == (n_models, cmd.count_atoms(selection), 3)
 
-    if not async:
+    if not async_:
         _promix(**locals())
     else:
         import threading

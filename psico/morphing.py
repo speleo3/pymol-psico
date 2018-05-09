@@ -85,7 +85,7 @@ EXAMPLE
     # morph
     if name is None:
         name = cmd.get_unused_name('morph')
-    rigimol.morph(so_obj, name, refinement=refinement, async=0)
+    rigimol.morph(so_obj, name, refinement=refinement, **{'async': 0})
 
     # clean up
     for obj in [alnobj, so_obj, so_sel, ta_obj, ta_sel]:

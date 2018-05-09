@@ -4,11 +4,6 @@
 License: BSD-2-Clause
 '''
 
-try:
-    unicode
-except NameError:
-    unicode = str
-
 import os.path
 from pymol import cmd, CmdException
 
@@ -28,7 +23,7 @@ DESCRIPTION
     '''
     return '/ebio/abt1_toolkit/share/wye/databases/pdb/all/pdb%s.ent' % (code.lower())
 
-def fetch(code, name='', type='pdb', quiet=1, async=-1, **kwargs):
+def fetch(code, name='', type='pdb', quiet=1, **kwargs):
     '''
 PSICO NOTES
 
@@ -41,10 +36,10 @@ PSICO NOTES
     '''
     from pymol.importing import fetch as pymol_fetch
 
-    quiet, async = int(quiet), int(async)
+    quiet = int(quiet)
 
     if type != 'pdb':
-        return pymol_fetch(code, name, type=type, quiet=quiet, async=async, **kwargs)
+        return pymol_fetch(code, name, type=type, quiet=quiet, **kwargs)
 
     load_kwargs = {'state':0, 'format':'', 'finish':1, 'discrete':-1,
             'quiet':quiet, 'multiplex':None, 'zoom':-1, 'partial':0, 'mimic':1}
@@ -71,7 +66,7 @@ PSICO NOTES
                 cmd.load(filename, name if len(name) else code, **load_kwargs)
                 code_list.remove(code)
     if len(code_list) > 0:
-        return pymol_fetch(' '.join(code_list), name, quiet=quiet, async=async, **kwargs)
+        return pymol_fetch(' '.join(code_list), name, quiet=quiet, **kwargs)
 fetch.__doc__ += cmd.fetch.__doc__
 
 cath_domains = {}
@@ -108,7 +103,8 @@ def cath_parse_domall(filename=''):
 def fetch_cath(code, name='', **kwargs):
     if name == '':
         name = code
-    r = fetch(code[:4], name, async=0, **kwargs)
+    kwargs['async'] = 0
+    r = fetch(code[:4], name, **kwargs)
     if cmd.is_error(r):
         return r
     if code[5:7] == '00':
@@ -134,7 +130,8 @@ def fetch_cath(code, name='', **kwargs):
 def fetch_scop(code, name='', **kwargs):
     if name == '':
         name = code
-    r = fetch(code[1:5], name, async=0, **kwargs)
+    kwargs['async'] = 0
+    r = fetch(code[1:5], name, **kwargs)
     if cmd.is_error(r):
         return r
     try:
@@ -160,7 +157,8 @@ def fetch_chain(code, name='', **kwargs):
     if name == '':
         name = code
     chain = code[4] if len(code) == 5 else code[5]
-    r = fetch(code[:4], name, async=0, **kwargs)
+    kwargs['async'] = 0
+    r = fetch(code[:4], name, **kwargs)
     if cmd.is_error(r):
         return r
     cmd.remove(name + ' and not chain ' + chain)
@@ -389,7 +387,7 @@ DESCRIPTION
     assert line[0] == 'v'
     ff_version = int(line[1:])
 
-    line = unicode(f.readline(), 'latin1') # Survex title
+    line = f.readline().decode('latin1') # Survex title
     line = f.readline() # Timestamp
 
     class Station:

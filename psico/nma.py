@@ -19,7 +19,7 @@ from pymol import selector
 def normalmodes_pdbmat(selection, cutoff=10.0, force=1.0, mass='COOR',
         first=7, last=10, choose='LOWE', substruct='RESI', blocksize=4,
         exe='pdbmat', diag_exe='diagrtb',
-        prefix='mode', states=7, factor=-1, clean=1, quiet=1, async=-1):
+        prefix='mode', states=7, factor=-1, clean=1, quiet=1, async_=-1, **kwargs):
     '''
 DESCRIPTION
 
@@ -65,11 +65,11 @@ ARGUMENTS
             first, last, choose, substruct, blocksize,
             exe, diag_exe, prefix, states, factor, clean, quiet]
 
-    quiet, async = int(quiet), int(async)
-    if async < 0:
-        async = not quiet
+    quiet, async_ = int(quiet), int(kwargs.pop('async', async_))
+    if async_ < 0:
+        async_ = not quiet
 
-    if not async:
+    if not async_:
         return _normalmodes(*args)
 
     from pymol.wizard.message import Message
@@ -246,7 +246,7 @@ def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
     return eigenfacs, values
 
 def normalmodes_mmtk(selection, cutoff=12.0, ff='Deformation', first=7, last=10,
-        prefix='mmtk', states=7, factor=-1, quiet=1, async=-1):
+        prefix='mmtk', states=7, factor=-1, quiet=1):
     '''
 DESCRIPTION
 

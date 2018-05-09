@@ -51,7 +51,7 @@ SEE ALSO
                 code = code.lower()
             else:
                 from .importing import fetch
-                fetch(code, async=0)
+                fetch(code)
         selection = '%s and chain %s' % (code, chain)
 
     load_consurf(handle, selection, palette, quiet)
@@ -91,6 +91,8 @@ SEE ALSO
         print(' Warning: selection spans multiple chains')
 
     for line in handle:
+        if not isinstance(line, str):
+            line = line.decode()
         if line.startswith('#') or line.strip() == '':
             continue
         m = pattern.match(line)
