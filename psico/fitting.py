@@ -162,8 +162,8 @@ ARGUMENTS
     if object is not None:
         mobile_idx, target_idx = [], []
         space = {'mobile_idx': mobile_idx, 'target_idx': target_idx}
-        cmd.iterate(mobile_ca_sele, 'mobile_idx.append("%s`%d" % (model, index))', space=space)
-        cmd.iterate(target_ca_sele, 'target_idx.append("%s`%d" % (model, index))', space=space)
+        cmd.iterate_state(mobile_state, mobile_ca_sele, 'mobile_idx.append("%s`%d" % (model, index))', space=space)
+        cmd.iterate_state(target_state, target_ca_sele, 'target_idx.append("%s`%d" % (model, index))', space=space)
         for i, aa in enumerate(alignment[0]):
             if aa == '-':
                 mobile_idx.insert(i, None)
