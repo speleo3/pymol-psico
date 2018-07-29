@@ -128,6 +128,7 @@ def _normalmodes(selection, cutoff, force, mass,
             wiz.message[1] = 'running pdbmat'
             cmd.refresh_wizard()
         process = subprocess.Popen([exe], cwd=tempdir,
+                universal_newlines=True,
                 stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
         for line in process.stdout:
@@ -168,6 +169,7 @@ def _normalmodes(selection, cutoff, force, mass,
             wiz.message[1] = 'running diagrtb'
             cmd.refresh_wizard()
         process = subprocess.Popen([exe], cwd=tempdir,
+                universal_newlines=True,
                 stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
         for line in process.stdout:

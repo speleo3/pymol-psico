@@ -41,7 +41,8 @@ def needle_alignment_emboss(s1, s2):
     cline = NeedleCommandline(auto=True, sprotein=True, stdout=True, gapopen=10, gapextend=1)
     cline.asequence = "asis:" + s1
     cline.bsequence = "asis:" + s2
-    process = subprocess.Popen(str(cline), shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen(str(cline), shell=True, stdout=subprocess.PIPE,
+            universal_newlines=True)
     return AlignIO.read(process.stdout, "emboss")
 
 def alignment_mapping(seq1, seq2):

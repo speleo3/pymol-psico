@@ -247,6 +247,7 @@ ARGUMENTS
         cmd.save(infile, selection, state)
 
         p = subprocess.Popen(args, cwd=tmpdir,
+                universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT)
 
@@ -296,6 +297,7 @@ DESCRIPTION
     try:
         cmd.save(infile, selection, state)
         stdout, stderr = subprocess.Popen(args, cwd=tmpdir,
+                universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE).communicate()
 
@@ -371,6 +373,7 @@ ARGUMENTS
         cmd.save(os.path.join(tmpdir, infile), selection, state)
 
         p = subprocess.Popen(args, cwd=tmpdir,
+                universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT)
 
@@ -467,6 +470,7 @@ EXAMPLES
 
     try:
         p = subprocess.Popen(args, cwd=tmpdir,
+                universal_newlines=True,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT)

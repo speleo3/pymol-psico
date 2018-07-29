@@ -100,7 +100,8 @@ ARGUMENTS
     args = [exe, mobile_filename, target_filename, '-m', matrix_filename] + args.split()
 
     try:
-        process = subprocess.Popen(args, stdout=subprocess.PIPE)
+        process = subprocess.Popen(args, stdout=subprocess.PIPE,
+                universal_newlines=True)
         lines = process.stdout.readlines()
     except OSError:
         print('Cannot execute "%s", please provide full path to TMscore or TMalign executable' % (exe))
@@ -122,8 +123,6 @@ ARGUMENTS
     headercheck = False
     alignment = []
     for line in line_it:
-        if isinstance(line, bytes):
-            line = line.decode()
         if 4 >= rowcount > 0:
             if rowcount >= 2:
                 a = list(map(float, line.split()))
@@ -294,6 +293,7 @@ USAGE
         f.close()
 
         process = subprocess.Popen([exe, commandfile], cwd=tempdir,
+                universal_newlines=True,
                 stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
         for line in process.stdout:
@@ -667,7 +667,8 @@ DESCRIPTION
             import re
             unesc = re.compile('\x1b' + r'\[[\d;]+m').sub
 
-            process = subprocess.Popen(args, cwd=tempdir, stdout=subprocess.PIPE)
+            process = subprocess.Popen(args, cwd=tempdir, stdout=subprocess.PIPE,
+                    universal_newlines=True)
             for line in process.stdout:
                 print(unesc('', line.rstrip()))
 

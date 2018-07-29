@@ -311,7 +311,8 @@ SEE ALSO
         save_pdb_without_ter(tmpfilepdb,
                 '%s and (%s)' % (model, selection), state)
         try:
-            process = Popen([exe, tmpfilepdb], stdout=PIPE)
+            process = Popen([exe, tmpfilepdb], stdout=PIPE,
+                    universal_newlines=True)
         except OSError:
             print('Error: Cannot execute exe=' + exe)
             raise CmdException
@@ -356,7 +357,8 @@ SEE ALSO
     for model in cmd.get_object_list(selection):
         cmd.save(tmpfilepdb, '%s and (%s)' % (model, selection), state)
         try:
-            process = Popen([exe, tmpfilepdb], stdout=PIPE)
+            process = Popen([exe, tmpfilepdb], stdout=PIPE,
+                    universal_newlines=True)
         except OSError:
             print('Error: Cannot execute exe=' + exe)
             raise CmdException

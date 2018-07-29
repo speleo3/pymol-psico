@@ -20,6 +20,7 @@ Triangulation using qdelaunay. (http://www.qhull.org)
     if not n: n = len(X[0])
     if not m: m = len(X)
     process = subprocess.Popen([qdelaunay_exe, 'i'] + options.split(),
+            universal_newlines=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     # input
     print(n, file=process.stdin)
