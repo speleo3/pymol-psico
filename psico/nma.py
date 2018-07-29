@@ -134,7 +134,12 @@ def _normalmodes(selection, cutoff, force, mass,
             if not quiet:
                 sys.stdout.write(line)
 
-        natoms = len(open(os.path.join(tempdir, 'pdbmat.xyzm')).readlines())
+        try:
+            natoms = len(open(os.path.join(tempdir, 'pdbmat.xyzm')).readlines())
+        except Exception as e:
+            print(e)
+            natoms = cmd.count_atoms(sele_name)
+
         if natoms != cmd.count_atoms(sele_name):
             print('Error: pdbmat did not recognize all atoms')
             raise CmdException
@@ -143,7 +148,7 @@ def _normalmodes(selection, cutoff, force, mass,
         f = open(commandfile, 'w')
         f.write('''! diagrtb file
  MATRIx FILENAME            = matrix.sdijb
- COORdinates filename       = pdbmat.xyzm
+ COORdinates filename       = %s
  Eigenvector OUTPut filename= diagrtb.eigenfacs
  Nb of VECTors required     = %d
  EigeNVALues chosen         = %s
@@ -153,7 +158,7 @@ def _normalmodes(selection, cutoff, force, mass,
  Temporary files cleaning   =       ALL
  MATRix FORMat              =       BINA
  Output PRINting level      =          0
-''' % (last, choose.upper(), substruct.upper(), blocksize, mass.upper()))
+''' % (filename, last, choose.upper(), substruct.upper(), blocksize, mass.upper()))
         f.close()
 
         exe = diag_exe
