@@ -137,9 +137,12 @@ ARGUMENTS
     state = int(state)
 
     sele = _self.get_unused_name('_sele')
-    _self.select(sele, selection, 0)
+    natoms = _self.select(sele, selection, 0)
 
     try:
+        if natoms == 0:
+            raise CmdException('empty selection')
+
         molstr = _self.get_str('mol', sele, state)
         mol = Chem.MolFromMolBlock(molstr, True, False)
 
