@@ -339,7 +339,7 @@ SEE ALSO
 
     # work with named selection
     namedsele = cmd.get_unused_name('_')
-    cmd.select(namedsele, selection, 0)
+    cmd.select(namedsele, '{} & present'.format(selection), 0)
 
     identifiers = []
     cmd.iterate(namedsele + ' and polymer and guide and alt +A',
