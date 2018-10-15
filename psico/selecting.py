@@ -194,10 +194,10 @@ SEE ALSO
     if not quiet:
         if byres:
             seleiter = 'byca ' + name
-            expr = 'print "/%s/%s/%s/%s`%s" % (model,segi,chain,resn,resi)'
+            expr = 'print("/%s/%s/%s/%s`%s" % (model,segi,chain,resn,resi))'
         else:
             seleiter = name
-            expr = 'print "/%s/%s/%s/%s`%s/%s" % (model,segi,chain,resn,resi,name)'
+            expr = 'print("/%s/%s/%s/%s`%s/%s" % (model,segi,chain,resn,resi,name))'
         cmd.iterate(seleiter, expr)
     return name
 
