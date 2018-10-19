@@ -180,6 +180,37 @@ ARGUMENTS
         _self.delete(sele)
 
 
+def clean_ob(selection, present='', state=-1, fix='', restrain='',
+        method='mmff', save_undo=1, message=None,
+        _self=cmd):
+    '''
+DESCRIPTION
+
+    Replacement for pymol.computing._clean, using openbabel.
+
+    Side effects: clears "fix" flag if "present" argument is given.
+
+    import pymol.computing
+    import psico.minimizing
+    pymol.computing._clean = psico.minimizing.clean_ob
+
+SEE ALSO
+
+    minimize_ob
+    '''
+    if present:
+        cmd.flag('fix', present, 'set')
+        cmd.flag('fix', selection, 'clear')
+        selection = '({})|({})'.format(selection, present)
+
+    ff = {'mmff': 'MMFF94'}.get(method, method)
+    minimize_ob(selection, state, ff, nsteps=50, _self=_self)
+
+    if present:
+        cmd.flag('fix', present, 'clear')
+
+
+cmd.extend('clean_ob', clean_ob)
 cmd.extend('minimize_ob', minimize_ob)
 cmd.extend('minimize_rdkit', minimize_rdkit)
 
