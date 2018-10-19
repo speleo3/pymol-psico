@@ -563,22 +563,35 @@ DESCRIPTION
     cmd.show_as('lines', object)
     cmd.spectrum('b', 'rainbow', object)
 
-def set_raw_alignment(name, aln, transform=0):
+def set_raw_alignment(name, aln, transform=0, guide=''):
     '''
 DESCRIPTION
 
     API only.
     Load an alignment object from a list like the one obtained with
     cmd.get_raw_alignment
+
+SEE ALSO
+
+    cmd.set_raw_alignment in PyMOL 2.3
     '''
-    import itertools
+    if hasattr(cmd, 'set_raw_alignment') and not int(transform):
+        return cmd.set_raw_alignment(name, aln, guide=guide)
+
     if not isinstance(aln[0], dict):
         aln = [dict(idx_pair) for idx_pair in aln]
     models = set(model for idx_pdict in aln for model in idx_pdict)
     sele1 = cmd.get_unused_name('_sele1')
     sele2 = cmd.get_unused_name('_sele2')
     fit = cmd.fit if transform else cmd.rms_cur
-    for model1, model2 in itertools.combinations(models, 2):
+
+    if guide:
+        models.remove(guide)
+        model2 = guide
+    else:
+        model2 = models.pop()
+
+    for model1 in models:
         index_list1 = []
         index_list2 = []
         for idx_pdict in aln:
@@ -596,7 +609,7 @@ def load_aln(filename, object=None, mobile=None, target=None, mobile_id=None,
     '''
 DESCRIPTION
 
-    Load an alignment from file and apply it to already loaded structures.
+    Load a pairwise alignment from file and apply it to two loaded structures.
 
 USAGE
 
@@ -668,10 +681,10 @@ EXAMPLE
         if i in mobile_aln_i2j and j in target_aln_i2j:
             i = mobile_aln_i2j[i]
             j = target_aln_i2j[j]
-            r.append({
-                mobile_obj: mobile_model.atom[i].index,
-                target_obj: target_model.atom[j].index,
-            })
+            r.append([
+                (mobile_obj, mobile_model.atom[i].index),
+                (target_obj, target_model.atom[j].index),
+            ])
 
     set_raw_alignment(object, r, int(transform))
     return r
