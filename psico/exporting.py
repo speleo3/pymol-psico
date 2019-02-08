@@ -42,6 +42,8 @@ ARGUMENTS
     format = string: 'dcd' or 'crd' (alias 'charmm' or 'amber') {default:
     determined from filename extension)
     '''
+    from . import querying
+
     box = int(box)
 
     # Get NATOMS, NSTATES
@@ -77,7 +79,7 @@ ARGUMENTS
 
     # Write Trajectory Coordinates
     for state in range(1, NSTATES+1):
-        xyz = cmd.get_model(selection, state).get_coord_list()
+        xyz = querying.get_coords(selection, state)
         outfile.writeCoordSet(xyz)
 
     outfile.close()

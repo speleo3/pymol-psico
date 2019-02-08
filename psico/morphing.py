@@ -108,10 +108,10 @@ SEE ALSO
 
     morpheasy
     '''
-    from numpy import array
+    from numpy import asfarray
     from .fitting import matchmaker
     from .importing import load_coords
-    from .querying import get_selection_state
+    from .querying import get_selection_state, get_coords
 
     # arguments
     source_state = int(source_state)
@@ -123,8 +123,8 @@ SEE ALSO
 
     msource, mtarget, tmp_names = matchmaker(source, target, match)
 
-    csource = array(cmd.get_model(msource, source_state).get_coord_list())
-    ctarget = array(cmd.get_model(mtarget, target_state).get_coord_list())
+    csource = asfarray(get_coords(msource, source_state))
+    ctarget = asfarray(get_coords(mtarget, target_state))
     cdiff = ctarget - csource
 
     if name is None:

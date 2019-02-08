@@ -393,7 +393,7 @@ DESCRIPTION
         raise CmdException
     return state_set.pop()
 
-def get_coords(selection, state=-1):
+def _get_coords(selection, state=-1):
     '''
 DESCRIPTION
 
@@ -403,6 +403,13 @@ DESCRIPTION
     if state < 0:
         state = get_selection_state(selection)
     return cmd.get_model(selection, state).get_coord_list()
+
+try:
+    # new in PyMOL 1.7.4
+    from pymol.querying import get_coords
+except ImportError:
+    # fallback
+    get_coords = _get_coords
 
 def get_ensemble_coords(selection):
     '''
