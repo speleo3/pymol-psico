@@ -133,7 +133,7 @@ DESCRIPTION
             html.append(('</font>\n<br>%4d <font>' % (resv)).replace(' ', '&nbsp;'))
             stored.color = None
         c = cmd.get_color_tuple(color)
-        color = '#%02x%02x%02x' % (c[0]*255, c[1]*255, c[2]*255)
+        color = '#%02x%02x%02x' % tuple(int(0xFF * v) for v in c)
         aa = one_letter.get(resn, '-')
         if color != stored.color:
             html.append('</font><font color="' + color + '">')

@@ -344,7 +344,7 @@ ARGUMENTS
     if mode > 0:
         color = cmd.get_color_tuple(color)
     if mode == 2:
-        return '#%02x%02x%02x' % tuple(255 * i for i in color)
+        return '#%02x%02x%02x' % tuple(int(0xFF * v) for v in color)
     return color
 
 def get_object_name(selection, strict=0):
