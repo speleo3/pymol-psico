@@ -323,19 +323,22 @@ ARGUMENTS
     mode = 1: color tuple
     mode = 2: color string in hash-hex format (for HTML, matplotlib, ...)
     '''
+    s_first = 'first' if which == 0 else ''
+
     try:
         colors = []
-        if which == 0:
-            cmd.iterate('first ((%s) and guide)' % (selection),
+
+        for s_guide in ('guide', 'elem C', 'all'):
+            cmd.iterate('{} (({}) & {})'.format(s_first, selection, s_guide),
                     'colors.append(color)', space=locals())
-            color = colors[0]
+            if colors:
+                break
+
+        if which == 2:
+            color = max((colors.count(color), color) for color in colors)[1]
         else:
-            cmd.iterate('(%s) and guide' % (selection),
-                    'colors.append(color)', space=locals())
-            if which == 1:
-                color = colors[len(colors)/2]
-            else:
-                color = max((colors.count(color), color) for color in colors)
+            color = colors[len(colors) // 2]
+
         if color >= 0x40000000:
             color = '0x%06x' % (color & 0xFFFFFF)
     except:

@@ -534,8 +534,8 @@ EXAMPLE
     mobile_state, target_state = int(mobile_state), int(target_state)
     load_b, visualize, quiet = int(load_b), int(visualize), int(quiet)
 
-    w2 = window/2
-    w4 = window/4
+    w2 = window // 2
+    w4 = window // 4
 
     mm = MatchMaker('(%s) and guide' % (mobile),
             '(%s) and guide' % (target), match)

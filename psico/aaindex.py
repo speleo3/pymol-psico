@@ -194,7 +194,7 @@ class Record(object):
         return self.get(aai)
     def median(self):
         x = sorted([_f for _f in list(self.index.values()) if _f])
-        half = len(x)/2
+        half = len(x) // 2
         if len(x) % 2 == 1:
             return x[half]
         return (x[half-1] + x[half])/2.0
@@ -235,9 +235,10 @@ class MatrixRecord(Record):
         for y in self.index:
             x.extend([_f for _f in y if _f])
         x.sort()
+        half = len(x) // 2
         if len(x) % 2 == 1:
-            return x[len(x)/2]
-        return sum(x[len(x)/2-1:len(x)/2+1])/2.0
+            return x[half]
+        return (x[half - 1] + x[half]) / 2.0
 
 def aaindex2b(key, selection='all', var='b', quiet=1):
     '''
