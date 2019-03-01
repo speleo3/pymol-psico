@@ -16,7 +16,14 @@ DOCUMENTATION
 
 INSTALLATION
 
-    (1) Use the setup.py script, or just copy the "psico" directory to
+    (1) Any of:
+        (1.1) Use the conda package manager:
+            conda install -c schrodinger pymol-psico
+
+        (1.2) Use the setup.py script:
+            python setup.py install
+
+        (1.3) Or just copy the "psico" directory to
         PYTHONPATH (for example /path/to/pymol-xxx/modules/).
 
     (2) Add to your ~/.pymolrc.py file (or just enter into the PyMOL command
