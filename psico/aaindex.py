@@ -12,6 +12,10 @@ from __future__ import print_function
 
 from pymol import cmd, CmdException
 
+def _assert_package_import():
+    if not __name__.endswith('.aaindex'):
+        raise CmdException("Must do 'import psico.aaindex' instead of 'run ...'")
+
 _aaindex1 = None
 def _get_aaindex1():
     '''
@@ -269,6 +273,7 @@ SEE ALSO
 
     hydropathy2b
     '''
+    _assert_package_import()
     from . import one_letter
 
     quiet = int(quiet)

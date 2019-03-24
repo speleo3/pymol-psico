@@ -43,17 +43,6 @@ def mol_generate(self_cmd, sele):
             [ 1, 'PIR', 'psico.fasta.pir("'+sele+'")' ],
         ]],
     ]
-    from . import pymol_version
-    if pymol_version < 1.6:
-        r += [
-            [ 0, '', '' ],
-            [ 1, 'morphing to (rigimol) ...', [
-                [ 1, a, 'psico.morphing.morpheasy(%s,%s)' % (repr(sele), repr(a)) ]
-                    for a in self_cmd.get_object_list()[0:25] if a != sele]],
-            [ 1, 'morphing to (linear) ...', [
-                [ 1, a, 'psico.morphing.morpheasy_linear(%s,%s)' % (repr(sele), repr(a)) ]
-                    for a in self_cmd.get_object_list()[0:25] if a != sele]],
-        ]
     return r
 
 @menuappend

@@ -6,6 +6,11 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+def _assert_package_import():
+    if not __name__.endswith('.selecting'):
+        raise CmdException("Must do 'import psico.selecting' instead of 'run ...'")
+
+
 def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1,
         cutoff=4.0, one_letter=None):
     '''
@@ -47,6 +52,7 @@ SEE ALSO
     from chempy import cpv
 
     if not one_letter:
+        _assert_package_import()
         from . import one_letter
 
     state, quiet = int(state), int(quiet)
@@ -285,6 +291,7 @@ SEE ALSO
     get_raw_distances
     '''
     from collections import defaultdict
+    _assert_package_import()
     from .querying import get_raw_distances
 
     state, cutoff, quiet = int(state), float(cutoff), int(quiet)

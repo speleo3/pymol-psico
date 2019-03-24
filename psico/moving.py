@@ -7,6 +7,10 @@ License: BSD-2-Clause
 from pymol import cmd, CmdException
 from pymol.movie import produce_mode_dict, produce_mode_sc
 
+def _assert_package_import():
+    if not __name__.endswith('.moving'):
+        raise CmdException("Must do 'import psico.moving' instead of 'run ...'")
+
 def frames2states(selection, specification):
     '''
 DESCRIPTION
@@ -127,6 +131,7 @@ DESCRIPTION
     takes the total matrix and stores it either as view matrix or as state
     matrix (reverse=1). For movie frames, movie_auto_store must be set.
     '''
+    _assert_package_import()
     from . import querying
     reverse, state, quiet = int(reverse), int(state), int(quiet)
     ostate = state

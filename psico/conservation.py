@@ -6,6 +6,9 @@ License: BSD-2-Clause
 
 from __future__ import print_function
 
+if not __name__.endswith('.conservation'):
+    raise Exception("Must do 'import psico.conservation' instead of 'run ...'")
+
 from pymol import cmd, CmdException
 
 def consurfdb(code, chain='A', selection=None, palette='red_white_blue', quiet=1):

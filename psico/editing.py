@@ -11,6 +11,10 @@ import sys
 
 from pymol import cmd, CmdException
 
+def _assert_package_import():
+    if not __name__.endswith('.editing'):
+        raise CmdException("Must do 'import psico.editing' instead of 'run ...'")
+
 def split(operator, selection, prefix='entity'):
     '''
 DESCRIPTION
@@ -121,6 +125,7 @@ ARGUMENTS
     start = int: residue number to start from {default: 1}
     '''
     import re
+    _assert_package_import()
     from . import three_letter
     sequence = re.sub(r'\s+', '', sequence)
     start = int(start)
@@ -293,6 +298,7 @@ SEE ALSO
     state, quiet = int(state), int(quiet)
 
     if exe == '':
+        _assert_package_import()
         from . import which
         exe = which('dsspcmbi', 'dssp', 'dssp-2', 'mkdssp')
     ss_map = {
@@ -397,6 +403,7 @@ SEE ALSO
 
     exe = cmd.exp_path(exe)
     if not exe:
+        _assert_package_import()
         from . import which
         motifdir = os.environ.get('motifdir')
         exe = which('p_sstruc3', 'p_sstruc2', 'promotif.scr',

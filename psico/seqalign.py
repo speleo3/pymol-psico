@@ -11,6 +11,10 @@ License: BSD-2-Clause
 from Bio.SeqIO import _FormatToIterator
 from pymol import cmd, CmdException
 
+def _assert_package_import():
+    if not __name__.endswith('.seqalign'):
+        raise CmdException("Must do 'import psico.seqalign' instead of 'run ...'")
+
 def needle_alignment(s1, s2):
     '''
 DESCRIPTION
@@ -133,6 +137,7 @@ DESCRIPTION
     from Bio.Alphabet import single_letter_alphabet
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
+    _assert_package_import()
     from . import one_letter
 
     try:

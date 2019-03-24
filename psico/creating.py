@@ -8,6 +8,10 @@ from __future__ import print_function
 
 from pymol import cmd, CmdException
 
+def _assert_package_import():
+    if not __name__.endswith('.creating'):
+        raise CmdException("Must do 'import psico.creating' instead of 'run ...'")
+
 def join_states(name, selection='all', discrete=-1, zoom=0, quiet=1):
     '''
 DESCRIPTION
@@ -29,6 +33,7 @@ ARGUMENTS
     '''
     discrete, quiet = int(discrete), int(quiet)
     if discrete == -2:
+        _assert_package_import()
         from .selecting import wait_for
         aln_obj = cmd.get_unused_name('_')
     models = cmd.get_object_list('(' + selection + ')')
@@ -279,6 +284,7 @@ DESCRIPTION
     Run corina on selection and load as new object
     '''
     import os, tempfile, subprocess, shutil
+    _assert_package_import()
     from . import querying
 
     state, preserve, quiet = int(state), int(preserve), int(quiet)

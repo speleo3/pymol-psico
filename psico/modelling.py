@@ -6,6 +6,10 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+def _assert_package_import():
+    if not __name__.endswith('.modelling'):
+        raise CmdException("Must do 'import psico.modelling' instead of 'run ...'")
+
 def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=0, quiet=1):
     '''
 DESCRIPTION
@@ -44,6 +48,7 @@ EXAMPLE
     mutate x, LYS
     '''
     from pymol.wizard import mutagenesis
+    _assert_package_import()
     from . import three_letter
 
     inplace, sculpt = int(inplace), int(sculpt)
@@ -466,6 +471,7 @@ ARGUMENTS
         raise CmdException
 
     import tempfile, shutil, os
+    _assert_package_import()
     from .editing import update_identifiers
 
     nmodels, hetatm, quiet = int(nmodels), int(hetatm), int(quiet)

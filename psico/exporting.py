@@ -19,6 +19,10 @@ except NameError:
 from pymol import cmd, CmdException
 from pymol import selector
 
+def _assert_package_import():
+    if not __name__.endswith('.exporting'):
+        raise CmdException("Must do 'import psico.exporting' instead of 'run ...'")
+
 ## trajectory stuff
 
 def save_traj(filename, selection='(all)', format='', box=0, quiet=1):
@@ -42,6 +46,7 @@ ARGUMENTS
     format = string: 'dcd' or 'crd' (alias 'charmm' or 'amber') {default:
     determined from filename extension)
     '''
+    _assert_package_import()
     from . import querying
 
     box = int(box)
@@ -328,6 +333,9 @@ SEE ALSO
 
     save
     '''
+    _assert_package_import()
+    from . import pymol_version
+
     selection = selector.process(selection)
     state, quiet = int(state), int(quiet)
     symm, ss     = int(symm), int(ss)
@@ -371,11 +379,10 @@ SEE ALSO
     pdbstr = cmd.get_pdbstr(selection, state)
 
     # fix END records
-    if state == 0 and cmd.get_version()[1] < 1.6:
+    if state == 0 and pymol_version < 1.6:
         pdbstr = '\n'.join(line for line in pdbstr.splitlines() if line != 'END') + '\nEND\n'
 
     # anisotropic b-factors
-    from . import pymol_version
     if int(aniso) and pymol_version < 1.6 and \
             cmd.get_model('first (%s)' % selection).atom[0].u_aniso[0] != 0.0:
         def mergeaniso():

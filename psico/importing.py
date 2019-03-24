@@ -14,6 +14,10 @@ mysql_kwargs = {
     'db': 'biomol',
 }
 
+def _assert_package_import():
+    if not __name__.endswith('.importing'):
+        raise CmdException("Must do 'import psico.importing' instead of 'run ...'")
+
 def local_mirror_pdb(code):
     '''
 DESCRIPTION
@@ -636,6 +640,7 @@ EXAMPLE
     delete aln1
     load_aln /tmp/super.aln, aln2, format=clustal
     '''
+    _assert_package_import()
     from . import one_letter
     from .seqalign import needle_alignment, alignment_mapping, aln_magic_read
 
@@ -704,6 +709,7 @@ DESCRIPTION
     Based on a script from Tsjerk Wassenaar, posted on pymol-users mailing list.
     http://www.mail-archive.com/pymol-users@lists.sourceforge.net/msg09394.html
     '''
+    _assert_package_import()
     from . import pymol_version
     if pymol_version >= 1.74:
         print(' Notice: native gro file support available in PyMOL since 1.7.4')
