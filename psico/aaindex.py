@@ -163,6 +163,8 @@ class AAindex(dict):
                         i += 1
                 else:
                     current.extend(map(_float_or_None, a))
+            elif len(key.rstrip('\r\n')) < 2:
+                pass
             elif not quiet:
                 print('Warning: line starts with "%s"' % (key))
 
