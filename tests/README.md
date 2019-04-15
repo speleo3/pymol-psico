@@ -20,4 +20,5 @@ conda install pytest biopython
 conda install -c speleo3 csb
 conda install -c salilab -c speleo3 dssp
 conda install -c kimlab stride
+conda install -c bioconda -c speleo3 msms
 ```

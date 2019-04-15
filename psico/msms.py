@@ -92,6 +92,25 @@ DESCRIPTION
 
     cmd.load_cgo(cgobuf, name)
 
+def _get_solvent_radius(selection, state):
+    '''Get object-state level solvent_radius'''
+    radius = [None]
+
+    try:
+        cmd.iterate_state(state,
+            'first ({})'.format(selection),
+            'radius[0] = s.solvent_radius',
+            space=locals())
+
+        if radius[0] is not None:
+            # Note: One of my test cases failed with radius 2.75, rounding
+            # to one digit worked
+            return '{:.1}'.format(radius[0])
+    except:
+        print('Using global solvent_radius')
+
+    return cmd.get('solvent_radius')
+
 def msms_surface(selection='polymer', state=1, density=3, name='',
         atomcolors=0, exe='msms', preserve=0, quiet=1):
     '''
@@ -144,7 +163,7 @@ EXAMPLE
             '-if', tmp_if,
             '-of', tmp_of,
             '-no_area',
-            '-probe_radius', cmd.get('solvent_radius'),
+            '-probe_radius', _get_solvent_radius(selection, state),
             ], cwd=tmpdir)
 
         load_msms_surface(tmp_of, name, colors)
