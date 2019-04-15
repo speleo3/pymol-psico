@@ -5,6 +5,8 @@ Copyright (c) 2010-2012, Steffen Schmidt
 Copyright (c) 2005-2009, Ezequiel Panepucci (see psico/helping.py)
 Copyright (c) 2011, Tsjerk Wassenaar (see psico/querying.py)
 Copyright (c) 2009, Sean Law (see psico/exporting.py)
+Copyright (c) 2011, Takanori Nakane (spectrum_states)
+Copyright (c) 2006-2012, Christoph Gohlke (snippet in angle_between_domains)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
