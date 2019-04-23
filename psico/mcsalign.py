@@ -89,6 +89,12 @@ EXAMPLE
 
 def get_molstr(sele, state):
     '''Export the given selection to a molfile string'''
+    try:
+        # new in PyMOL 1.8.4
+        return cmd.get_str('mol', sele, state)
+    except Exception as e:
+        print(e)
+
     from chempy import io
     model = cmd.get_model(sele, state)
     for a in model.atom:
