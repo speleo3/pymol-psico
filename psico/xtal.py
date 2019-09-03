@@ -84,6 +84,9 @@ SEE ALSO
         cgo.LINES,
     ]
 
+    groupname_fmt = 'm%d_%d_%d' if any(int(i) > 9
+            for i in [a, b, c]) else 'm%d%d%d'
+
     for t in ts:
         shift = basis[0:3,0:3] * t
         shift = shift[:,0] + shift[:,1] + shift[:,2]
@@ -103,7 +106,7 @@ SEE ALSO
                 obj.extend((shift + vj[j] + vi).tolist())
 
         if withmates:
-            groupname = 'm%d%d%d' % tuple(t)
+            groupname = groupname_fmt % tuple(t)
             symexpcell(groupname + '_', object, *t)
             cmd.group(groupname, groupname + '_*')
 
