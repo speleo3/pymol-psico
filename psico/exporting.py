@@ -69,8 +69,6 @@ ARGUMENTS
         print('Unknown format:', format)
         raise CmdException
 
-    f = open(filename, 'wb')
-
     # size of periodic box
     if box:
         try:
@@ -149,7 +147,7 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
             assert len(coor) == self.natoms, 'Wrong number of atoms'
             self.writeFortran(coor, self.fmt)
 
-class CRDOutfile(file):
+class CRDOutfile():
     '''
 http://ambermd.org/formats.html#trajectory
     '''
@@ -157,12 +155,15 @@ http://ambermd.org/formats.html#trajectory
     columns = 10
 
     def __init__(self, filename, nstates=-1, natoms=-1, vendor='PyMOL', box=None):
-        file.__init__(self, filename, 'w')
+        self._file = open(filename, 'w')
         self.natoms = natoms
         self.box = box
 
         # Write Trajectory Header Information
-        print('TITLE : Created by %s with %d atoms' % (vendor, natoms), file=self)
+        print('TITLE : Created by %s with %d atoms' % (vendor, natoms), file=self._file)
+
+    def close(self):
+        self._file.close()
 
     def writeCoordSet(self, xyz, transposed=0):
         '''
@@ -173,7 +174,7 @@ http://ambermd.org/formats.html#trajectory
         if self.natoms > -1:
             assert len(xyz) == self.natoms, 'Wrong number of atoms'
         assert len(xyz[0]) == 3, 'Wrong number of dimensions'
-        f = self
+        f = self._file
         count = 0
         for coord in xyz:
             for c in coord:
@@ -200,7 +201,7 @@ http://ambermd.org/formats.html#restart
     def __init__(self, *args, **kwargs):
         super(RSTOutfile, self).__init__(*args, **kwargs)
 
-        print('%5i%s' % (self.natoms, '  0.0000000e+00' * 5), file=self)
+        print('%5i%s' % (self.natoms, '  0.0000000e+00' * 5), file=self._file)
 
 ## pdb header stuff
 
