@@ -484,6 +484,11 @@ SEE ALSO
 
         body = '\r\n'.join([
             '--' + boundary,
+            'Content-Disposition: form-data; name="sstverstr"',
+            'Content-Type: text/plain',
+            '',
+            'v1.6',
+            '--' + boundary,
             'Content-Disposition: file; name="pdb_file"; filename="abc.pdb"',
             'Content-Type: text/plain',
             '',
@@ -497,7 +502,7 @@ SEE ALSO
         try:
             request = urllib2.Request(
                     data=body, url=
-                    'http://lcb.infotech.monash.edu.au/sstweb/formaction_pdbfile.php')
+                    'http://lcb.infotech.monash.edu.au/sstweb2/formaction.php')
             request.add_header('User-agent', 'PyMOL ' + cmd.get_version()[0] + ' ' +
                     cmd.sys.platform)
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
