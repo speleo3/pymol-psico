@@ -21,7 +21,7 @@ def load_or_update(molstr, name, sele, state, _self):
     else:
         _self.delete(name)
 
-    _self.load(molstr, name, 1, 'molstr', zoom=0)
+    _self.load_raw(molstr, 'mol', name, 1, zoom=0)
 
     try:
         from psico.fitting import xfit
@@ -87,6 +87,9 @@ ARGUMENTS
 
         # setup forcefield (one of: GAFF, MMFF94s, MMFF94, UFF, Ghemical)
         ff = ob.OBForceField.FindForceField(ff)
+        if ff is None:
+            raise CmdException("FindForceField returned None, please check "
+                    "BABEL_LIBDIR and BABEL_DATADIR")
         ff.Setup(mol, consttrains)
 
         if int(cutoff):
