@@ -28,7 +28,8 @@ DESCRIPTION
     edges.append(1.0)
     return basis * edges # numpy.array multiplication!
 
-def supercell(a=1, b=1, c=1, object=None, color='green', name='supercell', withmates=1):
+def supercell(a=1, b=1, c=1, object=None, color='green', name='supercell',
+        withmates=1, prefix='m'):
     '''
 DESCRIPTION
 
@@ -84,8 +85,8 @@ SEE ALSO
         cgo.LINES,
     ]
 
-    groupname_fmt = 'm%d_%d_%d' if any(int(i) > 9
-            for i in [a, b, c]) else 'm%d%d%d'
+    groupname_fmt = prefix + ('%d_%d_%d' if any(int(i) > 9
+            for i in [a, b, c]) else '%d%d%d')
 
     for t in ts:
         shift = basis[0:3,0:3] * t
