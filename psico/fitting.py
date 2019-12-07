@@ -1014,13 +1014,25 @@ SEE ALSO
     from .querying import get_ensemble_coords, get_object_name
 
     cycles, quiet = int(cycles), int(quiet)
-    mobile_obj = get_object_name(selection, 1)
-    n_models = cmd.count_states(mobile_obj)
 
     if int(guide):
         selection = '(%s) and guide' % (selection)
 
-    X = asarray(get_ensemble_coords(selection))
+    mobile_objs = cmd.get_object_list(selection)
+    n_states_objs = []
+    X = []
+
+    for obj in mobile_objs:
+        X_obj = get_ensemble_coords('({}) & {}'.format(selection, obj))
+
+        if X and X_obj and len(X[0]) != len(X_obj[0]):
+            raise CmdException('objects have different number of atoms')
+
+        X.extend(X_obj)
+        n_states_objs.append(len(X_obj))
+
+    n_models = len(X)
+    X = asarray(X)
 
     R, t = [identity(3)] * n_models, [zeros(3)] * n_models
 
@@ -1071,17 +1083,22 @@ SEE ALSO
     back[0:3,0:3] = R[0]
     back[0:3,3] = t[0]
 
-    for i in range(n_models):
-        m[0:3,0:3] = R[i].T
-        m[3,0:3] = -t[i]
-        cmd.transform_object(mobile_obj, list(m.flat), state=i+1)
+    transformation_i = 0
+    for mobile_obj, n_states in zip(mobile_objs, n_states_objs):
+        for state_i in range(n_states):
+            m[0:3, 0:3] = R[transformation_i].T
+            m[3, 0:3] = -t[transformation_i]
+            cmd.transform_object(mobile_obj, list(m.flat), state=state_i + 1)
+            transformation_i += 1
 
-    # fit back to first state
-    cmd.transform_object(mobile_obj, list(back.flat), state=0)
+        # fit back to first state
+        cmd.transform_object(mobile_obj, list(back.flat), state=0)
 
-    if int(load_b):
-        b_iter = iter(-log(scales))
-        cmd.alter(mm.mobile, 'b = next(b_iter)', space={'b_iter': b_iter, 'next': next})
+        if int(load_b):
+            b_iter = iter(-log(scales))
+            cmd.alter('({}) & {} & state 1'.format(selection, mobile_obj),
+                      'b = next(b_iter)',
+                      space={'b_iter': b_iter, 'next': next})
 
     if not quiet:
         print(' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models))
