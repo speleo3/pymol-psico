@@ -113,9 +113,10 @@ SEE ALSO
 
     obj.append(cgo.END)
 
-    cmd.delete(name)
-    cmd.load_cgo(obj, name)
-    cmd.color(color, name)
+    if name != 'none':
+        cmd.delete(name)
+        cmd.load_cgo(obj, name)
+        cmd.color(color, name)
 
 def symexpcell(prefix='mate', object=None, a=0, b=0, c=0):
     '''
@@ -179,7 +180,9 @@ SEE ALSO
         name = '%s%d' % (prefix, i)
         cmd.create(name, object)
         cmd.transform_object(name, mat_list, 0)
-        cmd.color(i+1, name)
+
+        if len(matrices) > 1:
+            cmd.color(i + 1, name)
 
 def pdbremarks(filename):
     '''
