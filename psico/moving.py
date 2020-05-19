@@ -162,27 +162,99 @@ DESCRIPTION
         print(r)
     return r
 
+def get_closest_keyframe():
+    '''
+    Get the closest movie keyframe, or None if no keyframes defined.
+    '''
+    keyframes = get_keyframes()
+    if not keyframes:
+        return None
+    current = cmd.get_frame()
+    return min(keyframes, key=lambda i: abs(i - current))
+
 def closest_keyframe(quiet=1):
     '''
 DESCRIPTION
 
     Jump to the closest movie keyframe.
     '''
-    keyframes = get_keyframes()
-    if not keyframes:
-        return 0
-    current = cmd.get_frame()
-    r = min(keyframes, key=lambda i: abs(i - current))
-    cmd.frame(r)
+    r = get_closest_keyframe()
+    if r is not None:
+        cmd.frame(r)
     if not int(quiet):
         print(' Closest Keyframe: ' + str(r))
     return r
+
+def next_keyframe(quiet=1):
+    '''
+DESCRIPTION
+
+    Jump to the next movie keyframe.
+    '''
+    keyframes = get_keyframes()
+    current = cmd.get_frame()
+    keyframes = [i for i in keyframes if i > current]
+    if keyframes:
+        r = keyframes[0]
+        cmd.frame(r)
+    else:
+        r = None
+    if not int(quiet):
+        print(' Next Keyframe: ' + str(r))
+    return r
+
+def prev_keyframe(quiet=1):
+    '''
+DESCRIPTION
+
+    Jump to the previous movie keyframe.
+    '''
+    keyframes = get_keyframes()
+    current = cmd.get_frame()
+    keyframes = [i for i in keyframes if i < current]
+    if keyframes:
+        r = keyframes[-1]
+        cmd.frame(r)
+    else:
+        r = None
+    if not int(quiet):
+        print(' Previous Keyframe: ' + str(r))
+    return r
+
+def get_mdo_commands(quiet=1):
+    '''
+DESCRIPTION
+
+    Get the list of mdo commands.
+    '''
+    s = cmd.get_session("none")
+    commands = s["movie"][5]
+    if not int(quiet):
+        for frame, command in enumerate(commands, 1):
+            if command:
+                print('mdo {}: {}'.format(frame, command.strip(';')))
+    return commands
+
+def dump_mviews():
+    '''
+DESCRIPTION
+
+    Dump the current movie as 'set_view' with 'mview store' commands.
+    '''
+    for frame in get_keyframes() or ():
+        cmd.frame(frame)
+        print(cmd.get_view(3).strip())
+        print('mview store, {}'.format(frame))
 
 cmd.extend('frames2states', frames2states)
 cmd.extend('save_movie_mpeg1', save_movie_mpeg1)
 cmd.extend('matrix_to_ttt', matrix_to_ttt)
 cmd.extend("get_keyframes", get_keyframes)
 cmd.extend("closest_keyframe", closest_keyframe)
+cmd.extend("next_keyframe", next_keyframe)
+cmd.extend("prev_keyframe", prev_keyframe)
+cmd.extend("get_mdo_commands", get_mdo_commands)
+cmd.extend("dump_mviews", dump_mviews)
 
 cmd.auto_arg[0]['matrix_to_ttt'] = cmd.auto_arg[0]['disable']
 cmd.auto_arg[0]['frames2states'] = cmd.auto_arg[0]['zoom']
