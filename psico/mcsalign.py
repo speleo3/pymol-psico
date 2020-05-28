@@ -10,7 +10,8 @@ from pymol import cmd, CmdException
 
 def mcsalign(mobile, target,
         mobile_state=-1, target_state=-1,
-        cycles=5, timeout=10, method='', exact=0, quiet=1):
+        cycles=5, timeout=10, method='', exact=0, quiet=1,
+        object=None, _self=cmd):
     '''
 DESCRIPTION
 
@@ -38,6 +39,8 @@ ARGUMENTS
     method = indigo or rdkit {default: check availability}
 
     exact = 0/1: match elements and bond orders {default: 0}
+
+    object = str: create an aligment object (requires PyMOL 2.3)
 
 EXAMPLE
 
@@ -86,6 +89,28 @@ EXAMPLE
     m[0:3,0:3] = R
     m[0:3,3] = t
     cmd.transform_object(m_objects[0], list(m.flat), mobile_state)
+
+    if object:
+        t_idx_list = iterate_state_to_list(target_state, target, 'model, index')
+        m_idx_list = iterate_state_to_list(mobile_state, mobile, 'model, index')
+        raw = [[t_idx_list[i], m_idx_list[j]] for (i, j) in zip(t_indices, m_indices)]
+        try:
+            _self.set_raw_alignment(object, raw, guide=t_idx_list[0][0])
+        except AttributeError:
+            raise CmdException('Creating an alignment object requires PyMOL 2.3')
+
+
+def iterate_state_to_list(state, selection, expression, space=None, _self=cmd):
+    '''Like cmd.iterate_state, but collect the results in a list
+    @rtype list
+    '''
+    space = dict(space or ())
+    space['_result_list'] = []
+    _self.iterate_state(state, selection,
+                      '_result_list.append((' + expression + '))',
+                      space=space)
+    return space['_result_list']
+
 
 def get_molstr(sele, state):
     '''Export the given selection to a molfile string'''
