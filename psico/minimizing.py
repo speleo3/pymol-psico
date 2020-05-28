@@ -14,6 +14,11 @@ def get_fixed_indices(selection, state, _self):
 
 
 def load_or_update(molstr, name, sele, state, _self):
+    with _self.lockcm:
+        _load_or_update(molstr, name, sele, state, _self)
+
+
+def _load_or_update(molstr, name, sele, state, _self):
     update = not name
 
     if update:
@@ -33,6 +38,32 @@ def load_or_update(molstr, name, sele, state, _self):
     if update:
         _self.update(sele, name, state, 1, matchmaker=0)
         _self.delete(name)
+
+
+def randomize_coords_if_collapsed(selection, state, fancy=True, _self=cmd):
+    '''If all coordinates are the same (collapsed into one point), then
+    randomize them.
+
+    :param fancy: Arrange atoms in a circle (this works better for openbabel)
+    :type fancy: bool
+    '''
+    coords = _self.get_coords(selection, state)
+
+    if len(coords) < 2 or coords.std(0).sum() > 1e-3:
+        return
+
+    import numpy.random
+
+    if fancy:
+        # puts x,y on a circle
+        angles = numpy.linspace(0, 2 * numpy.pi, len(coords), False)
+        width = len(coords)**(1 / 3.)
+        coords[:, 0] += numpy.sin(angles) * width
+        coords[:, 1] += numpy.cos(angles) * width
+
+    coords += numpy.random.random_sample(coords.shape) - 0.5
+
+    _self.load_coords(coords, selection, state)
 
 
 def minimize_ob(selection='enabled', state=-1, ff='UFF', nsteps=500,
@@ -60,9 +91,14 @@ ARGUMENTS
     state = int(state)
 
     sele = _self.get_unused_name('_sele')
-    _self.select(sele, selection, 0)
+    natoms = _self.select(sele, selection, 0)
 
     try:
+        if natoms == 0:
+            raise CmdException('empty selection')
+
+        randomize_coords_if_collapsed(sele, state, _self=_self)
+
         ioformat = 'mol'
         molstr = _self.get_str(ioformat, sele, state)
 
@@ -145,6 +181,8 @@ ARGUMENTS
     try:
         if natoms == 0:
             raise CmdException('empty selection')
+
+        randomize_coords_if_collapsed(sele, state, _self=_self)
 
         molstr = _self.get_str('mol', sele, state)
         mol = Chem.MolFromMolBlock(molstr, True, False)
