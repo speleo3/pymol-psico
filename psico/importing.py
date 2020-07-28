@@ -837,6 +837,29 @@ USAGE
             print(' This PyMOL version might not be capable of loading MTZ files')
             raise CmdException
 
+
+def load_smi(filename, oname='', discrete=-1, quiet=1, multiplex=None, zoom=-1,
+        _self=cmd):
+    '''
+DESCRIPTION
+
+    Load a SMILES file with an openbabel backend
+    '''
+    import tempfile, subprocess
+
+    if not oname:
+        oname = os.path.basename(filename).rsplit('.', 1)[0]
+
+    outfile = tempfile.mktemp('.sdf')
+
+    try:
+        subprocess.check_call(['obabel', filename, '-O', outfile, '--gen3D'])
+        _self.load(outfile, oname, discrete=discrete, quiet=quiet,
+                multiplex=multiplex, zoom=zoom)
+    finally:
+        os.remove(outfile)
+
+
 # commands
 if 'loadall' not in cmd.keyword:
     cmd.extend('loadall', loadall)
@@ -847,5 +870,6 @@ cmd.extend('load_aln', load_aln)
 cmd.extend('load_gro', load_gro)
 if 'load_mtz' not in cmd.keyword:
     cmd.extend('load_mtz', load_mtz)
+cmd.extend('load_smi', load_smi)
 
 # vi:expandtab:smarttab
