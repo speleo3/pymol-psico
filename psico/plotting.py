@@ -196,7 +196,7 @@ EXAMPLE
     if cmd.is_string(which):
         which = cmd.safe_list_eval(which)
 
-    if aln_object not in cmd.get_names_of_type('object:'):
+    if aln_object not in cmd.get_names_of_type('object:alignment'):
         print(' Warning: first argument should be an alignment object')
 
         from .fitting import extra_fit
@@ -374,7 +374,7 @@ cmd.extend('pca_plot', pca_plot)
 cmd.extend('iterate_plot', iterate_plot)
 
 _auto_arg_aln_objects = [
-    lambda: cmd.Shortcut(cmd.get_names_of_type('object:')),
+    lambda: cmd.Shortcut(cmd.get_names_of_type('object:alignment')),
     'alignment object', '']
 
 # autocompletion
