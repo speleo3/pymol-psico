@@ -91,17 +91,15 @@ SEE ALSO
 
     spheroid, rmsf_states.py from Robert Campbell
     '''
+    _assert_package_import()
+    from . import querying
     from numpy import asfarray, sqrt, pi
     linearscale = float(linearscale)
-    n_atoms = cmd.count_atoms(selection)
-    n_states = cmd.count_states(selection)
+    coords = asfarray(querying.get_ensemble_coords(selection))
+    n_states, n_atoms, _ = coords.shape
     if n_atoms == 0 or n_states < 2:
         print(' Error: not enough atoms or states')
         raise CmdException
-    coords = []
-    cmd.iterate_state(0, selection, 'coords.append((x,y,z))', atomic=0,
-            space={'coords': coords})
-    coords = asfarray(coords).reshape((cmd.count_states(selection), -1, 3))
     u_sq = coords.var(0).sum(1) # var over states, sum over x,y,z
     b_array = sqrt(u_sq) * linearscale if linearscale > 0.0 \
             else 8 * pi**2 * u_sq

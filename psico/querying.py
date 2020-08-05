@@ -421,8 +421,12 @@ DESCRIPTION
     API only. Returns the (nstates, natoms, 3) coordinate matrix. Considers
     the object rotation matrix. 
     '''
+    nstates = cmd.count_states(selection)
+    if get_coords is not _get_coords:
+        # PyMOL 1.7.4 implementation
+        return get_coords(selection, 0).reshape((nstates, -1, 3))
     return [get_coords(selection, state)
-            for state in range(1, cmd.count_states(selection) + 1)]
+            for state in range(1, nstates + 1)]
 
 if 'centerofmass' not in cmd.keyword:
     cmd.extend('centerofmass', centerofmass)
