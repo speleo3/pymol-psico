@@ -502,7 +502,7 @@ SEE ALSO
         try:
             request = urllib2.Request(
                     data=body, url=
-                    'http://lcb.infotech.monash.edu.au/sstweb2/formaction.php')
+                    'https://lcb.infotech.monash.edu/sstweb2/formaction.php')
             request.add_header('User-agent', 'PyMOL ' + cmd.get_version()[0] + ' ' +
                     cmd.sys.platform)
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
