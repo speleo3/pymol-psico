@@ -228,7 +228,7 @@ DESCRIPTION
     Get the list of mdo commands.
     '''
     s = cmd.get_session("none")
-    commands = s["movie"][5]
+    commands = s["movie"][5] or []
     if not int(quiet):
         for frame, command in enumerate(commands, 1):
             if command:
