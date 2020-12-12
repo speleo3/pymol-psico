@@ -160,8 +160,6 @@ SEE ALSO
     center = numpy.matrix(center.tolist() + [1.0]).T
     center_cell = basis.I * center
 
-    extra_shift = [[float(i)] for i in (a,b,c)]
-
     spacegroup = xray.space_group_map.get(spacegroup, spacegroup)
 
     i = 0
@@ -170,9 +168,10 @@ SEE ALSO
         i += 1
 
         mat = numpy.matrix(mat)
-        shift = numpy.floor(mat * center_cell)
-        mat[0:3,3] -= shift[0:3,0]
-        mat[0:3,3] += extra_shift
+        shift = -numpy.floor(numpy.array(mat * center_cell)[0:3, 0])
+        shift = shift.flatten().astype(int)
+        shift += [a, b, c]
+        mat[0:3, 3] += shift.reshape((3, 1))
 
         mat = basis * mat * basis.I
         mat_list = list(mat.flat)
@@ -180,6 +179,8 @@ SEE ALSO
         name = '%s%d' % (prefix, i)
         cmd.create(name, object)
         cmd.transform_object(name, mat_list, 0)
+
+        cmd.set_title(name, 1, "{}_{}{}{}".format(i, *(shift + 5).tolist()))
 
         if len(matrices) > 1:
             cmd.color(i + 1, name)
