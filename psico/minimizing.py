@@ -88,6 +88,13 @@ ARGUMENTS
     '''
     import openbabel as ob
 
+    try:
+        # OB 3.x
+        from openbabel import openbabel as ob
+    except ImportError:
+        # OB 2.x
+        pass
+
     state = int(state)
 
     sele = _self.get_unused_name('_sele')
