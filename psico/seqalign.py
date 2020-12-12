@@ -24,7 +24,12 @@ DESCRIPTION
     '''
     from Bio import pairwise2
     from Bio.Align import MultipleSeqAlignment
-    from Bio.SubsMat.MatrixInfo import blosum62
+    try:
+        from Bio.Align import substitution_matrices
+    except ImportError:
+        from Bio.SubsMat.MatrixInfo import blosum62
+    else:
+        blosum62 = substitution_matrices.load("BLOSUM62")
 
     def match_callback(c1, c2):
         return blosum62.get((c1, c2), 1 if c1 == c2 else -4)
@@ -69,9 +74,10 @@ DESCRIPTION
 
     Guess alignment file format.
     '''
-    for line in open(infile):
-        if len(line.rstrip()) > 0:
-            break
+    with open(infile) as handle:
+        for line in handle:
+            if len(line.rstrip()) > 0:
+                break
     if line.startswith('CLUSTAL') or line.startswith('MUSCLE'):
         informat = 'clustal'
     elif line.startswith('>P1;'):
@@ -97,7 +103,8 @@ DESCRIPTION
     from Bio import AlignIO
     if not format:
         format = aln_magic_format(infile)
-    return AlignIO.read(open(infile), format)
+    with open(infile) as handle:
+        return AlignIO.read(handle, format)
 
 def FatCatIterator(handle):
     '''
@@ -105,7 +112,6 @@ DESCRIPTION
 
     Biopython FatCat alignment file support
     '''
-    from Bio.Alphabet import single_letter_alphabet
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
 
@@ -123,7 +129,8 @@ DESCRIPTION
         if line.startswith('Chain 2:'): seqs[1].append(line[14:].rstrip())
 
     for seq, id in zip(seqs, ids):
-        yield SeqRecord(Seq(''.join(seq), single_letter_alphabet), id=id, name=id)
+        yield SeqRecord(Seq(''.join(seq)), id=id, name=id)
+
 
 def ProSMARTIterator(handle):
     '''
@@ -134,7 +141,6 @@ DESCRIPTION
     Warning: ProSMART alignment files do not contain gaps, so they only
     contain the residues which are actually aligned!
     '''
-    from Bio.Alphabet import single_letter_alphabet
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
     _assert_package_import()
@@ -161,7 +167,8 @@ DESCRIPTION
         seqs[1].append(aa2)
 
     for seq, id in zip(seqs, ids):
-        yield SeqRecord(Seq(''.join(seq), single_letter_alphabet), id=id, name=id)
+        yield SeqRecord(Seq(''.join(seq)), id=id, name=id)
+
 
 def POAIterator(handle):
     '''
@@ -173,7 +180,6 @@ DESCRIPTION
     contain the residues which are actually aligned!
     '''
     import re
-    from Bio.Alphabet import single_letter_alphabet
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
 
@@ -184,7 +190,8 @@ DESCRIPTION
             continue
         id, seq = line.split(None, 1)
         seq = pattern.sub('-', seq.rstrip())
-        yield SeqRecord(Seq(''.join(seq), single_letter_alphabet), id=id, name=id)
+        yield SeqRecord(Seq(''.join(seq)), id=id, name=id)
+
 
 if 'fatcat' not in _FormatToIterator:
     _FormatToIterator['fatcat'] = FatCatIterator
