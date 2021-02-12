@@ -31,9 +31,10 @@ def _load_or_update(molstr, name, sele, state, _self):
     try:
         from psico.fitting import xfit
         xfit(name, sele, 1, state, match='none', cycles=100, guide=0)
-    except Exception as e:
-        print('xfit failed, fallback to cmd.fit')
+    except ImportError:
         _self.fit(name, sele, 1, state, cycles=5, matchmaker=-1)
+    except Exception as e:
+        print('xfit failed: {}'.format(e))
 
     if update:
         _self.update(sele, name, state, 1, matchmaker=0)
@@ -263,6 +264,7 @@ cmd.extend('minimize_ob', minimize_ob)
 cmd.extend('minimize_rdkit', minimize_rdkit)
 
 cmd.auto_arg[0].update([
+    ('clean_ob', cmd.auto_arg[0]['zoom']),
     ('minimize_ob', cmd.auto_arg[0]['zoom']),
     ('minimize_rdkit', cmd.auto_arg[0]['zoom']),
 ])
