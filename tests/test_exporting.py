@@ -1,22 +1,43 @@
 import psico.exporting
+import pytest
+from pytest import approx
 from pymol import cmd
 
+save_traj_params = [
+    ('dcd', psico.exporting.save_traj),
+    ('crd', psico.exporting.save_traj),
+]
 
-def test_save_traj(tmp_path):
+try:
+    import mdtraj
+except ImportError:
+    print("Skipping mdtraj tests")
+else:
+    save_traj_params += [
+        ('dcd', psico.exporting.save_mdtraj),
+        ('xtc', psico.exporting.save_mdtraj),
+    ]
+
+
+@pytest.mark.parametrize("ext,save_func", save_traj_params)
+def test_save_traj(ext, save_func, tmp_path):
     cmd.reinitialize()
     cmd.fragment('gly', 'm1')
     for state in range(1, 4):
         cmd.create('m2', 'm1', 1, state)
+        cmd.rotate("y", 30 * state, "m2", state)
 
-    for ext in ['dcd', 'crd']:
-        filename = str(tmp_path / "out.") + ext
-        # export
-        psico.exporting.save_traj(filename, 'm2')
-        # import (verify export)
-        cmd.create('m3', 'm1')
-        cmd.load_traj(filename, 'm3', 1)
-        assert cmd.count_states('m3', 3)
-        cmd.delete('m3')
+    filename = str(tmp_path / "out.") + ext
+    # export
+    save_func(filename, 'm2')
+    # import (verify export)
+    cmd.create('m3', 'm1')
+    cmd.load_traj(filename, 'm3', 1)
+    assert cmd.count_states('m3', 3)
+    coords3 = cmd.get_coords('m3', 0)
+    coords2 = cmd.get_coords('m2', 0)
+    assert coords3.shape == coords2.shape
+    assert coords3 == approx(coords2, abs=1e-2)
 
 
 # def get_pdb_sss(selection='(all)', state=-1, quiet=1):

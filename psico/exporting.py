@@ -25,6 +25,58 @@ def _assert_package_import():
 
 ## trajectory stuff
 
+
+def save_mdtraj(filename,
+                selection="all",
+                topformat="pdb",
+                quiet=1,
+                _self=cmd):
+    """
+DESCRIPTION
+
+    Save a trajectory file with the "mdtraj" Python library.
+
+    https://mdtraj.org/
+    """
+    import mdtraj
+    import numpy
+    import os
+    import tempfile
+
+    tmp_top = tempfile.mktemp("." + topformat)
+    _self.save(tmp_top, selection)
+
+    try:
+        t = mdtraj.load(tmp_top)
+        t.xyz = _self.get_coords(selection, 0).reshape(-1, *t.xyz.shape[1:])
+        t.xyz *= 0.1  # angstrom to nanometre
+
+        n_frames = t.xyz.shape[0]
+
+        # cell
+        try:
+            cells = numpy.array([
+                _self.get_symmetry(selection, state)[:6]
+                for state in range(1, n_frames + 1)
+            ])
+        except Exception:
+            print(" Warning: No unit cell information")
+            cells = numpy.zeros((n_frames, 6))
+            cells[:, 3:6] = 90.0
+        t.unitcell_lengths = cells[:, 0:3]
+        t.unitcell_angles = cells[:, 3:6]
+
+        # fake time data
+        t.time = numpy.arange(n_frames, dtype=float)
+
+        t.save(filename)
+    finally:
+        os.unlink(tmp_top)
+
+    if not int(quiet):
+        print('Wrote {} frames to file {}'.format(n_frames, filename))
+
+
 def save_traj(filename, selection='(all)', format='', box=0, quiet=1):
     '''
 DESCRIPTION
@@ -51,10 +103,6 @@ ARGUMENTS
 
     box = int(box)
 
-    # Get NATOMS, NSTATES
-    NATOMS = cmd.count_atoms(selection)
-    NSTATES = cmd.count_states(selection)
-
     # Determine Trajectory Format
     if format == '' and '.' in filename:
         format = filename.rsplit('.', 1)[1]
@@ -65,9 +113,14 @@ ARGUMENTS
         Outfile = CRDOutfile
     elif format in ['rst', 'rst7']:
         Outfile = RSTOutfile
+    elif format in ['xtc', 'trr', 'binpos', 'netcdf', 'mdcrd']:
+        return save_mdtraj(filename, selection, quiet=quiet)
     else:
-        print('Unknown format:', format)
-        raise CmdException
+        raise CmdException('Unknown format:', format)
+
+    # Get NATOMS, NSTATES
+    NATOMS = cmd.count_atoms(selection)
+    NSTATES = cmd.count_states(selection)
 
     # size of periodic box
     if box:
@@ -486,6 +539,16 @@ DESCRIPTION
 
 ## pymol command stuff
 
+try:
+    from pymol.exporting import savefunctions as _savefunctions
+    for _ext in ['dcd', 'xtc', 'mdcrd']:
+        _savefunctions.setdefault(_ext, save_mdtraj)
+    for _ext in ['trj', 'crd']:
+        _savefunctions.setdefault(_ext, save_traj)
+except ImportError:
+    pass
+
+cmd.extend('save_mdtraj', save_mdtraj)
 cmd.extend('save_traj', save_traj)
 cmd.extend('save_pdb', save_pdb)
 cmd.extend('paper_png', paper_png)
