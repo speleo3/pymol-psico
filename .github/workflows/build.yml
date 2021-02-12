@@ -1,0 +1,41 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install system dependencies
+      run: >
+        sudo apt-get update;
+        sudo apt-get install -yq
+        python3-biopython
+        python3-csb
+        python3-pip
+        python3-pymol
+        python3-pyparsing
+        python3-pytest
+        python3-scipy
+        dssp
+
+    - name: Install pip dependencies
+      run: sudo python3 -m pip install -q mdtraj
+
+    - name: Install stride
+      run: |
+        wget -nv https://anaconda.org/kimlab/stride/1.6.4/download/linux-64/stride-1.6.4-1.tar.bz2
+        sudo tar xf stride-*.tar.bz2 -C /usr bin/stride
+
+    - name: Install msms
+      run: |
+        wget -nv https://anaconda.org/bioconda/msms/2.6.1/download/linux-64/msms-2.6.1-2.tar.bz2
+        sudo tar xf msms-*.tar.bz2 -C /usr bin lib
+
+    - name: Install
+      run: sudo python3 -m pip install -q .
+
+    - name: Test
+      run: python3 -m pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
