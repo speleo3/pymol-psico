@@ -11,7 +11,7 @@ if __name__.endswith('.fullinit'):
     from . import guitweak
     from . import pymol_version
 
-    init(1, pymol_version < 1.6, 1)
+    init(pymol_version < 2.5, pymol_version < 1.6, 1)
 else:
     import os, sys, imp
 
