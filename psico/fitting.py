@@ -1263,6 +1263,44 @@ def _promix(conformers=0, prefix=None,
     print(' BIC: %.2f' % (mixture.BIC))
     print(' Log Likelihood: %.2f' % (mixture.log_likelihood))
 
+
+def intra_boxfit(selection="polymer", center=[0.5, 0.5, 0.5], _self=cmd):
+    """
+DESCRIPTION
+
+    Center selection in simulation box.
+
+ARGUMENTS
+
+    selection = str: atom selection to center {default: polymer}
+
+    center = list-of-3-floats: Target position in fractional space
+    {default: [0.5, 0.5, 0.5]}
+    """
+    from numpy import dot, asfarray
+    from .xtal import cellbasis
+
+    if isinstance(center, str):
+        center = _self.safe_list_eval(center)
+
+    objects = _self.get_object_list(selection)
+
+    for state in range(1, _self.count_states(selection) + 1):
+        selecenter = _self.get_coords(selection, state).mean(0)
+
+        for obj in objects:
+            sym = _self.get_symmetry(obj, state)
+
+            if not sym:
+                raise CmdException("no symmetry")
+
+            basis = cellbasis(sym[3:6], sym[0:3])[:3,:3]
+            cset = _self.get_coordset(obj, state, copy=0)
+            cset += dot(basis, center) - selecenter
+
+    _self.rebuild(selection)
+
+
 # all those have kwargs: mobile, target, mobile_state, target_state
 align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus',
         'prosmart', 'xfit', 'mcsalign']
@@ -1283,6 +1321,7 @@ cmd.extend('xfit', xfit)
 cmd.extend('intra_xfit', intra_xfit)
 cmd.extend('promix', promix)
 cmd.extend('intra_promix', intra_promix)
+cmd.extend('intra_boxfit', intra_boxfit)
 
 # autocompletion
 _auto_arg0_align = cmd.auto_arg[0]['align']
@@ -1301,6 +1340,7 @@ cmd.auto_arg[0].update([
     ('intra_xfit', _auto_arg0_align),
     ('promix', _auto_arg0_align),
     ('intra_promix', _auto_arg0_align),
+    ('intra_boxfit', _auto_arg1_align),
 ])
 cmd.auto_arg[1].update([
     ('alignwithanymethod', _auto_arg1_align),
