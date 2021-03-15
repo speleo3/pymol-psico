@@ -235,7 +235,10 @@ EXAMPLE
     biomolecule 1rmv
     '''
     import os
-    from .importing import local_mirror_pdb
+    try:
+        from .importing import local_mirror_pdb
+    except ImportError:
+        local_mirror_pdb = lambda n: ""
 
     try:
         import numpy
