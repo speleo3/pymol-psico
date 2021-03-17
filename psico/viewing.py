@@ -116,6 +116,9 @@ DESCRIPTION
 
     Define a color spectrum with as many color-stops as you like (at least 2).
 
+    Note: Since PyMOL 1.6, the regular `spectrum` command also supports
+    arbitrary color lists, so this command is obsolete.
+
 USAGE
 
     spectrumany expression, color_list [, selection [, minimum [, maximum ]]]
@@ -177,7 +180,7 @@ SEE ALSO
         val_range = maximum - minimum
         cmd.color(colors[0], selection)
 
-    steps = 60 / parts
+    steps = 60 // parts
     steps_total = steps * parts
 
     val_start = minimum
@@ -186,7 +189,7 @@ SEE ALSO
             ii = float(i)/steps
             col_list = [colvec[p+1][j] * ii + colvec[p][j] * (1.0 - ii) for j in range(3)]
             col_name = '0x%02x%02x%02x' % tuple(int(0xFF * v) for v in col_list)
-            val_end = val_range * (i + 1 + p * steps) / steps_total + minimum
+            val_end = val_range * (i + 1 + p * steps) // steps_total + minimum
             if expression in discrete_expr:
                 cmd.color(col_name, '(%s) and %s %d-%d' % (selection, expression, val_start, val_end))
             else:
