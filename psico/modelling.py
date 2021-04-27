@@ -10,7 +10,7 @@ def _assert_package_import():
     if not __name__.endswith('.modelling'):
         raise CmdException("Must do 'import psico.modelling' instead of 'run ...'")
 
-def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=0, quiet=1):
+def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=3, quiet=1):
     '''
 DESCRIPTION
 
@@ -36,9 +36,10 @@ ARGUMENTS
 
     hydrogens = string: keep, auto or none {default: auto}
 
-    mode = 0: select rotamer with best clash score {default}
+    mode = 0: select rotamer with best clash score
     mode = 1: take chi angles from original residue
     mode = 2: first rotamer
+    mode = 3: wizard default {default}
 
 EXAMPLE
 
@@ -132,7 +133,10 @@ EXAMPLE
         best_state = (1, -1.0)
     else:
         best_state = get_best_state_bump()
-    cmd.frame(best_state[0])
+
+    if mode != 3:
+        cmd.frame(best_state[0])
+
     cmd.get_wizard().apply()
     cmd.wizard()
 
