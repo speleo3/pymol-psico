@@ -17,12 +17,6 @@ def menuappend(f):
     setattr(menu, f.__name__, wrapped)
     return wrapped
 
-def colorramps(self_cmd, sele):
-    '''Menu for coloring atoms and surfaces by color ramps'''
-    return [[ 1, name, 'cmd.color("%s", "%s");'
-        'cmd.set("surface_color", "%s", "%s")' % (name, sele, name, sele) ]
-        for name in self_cmd.get_names_of_type('object:')]
-
 @menuappend
 def mol_generate(self_cmd, sele):
     r = [
@@ -46,34 +40,19 @@ def mol_generate(self_cmd, sele):
     return r
 
 @menuappend
-def ramp_action(self_cmd, sele):
-    r = [
-        [ 0, '', '' ],
-        [ 1, 'levels', [
-            [ 1, 'Range +/- %.1f' % (L),
-                'psico.creating.ramp_levels("%s", [%f, 0, %f])' % (sele, -L, L) ]
-            for L in [1, 2, 5, 10, 20, 50, 100]
-        ]],
-    ]
-    return r
-
-@menuappend
-def all_colors(self_cmd, sele):
-    ramps = colorramps(self_cmd, sele)
-    if len(ramps) == 0:
-        return []
-    return [[ 0, '', '' ], [ 1, 'ramps', ramps ]]
-
-@menuappend
-def slice_color(self_cmd, sele):
-    return colorramps(self_cmd, sele)
-
-@menuappend
 def map_volume(self_cmd, sele):
     m = 'psico.electrostatics'
     return [
+        [ 0, '', '' ],
         [ 1, 'electrostatics', m + '.volume_esp("'+sele+'_volume_esp","'+sele+'")' ],
         [ 1, 'difference density', m + '.volume_fofc("'+sele+'_volume_fofc","'+sele+'")' ],
+    ]
+
+@menuappend
+def presets(self_cmd, sele):
+    return [
+        [ 0, '', '' ],
+        [ 1, 'hydropathy', 'psico.aaindex.hydropathy2b("polymer & (' + sele + ')",quiet=0)' ],
     ]
 
 # vi: ts=4:sw=4:smarttab:expandtab
