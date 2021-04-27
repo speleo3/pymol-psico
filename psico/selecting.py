@@ -318,6 +318,29 @@ SEE ALSO
         print(' Selector: selection "%s" defined with %d atoms.' % (name, r))
     return r
 
+
+class select_temporary:
+    '''
+DESCRIPTION
+
+    Context manager for creating a temporary named selection.
+
+    >>> with select_temporary(sele_expr) as named_sele:
+    ...     assert named_sele in cmd.get_names()
+    '''
+    def __init__(self, sele, prefix="_sele"):
+        self.sele = sele
+        self.prefix = prefix
+
+    def __enter__(self):
+        self.name = cmd.get_unused_name(self.prefix)
+        cmd.select(self.name, self.sele)
+        return self.name
+
+    def __exit__(self, type, value, traceback):
+        cmd.delete(self.name)
+
+
 # commands
 cmd.extend('select_pepseq', select_pepseq)
 cmd.extend('select_nucseq', select_nucseq)

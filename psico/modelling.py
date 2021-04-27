@@ -51,6 +51,7 @@ EXAMPLE
     from pymol.wizard import mutagenesis
     _assert_package_import()
     from . import three_letter
+    from . import selecting
 
     inplace, sculpt = int(inplace), int(sculpt)
     mode = int(mode)
@@ -109,7 +110,9 @@ EXAMPLE
     cmd.wizard("mutagenesis")
     cmd.get_wizard().set_mode(new_resn)
     cmd.get_wizard().set_hyd(hydrogens)
-    cmd.get_wizard().do_select("("+res+")")
+
+    with selecting.select_temporary(res) as res_named_sele:
+        cmd.get_wizard().do_select(res_named_sele)
 
     def get_best_state_bump():
         best_state = (1, 1e9)
