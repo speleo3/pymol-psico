@@ -211,8 +211,7 @@ SEE ALSO
     if object == '':
         object = os.path.splitext(os.path.basename(filename))[0]
     if object not in cmd.get_object_list():
-        print(' Error: must load object topology before loading trajectory')
-        raise CmdException
+        raise CmdException('must load object topology before loading trajectory')
 
     if state < 1:
         state = cmd.count_states(object) + 1
@@ -299,8 +298,7 @@ SEE ALSO
     if object == '':
         object = os.path.splitext(os.path.basename(filename))[0]
     if object not in cmd.get_object_list():
-        print(' Error: must load object topology before loading trajectory')
-        raise CmdException
+        raise CmdException('must load object topology before loading trajectory')
     if state < 1:
         state = cmd.count_states(object) + 1
     natom = cmd.count_atoms(object)
@@ -334,11 +332,9 @@ SEE ALSO
                 elif second_dot == 16:
                     width = 12
                 else:
-                    print('WARNING: could neither detect 6F12.7 nor 10F8.3 format')
-                    raise CmdException
+                    raise CmdException('could neither detect 6F12.7 nor 10F8.3 format')
             if count > ncoord:
-                print('Error!', ncoord, count)
-                raise CmdException
+                raise CmdException('count={} > ncoord={}'.format(count, ncoord))
             if count == ncoord:
                 count = 0
                 if box:
@@ -384,8 +380,7 @@ DESCRIPTION
 
     line = f.readline() # File ID
     if not line.startswith('Survex 3D Image File'):
-        print(" Error: not a Survex 3D File")
-        raise CmdException
+        raise CmdException("not a Survex 3D File")
 
     line = f.readline() # File format version
     assert line[0] == 'v'
@@ -662,8 +657,7 @@ EXAMPLE
         mobile_obj = cmd.get_object_list('(' + mobile + ')')[0]
         target_obj = cmd.get_object_list('(' + target + ')')[0]
     except:
-        print(' Error: selection "%s" or "%s" does not exist' % (mobile, target))
-        raise CmdException
+        raise CmdException('selection "%s" or "%s" does not exist' % (mobile, target))
 
     # get structure models and sequences
     mobile_model = cmd.get_model('(%s) and guide' % mobile)
@@ -815,8 +809,7 @@ USAGE
 
     for coltype in ('F', 'P'):
         if not header.getColumnsOfType(coltype):
-            print(' Error: could not find %s type column' % coltype)
-            raise CmdException
+            raise CmdException('could not find %s type column' % coltype)
 
     if not prefix:
         prefix = os.path.basename(filename).rsplit('.', 1)[0]
@@ -834,8 +827,7 @@ USAGE
         cmd.map_generate(name, filename, F, P, 'None', 0, 0, quiet)
         if name not in cmd.get_names('objects'):
             print(' Error: Loading %s map failed.' % (maptype))
-            print(' This PyMOL version might not be capable of loading MTZ files')
-            raise CmdException
+            raise CmdException('This PyMOL version might not be capable of loading MTZ files')
 
 
 def load_smi(filename, oname='', discrete=-1, quiet=1, multiplex=None, zoom=-1,

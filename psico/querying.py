@@ -155,12 +155,7 @@ DESCRIPTION
 
     http://www.ball-project.org/
     '''
-    try:
-        import BALL
-    except ImportError:
-        print(' ImportError: please install BALL python bindings')
-        raise CmdException
-
+    import BALL
     import tempfile, os
 
     state, quiet = int(state), int(quiet)
@@ -202,12 +197,7 @@ SEE ALSO
 
     stub2ala, get_sasa, get_sasa_ball
     '''
-    try:
-        import MMTK
-    except ImportError:
-        print(' ImportError: please install MMTK')
-        raise CmdException
-
+    import MMTK
     from MMTK.PDB import PDBConfiguration
     from MMTK.Proteins import Protein
     from MMTK.MolecularSurface import surfaceAndVolume
@@ -277,8 +267,7 @@ SEE ALSO
     else:
         for name in names.split():
             if name not in valid_names:
-                print(' Error: no such distance object: ' + name)
-                raise CmdException
+                raise CmdException('no such distance object: ' + name)
 
     raw_objects = cmd.get_session(names, 1, 1, 0, 0)['names']
 
@@ -358,11 +347,9 @@ DESCRIPTION
     '''
     names = cmd.get_object_list('(' + selection + ')')
     if len(names) == 0:
-        print(' Error: No objects in selection')
-        raise CmdException
+        raise CmdException('No objects in selection')
     if strict and len(names) > 1:
-        print(' Error: Selection spans more than one object')
-        raise CmdException
+        raise CmdException('Selection spans more than one object')
     return names[0]
 
 def get_object_state(name):
@@ -376,8 +363,7 @@ DESCRIPTION
         return 1
     state = cmd.get_setting_int('state', name)
     if state > states:
-        print(' Error: Invalid state %d for object %s' % (state, name))
-        raise CmdException
+        raise CmdException('Invalid state %d for object %s' % (state, name))
     return state
 
 def get_selection_state(selection):
@@ -392,8 +378,7 @@ DESCRIPTION
     if len(state_set) != 1:
         if len(state_set) == 0:
             return 1
-        print(' Error: Selection spans multiple object states')
-        raise CmdException
+        raise CmdException('Selection spans multiple object states')
     return state_set.pop()
 
 def _get_coords(selection, state=-1):

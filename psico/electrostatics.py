@@ -314,8 +314,7 @@ SEE ALSO
                 (c_neg_0, -stops[0]), (c_pos_0, stops[0]), (c_pos_1, stops[1]),
                 (c_pos_0, stops[2]), (c_pos_0, 999)]
     else:
-        print(' Error: need 2 or 3 stops')
-        raise CmdException
+        raise CmdException('need 2 or 3 stops')
 
     cmd.volume(name, map, quiet=quiet)
 

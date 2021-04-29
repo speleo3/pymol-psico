@@ -222,8 +222,7 @@ EXAMPLE
         print(' PCA Others:', ', '.join(others))
 
     if len(references) == 0:
-        print(' PCA Error: No reference objects')
-        raise CmdException
+        raise CmdException('No reference objects')
 
     model_count = len(models)
     coords = dict((model, []) for model in models)
@@ -254,8 +253,7 @@ EXAMPLE
     try:
         U, L, V = svd(X)
     except LinAlgError as e:
-        print(' PCA Error: ', e)
-        raise CmdException
+        raise CmdException(str(e), 'PCA Error')
 
     if int(load_b):
         cmd.alter('byobj ' + aln_object, 'b=-0.01')

@@ -134,8 +134,7 @@ SEE ALSO
         for at in modelAll.atom:
             atmap.setdefault((at.segi, at.chain, at.resn, at.resi), []).append(at)
     else:
-        print('Error: unknown method:', method)
-        raise CmdException
+        raise CmdException('unknown method: {}'.format(method))
 
     model = models.Indexed()
     for centeratoms in atmap.values():
@@ -178,12 +177,10 @@ SEE ALSO
             raise TypeError('not a ramp')
         data = odata[5]
     except:
-        print(' Error: Get session data for ramp "%s" failed' % (name))
-        raise CmdException
+        raise CmdException('Get session data for ramp "%s" failed' % (name))
 
     if len(levels) != len(data[3]):
-        print(' Error: number of levels must agree with existing object')
-        raise CmdException
+        raise CmdException('number of levels must agree with existing object')
 
     map_name = data[6]
     colors = [data[4][i:i+3] for i in range(0, len(data[4]), 3)]

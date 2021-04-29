@@ -263,15 +263,13 @@ EXAMPLE
             if os.path.exists(filename):
                 break
         else:
-            print('please provide filename')
-            raise CmdException
+            raise CmdException('please provide filename')
         if not quiet:
             print('loading from %s' % (filename))
 
     remarks = pdbremarks(filename)
     if 350 not in remarks:
-        print('There is no REMARK 350 in ' + filename)
-        raise CmdException
+        raise CmdException('There is no REMARK 350 in ' + filename)
 
     current = 1
     biomt = {current: {}}
@@ -293,8 +291,7 @@ EXAMPLE
             biomt[current].setdefault(chains, dict()).setdefault(num, []).extend(vec)
 
     if number not in biomt or len(biomt[number]) == 0:
-        print(' Error: no BIOMOLECULE number %d' % (number))
-        raise CmdException
+        raise CmdException('no BIOMOLECULE number %d' % (number))
 
     if numpy is not None:
         mat_source = numpy.reshape(cmd.get_object_matrix(name), (4,4))

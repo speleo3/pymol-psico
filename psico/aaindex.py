@@ -285,8 +285,7 @@ SEE ALSO
     try:
         entry = aaindex[key]
     except KeyError:
-        print(' Error: No such key in AAindex:', key)
-        raise CmdException
+        raise CmdException('No such key in AAindex: {}'.format(key))
 
     median = entry.median()
 

@@ -105,11 +105,7 @@ SEE ALSO
 
     helix_orientation
     '''
-    try:
-        import numpy
-    except ImportError:
-        print(' Error: numpy not available')
-        raise CmdException
+    import numpy
 
     state, visualize, quiet = int(state), int(visualize), int(quiet)
 
@@ -165,8 +161,7 @@ SEE ALSO
             count += 1
 
     if count == 0:
-        print('warning: count == 0')
-        raise CmdException
+        raise CmdException('count == 0')
 
     vec = cpv.normalize(vec)
     center = cpv.scale(center, 1./count)
@@ -227,8 +222,7 @@ SEE ALSO
             vec_list.append(vec)
 
     if len(vec_list) == 0:
-        print('warning: count == 0')
-        raise CmdException
+        raise CmdException('count == 0')
 
     center = cpv.scale(_vec_sum(atoms['O'].values()), 1./len(atoms['O']))
     vec = _vec_sum(vec_list)
@@ -246,11 +240,7 @@ DESCRIPTION
 
     Returns center and normal vector of plane.
     '''
-    try:
-        import numpy
-    except ImportError:
-        print(' Error: numpy not available')
-        raise CmdException
+    import numpy
 
     state, visualize, quiet = int(state), int(visualize), int(quiet)
 
@@ -262,8 +252,7 @@ DESCRIPTION
             'coords.append([x,y,z])', space=locals())
 
     if len(coords) < 3:
-        print('not enough guide atoms in selection')
-        raise CmdException
+        raise CmdException('not enough guide atoms in selection')
 
     x = numpy.array(coords)
     U,s,Vh = numpy.linalg.svd(x - x.mean(0))
@@ -341,8 +330,7 @@ SEE ALSO
     try:
         orientation = globals()[methods_sc[str(method)]]
     except KeyError:
-        print('no such method:', method)
-        raise CmdException
+        raise CmdException('no such method: ' + str(method))
 
     if not int(quiet):
         print(' Using method:', orientation.__name__)
@@ -410,12 +398,7 @@ SEE ALSO
     align, super, angle_between_helices
     '''
     import math
-
-    try:
-        import numpy
-    except ImportError:
-        print(' Error: numpy not available')
-        raise CmdException
+    import numpy
 
     state1, state2 = int(state1), int(state2)
     visualize, quiet = int(visualize), int(quiet)
@@ -424,8 +407,7 @@ SEE ALSO
         try:
             method = cmd.keyword[method][0]
         except KeyError:
-            print('no such method:', method)
-            raise CmdException
+            raise CmdException('no such method: ' + str(method))
 
     mobile_tmp = get_unused_name('_')
     cmd.create(mobile_tmp, selection1, state1, 1,  zoom=0)
@@ -434,8 +416,8 @@ SEE ALSO
                 target_state=state2, quiet=quiet)
         mat = cmd.get_object_matrix(mobile_tmp)
     except:
-        print(' Error: superposition with method "%s" failed' % (method.__name__))
-        raise CmdException
+        raise CmdException('superposition with method "%s" failed' %
+                           (method.__name__))
     finally:
         cmd.delete(mobile_tmp)
 
@@ -463,8 +445,7 @@ SEE ALSO
         angle = math.atan2(sina, cosa)
         angle = abs(math.degrees(angle))
     except:
-        print(' Error: rotation from matrix failed')
-        raise CmdException
+        raise CmdException('rotation from matrix failed')
 
     if not quiet:
         try:

@@ -44,8 +44,7 @@ SEE ALSO
     try:
         handle = urllib2.urlopen(url)
     except urllib2.HTTPError:
-        print(' error: no pre-calculated profile for %s/%s' % (code, chain))
-        raise CmdException
+        raise CmdException('no pre-calculated profile for %s/%s' % (code, chain))
 
     if selection is None:
         object_list = cmd.get_object_list()

@@ -107,8 +107,7 @@ ARGUMENTS
                 universal_newlines=True)
         lines = process.stdout.readlines()
     except OSError:
-        print('Cannot execute "%s", please provide full path to TMscore or TMalign executable' % (exe))
-        raise CmdException
+        raise CmdException('Cannot execute "%s", please provide full path to TMscore or TMalign executable' % (exe))
     finally:
         os.remove(mobile_filename)
         os.remove(target_filename)
@@ -261,21 +260,18 @@ USAGE
 
     chains = cmd.get_chains(mm.mobile)
     if len(chains) != 1:
-        print('mobile selection must be single chain')
-        raise CmdException
+        raise CmdException('mobile selection must be single chain')
     chain1id = chains[0]
     chains = cmd.get_chains(mm.target)
     if len(chains) != 1:
-        print('target selection must be single chain')
-        raise CmdException
+        raise CmdException('target selection must be single chain')
     chain2id = chains[0]
 
     if not exe:
         from . import which
         exe = which('DynDom', 'dyndom')
         if not exe:
-            print(' Error: Cannot find DynDom executable')
-            raise CmdException
+            raise CmdException('Cannot find DynDom executable')
     else:
         exe = cmd.exp_path(exe)
     tempdir = tempfile.mkdtemp()
@@ -309,8 +305,7 @@ USAGE
         cmd.color('gray', mobile)
         fixed_name = dyndom_parse_info(infofile, mm.mobile, quiet)
     except OSError:
-        print('Cannot execute "%s", please provide full path to DynDom executable' % (exe))
-        raise CmdException
+        raise CmdException('Cannot execute "%s", please provide full path to DynDom executable' % (exe))
     finally:
         if not int(preserve):
             shutil.rmtree(tempdir)
@@ -421,8 +416,7 @@ RESULT
         elif match in cmd.get_names('all') and cmd.get_type(match) in ('object:', 'object:alignment'):
             self.from_alignment(mobile, target, match)
         else:
-            print(' Error: unkown match method', match)
-            raise CmdException
+            raise CmdException('unkown match method', match)
 
     def check(self):
         return cmd.count_atoms(self.mobile) == cmd.count_atoms(self.target)
@@ -547,8 +541,7 @@ EXAMPLE
     model_target = cmd.get_model(mm.target)
 
     if len(model_mobile.atom) != len(model_mobile.atom):
-        print('Error: number of atoms differ, please check match method')
-        raise CmdException
+        raise CmdException('number of atoms differ, please check match method')
 
     seq_start = model_mobile.atom[0].resi_number
     seq_end = model_mobile.atom[-1].resi_number
@@ -630,8 +623,7 @@ SEE ALSO
         if method in cmd.keyword:
             method = cmd.keyword[method][0]
         else:
-            print('Unknown method:', method)
-            raise CmdException
+            raise CmdException('Unknown method: ' + str(method))
     for model in models:
         x = method(mobile='%s and model %s' % (sele_name, model),
                 target='%s and model %s' % (sele_name, reference), **kwargs)
@@ -694,8 +686,7 @@ DESCRIPTION
         handle.close()
 
     except OSError:
-        print(' Error: Cannot execute "%s"' % (args[0]))
-        raise CmdException
+        raise CmdException('Cannot execute "%s"' % (args[0]))
     finally:
         if not preserve:
             import shutil
@@ -872,8 +863,7 @@ DESCRIPTION
             load_aln(alnfiles[0], object, mobile, target)
 
     except OSError:
-        print(' Error: Cannot execute "%s", please provide full path to prosmart executable' % (exe))
-        raise CmdException
+        raise CmdException('Cannot execute "%s", please provide full path to prosmart executable' % (exe))
     finally:
         shutil.rmtree(tempdir)
 
@@ -1210,8 +1200,7 @@ REFERENCE
         selection = '(%s) and guide' % (selection)
 
     if n_models < 2:
-        print(' Error: object needs multiple states')
-        raise CmdException
+        raise CmdException('object needs multiple states')
 
     X = asarray(get_ensemble_coords(selection))
     assert X.shape == (n_models, cmd.count_atoms(selection), 3)

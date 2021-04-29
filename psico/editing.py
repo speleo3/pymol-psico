@@ -98,8 +98,7 @@ SEE ALSO
     coords = asfarray(querying.get_ensemble_coords(selection))
     n_states, n_atoms, _ = coords.shape
     if n_atoms == 0 or n_states < 2:
-        print(' Error: not enough atoms or states')
-        raise CmdException
+        raise CmdException('not enough atoms or states')
     u_sq = coords.var(0).sum(1) # var over states, sum over x,y,z
     b_array = sqrt(u_sq) * linearscale if linearscale > 0.0 \
             else 8 * pi**2 * u_sq
@@ -318,8 +317,7 @@ SEE ALSO
             process = Popen([exe, tmpfilepdb], stdout=PIPE,
                     universal_newlines=True)
         except OSError:
-            print('Error: Cannot execute exe=' + exe)
-            raise CmdException
+            raise CmdException('Cannot execute exe=' + exe)
         for line in process.stdout:
             if line.startswith('  #  RESIDUE'):
                 break
@@ -364,8 +362,7 @@ SEE ALSO
             process = Popen([exe, tmpfilepdb], stdout=PIPE,
                     universal_newlines=True)
         except OSError:
-            print('Error: Cannot execute exe=' + exe)
-            raise CmdException
+            raise CmdException('Cannot execute exe=' + exe)
         for line in process.stdout:
             if not line.startswith('ASG'):
                 continue
@@ -433,8 +430,7 @@ SEE ALSO
 
             os.remove(tmpfilesst)
     except OSError:
-        print(' Error: Cannot execute exe=' + exe)
-        raise CmdException
+        raise CmdException('Cannot execute exe=' + exe)
     finally:
         shutil.rmtree(tmpdir)
     _common_ss_alter(selection, ss_dict, ss_map, raw)
@@ -507,8 +503,7 @@ SEE ALSO
             request.add_header('Content-length', len(body))
             lines = urllib2.urlopen(request).readlines()
         except urllib2.URLError:
-            print(' Error: URL request failed')
-            raise CmdException
+            raise CmdException('URL request failed')
 
         if sys.version_info[0] > 2:
             lines = (line.decode('ascii', 'ignore') for line in lines)

@@ -54,8 +54,7 @@ DESCRIPTION
                 col = col[1:-1]
             colors.append(col)
     except:
-        print(' Error: ' + repr(color))
-        raise CmdException
+        raise CmdException(repr(color))
     return colors
 
 def cbm(selection='all', first_color=2):
@@ -230,8 +229,7 @@ SEE ALSO
     first, last, quiet = int(first), int(last), int(quiet)
     colors = color_list.split()
     if len(colors) < 2:
-        print(' Error: please provide at least 2 colors')
-        raise CmdException
+        raise CmdException('please provide at least 2 colors')
 
     colvec = [cmd.get_color_tuple(i) for i in colors]
 
@@ -249,16 +247,14 @@ SEE ALSO
     # object names only
     selection = ' '.join(cmd.get_object_list('(' + selection + ')'))
     if cmd.count_atoms(selection) == 0:
-        print(' Error: empty selection')
-        raise CmdException
+        raise CmdException('empty selection')
 
     if last < 1:
         last = cmd.count_states(selection)
 
     val_range = int(last - first + 1)
     if val_range < 2:
-        print(' Error: no spectrum possible, need more than 1 state')
-        raise CmdException
+        raise CmdException('no spectrum possible, need more than 1 state')
 
     for i in range(val_range):
         p = float(i) / (val_range - 1) * (len(colvec) - 1)

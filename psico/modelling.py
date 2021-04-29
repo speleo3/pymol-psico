@@ -170,8 +170,7 @@ SEE ALSO
     inplace, sculpt = int(inplace), int(sculpt)
 
     if sculpt and len(cmd.get_object_list('(' + selection + ')')) > 1:
-        print(' Error: Sculpting in multiple models not supported')
-        raise CmdException
+        raise CmdException('Sculpting in multiple models not supported')
 
     kwargs.pop('_self', None)
     sele_list = set()
@@ -470,12 +469,8 @@ ARGUMENTS
 
     nmodels = int: number of models (states) to generate {default: 1}
     '''
-    try:
-        import modeller
-        from modeller.automodel import automodel, allhmodel
-    except ImportError:
-        print(' Error: failed to import "modeller"')
-        raise CmdException
+    import modeller
+    from modeller.automodel import automodel, allhmodel
 
     import tempfile, shutil, os
     _assert_package_import()

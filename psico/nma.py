@@ -142,8 +142,7 @@ def _normalmodes(selection, cutoff, force, mass,
             natoms = cmd.count_atoms(sele_name)
 
         if natoms != cmd.count_atoms(sele_name):
-            print('Error: pdbmat did not recognize all atoms')
-            raise CmdException
+            raise CmdException('pdbmat did not recognize all atoms')
 
         commandfile = os.path.join(tempdir, 'diagrtb.dat')
         f = open(commandfile, 'w')
@@ -262,11 +261,7 @@ DESCRIPTION
     Based on:
     http://dirac.cnrs-orleans.fr/MMTK/using-mmtk/mmtk-example-scripts/normal-modes/
     '''
-    try:
-        import MMTK
-    except ImportError:
-        print('Failed to import MMTK, please add to PYTHONPATH')
-        raise CmdException
+    import MMTK
 
     selection = selector.process(selection)
     cutoff = float(cutoff)
@@ -379,11 +374,7 @@ DESCRIPTION
     Based on:
     http://www.csb.pitt.edu/prody/examples/dynamics/enm/anm.html
     '''
-    try:
-        import prody
-    except ImportError:
-        print('Failed to import prody, please add to PYTHONPATH')
-        raise CmdException
+    import prody
 
     first, last, guide = int(first), int(last), int(guide)
     states, factor, quiet = int(states), float(factor), int(quiet)
