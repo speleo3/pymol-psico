@@ -319,6 +319,41 @@ SEE ALSO
     return r
 
 
+def select_range(name="", selection="", merge=1):
+    """
+DESCRIPTION
+
+    Select all atoms between the first and last atom in the
+    current (or given) selection.
+
+ARGUMENTS
+
+    name = str: Named selection to create {default: current active selection}
+
+    selection = str: Selection expression {default: name}
+    """
+    if not name:
+        name = cmd.get_names("selections", enabled_only=1)[0]
+
+    if not selection:
+        selection = name
+
+    tmpsele = cmd.get_unused_name("_tmpsele")
+    cmd.select(tmpsele, selection)
+
+    try:
+        for model in cmd.get_object_list(tmpsele):
+            idx_first = cmd.index(f"first (%{model} & {tmpsele})")[0]
+            idx_last = cmd.index(f"last (%{model} & {tmpsele})")[0]
+            assert idx_first[0] == idx_last[0]
+            cmd.select(name,
+                       f"%{model} & index {idx_first[1]}-{idx_last[1]}",
+                       merge=merge)
+            merge = 1
+    finally:
+        cmd.delete(tmpsele)
+
+
 class select_temporary:
     '''
 DESCRIPTION
@@ -349,6 +384,7 @@ cmd.extend('symdiff', symdiff)
 cmd.extend('diff', diff)
 cmd.extend('collapse_resi', collapse_resi)
 cmd.extend('select_distances', select_distances)
+cmd.extend('select_range', select_range)
 
 # autocompletion
 cmd.auto_arg[0].update([
@@ -365,6 +401,7 @@ cmd.auto_arg[1].update([
     ('select_nucseq', cmd.auto_arg[1]['select']),
     ('symdiff',     cmd.auto_arg[1]['align']),
     ('diff',        cmd.auto_arg[1]['align']),
+    ('select_range', cmd.auto_arg[1]['select']),
 ])
 
 # vi:expandtab:smarttab
