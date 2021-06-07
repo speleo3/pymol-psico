@@ -6,6 +6,10 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+_auto_arg0_align = cmd.auto_arg[0]['align']
+_auto_arg1_align = cmd.auto_arg[1]['align']
+
+
 def _assert_package_import():
     if not __name__.endswith('.modelling'):
         raise CmdException("Must do 'import psico.modelling' instead of 'run ...'")
@@ -544,6 +548,69 @@ ARGUMENTS
 
     if not quiet:
         print(' peptide_rebuild_modeller: done')
+
+
+@cmd.extendaa(_auto_arg0_align, _auto_arg1_align)
+def update_align(mobile: str,
+                 target: str,
+                 state: int = 1,
+                 *,
+                 fix: str = "none",
+                 quiet: int = 1,
+                 _self=cmd):
+    """
+DESCRIPTION
+
+    Update (and optionally fix) coordinates based on sequence alignment.
+    """
+    aln = _self.get_unused_name("aln_hom")
+    _self.align(mobile, target, object=aln, cycles=0, max_gap=-1)
+    try:
+        mobile_aln = f"({mobile}) & {aln}"
+        _self.update(mobile_aln,
+                     f"({target}) & {aln}",
+                     state,
+                     state,
+                     matchmaker=0,
+                     quiet=quiet)
+        if fix == "restrain":
+            _self.reference("store", mobile_aln, state, quiet=quiet)
+            _self.flag("restrain", mobile_aln, "set", quiet=quiet)
+        elif fix == "fix":
+            _self.flag("fix", mobile_aln, "set", quiet=quiet)
+        elif fix == "protect":
+            _self.protect(mobile_aln, quiet=quiet)
+        elif fix != "none":
+            raise ValueError(fix)
+    finally:
+        _self.delete(aln)
+
+
+@cmd.extendaa(_auto_arg0_align, _auto_arg1_align)
+def sculpt_homolog(mobile: str,
+                   target: str,
+                   state: int = 1,
+                   cycles: int = 1000,
+                   *,
+                   fix: str = "restrain",
+                   quiet: int = 1,
+                   _self=cmd):
+    """
+DESCRIPTION
+
+    Sculpt mobile towards target, based on sequence alignment.
+
+ARGUMENTS
+
+    cycles: Number of sculpt iterations
+
+    fix = restrain | fix | protect | none: Method for fixing updated atoms
+    """
+    (mobile_object, ) = _self.get_object_list(mobile)
+    _self.sculpt_activate(mobile_object, state)
+    update_align(mobile, target, state, fix=fix, quiet=quiet, _self=_self)
+    _self.sculpt_iterate(mobile, state, cycles)
+
 
 cmd.extend('mutate', mutate)
 cmd.extend('mutate_all', mutate_all)
