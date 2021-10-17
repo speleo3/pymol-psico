@@ -413,6 +413,46 @@ DESCRIPTION
     return [get_coords(selection, state)
             for state in range(1, nstates + 1)]
 
+
+def iterate_to_list(selection, expression, _self=cmd):
+    """
+    API-only function to capture "iterate" results in a list.
+    """
+    outlist = []
+    _self.iterate(selection, "outlist.append(({}))".format(expression),
+            space={"outlist": outlist})
+    return outlist
+
+
+def csp(sele1, sele2='', quiet=1, var="formal_charge", _self=cmd):
+    """
+DESCRIPTION
+
+    Charge Symmetry Parameter between two selections. Can be used to compute
+    FvCSP according to Sharma 2014.
+
+    If only sele1 is given, it must contain excatly two chains.
+    """
+    if not sele2:
+        chains = _self.get_chains(sele1)
+
+        if len(chains) != 2:
+            raise CmdException("need two chains")
+
+        sele2 = '({}) & chain "{}"'.format(sele1, chains[1])
+        sele1 = '({}) & chain "{}"'.format(sele1, chains[0])
+
+    charges1 = iterate_to_list(sele1, var, _self=_self)
+    charges2 = iterate_to_list(sele2, var, _self=_self)
+
+    r = sum(charges1) * sum(charges2)
+
+    if not int(quiet):
+        print(" csp: {}".format(r))
+
+    return r
+
+
 if 'centerofmass' not in cmd.keyword:
     cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)
@@ -420,6 +460,7 @@ cmd.extend('get_sasa', get_sasa)
 cmd.extend('get_sasa_ball', get_sasa_ball)
 cmd.extend('get_sasa_mmtk', get_sasa_mmtk)
 cmd.extend('get_raw_distances', get_raw_distances)
+cmd.extend('csp', csp)
 
 cmd.auto_arg[0].update([
     ('centerofmass', cmd.auto_arg[0]['zoom']),
@@ -430,6 +471,7 @@ cmd.auto_arg[0].update([
     ('get_raw_distances', [
         lambda: cmd.Shortcut(cmd.get_names_of_type('object:measurement')),
         'distance object', '']),
+    ('csp', cmd.auto_arg[0]['zoom']),
 ])
 
 # vi: ts=4:sw=4:smarttab:expandtab
