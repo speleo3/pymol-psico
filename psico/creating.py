@@ -146,8 +146,17 @@ SEE ALSO
         atom.coord = center
         atom.index = model.nAtom + 1
         atom.name = name
-        for key in ['resn','chain','resi','resi_number','hetatm','ss','segi']:
-            atom.__dict__[key] = at.__dict__[key]
+        for key in [
+                'segi',
+                'chain',
+                'resi_number',
+                'resi',
+                'resn',
+                'hetatm',
+                'ss',
+                'b',
+        ]:
+            setattr(atom, key, getattr(at, key))
         model.add_atom(atom)
     model.update_index()
     if object in cmd.get_object_list():
