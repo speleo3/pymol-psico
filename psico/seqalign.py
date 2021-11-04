@@ -24,6 +24,9 @@ DESCRIPTION
     '''
     from Bio import pairwise2
     from Bio.Align import MultipleSeqAlignment
+    from Bio.SeqRecord import SeqRecord
+    from Bio.Seq import Seq
+
     try:
         from Bio.Align import substitution_matrices
     except ImportError:
@@ -38,10 +41,10 @@ DESCRIPTION
             match_callback, -10., -.5,
             one_alignment_only=True)
 
-    a = MultipleSeqAlignment([])
-    a.add_sequence("s1", alns[0][0])
-    a.add_sequence("s2", alns[0][1])
-    return a
+    return MultipleSeqAlignment([
+        SeqRecord(Seq(alns[0][0]), "s1"),
+        SeqRecord(Seq(alns[0][1]), "s2"),
+    ])
 
 def needle_alignment_emboss(s1, s2):
     import subprocess
