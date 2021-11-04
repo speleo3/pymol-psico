@@ -1015,7 +1015,7 @@ SEE ALSO
     for obj in mobile_objs:
         X_obj = get_ensemble_coords('({}) & {}'.format(selection, obj))
 
-        if X and X_obj and len(X[0]) != len(X_obj[0]):
+        if X and len(X_obj) and len(X[0]) != len(X_obj[0]):
             raise CmdException('objects have different number of atoms')
 
         X.extend(X_obj)
