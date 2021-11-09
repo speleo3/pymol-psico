@@ -19,23 +19,17 @@ DESCRIPTION
     Helper function for plot commands.
     '''
     if filename is None:
-        try:
+        if not quiet:
             fig.show()
-        except AttributeError:
-            print(' Warning: matplotlib.pyplot.figure.show failed')
-            filename, quiet = 'psico-plot-failsafe.pdf', False
-        else:
+        if True:
             from . import matplotlib_fix_prefs
             if matplotlib_fix_prefs['force_show']:
                 import matplotlib
                 matplotlib.pyplot.show()
-            return
-    try:
+    else:
         fig.savefig(filename)
         if not quiet:
             print(' Plot written to', filename)
-    except ValueError as e:
-        print(' Error:', e)
 
 
 def get_model_color(model, *, _self=cmd):
@@ -411,10 +405,36 @@ EXAMPLE
     _showfigure(fig, filename, quiet)
 
 
+def contact_map_plot(selection="guide", metric="euclidean", *,
+                     state=-1, filename=None, quiet=1, _self=cmd):
+    """
+DESCRIPTION
+
+    Plot a contact map.
+    """
+    import matplotlib.pyplot as plt
+    from .numeric import pdist_squareform
+
+    X = _self.get_coords(selection, int(state))
+    if X is None:
+        raise CmdException("No coordinates in selection")
+
+    dist_mat = pdist_squareform(X, metric)
+
+    fig, ax = plt.subplots()
+    mappable = ax.pcolormesh(dist_mat)
+    fig.colorbar(mappable, ax=ax)
+
+    _showfigure(fig, filename, int(quiet))
+
+    return fig
+
+
 # pymol commands
 cmd.extend('rms_plot', rms_plot)
 cmd.extend('pca_plot', pca_plot)
 cmd.extend('iterate_plot', iterate_plot)
+cmd.extend('contact_map_plot', contact_map_plot)
 
 _auto_arg_aln_objects = [
     lambda: cmd.Shortcut(cmd.get_names_of_type('object:alignment')),
@@ -426,6 +446,7 @@ cmd.auto_arg[0].update([
     ('rms_plot', cmd.auto_arg[0]['align']),
     ('iterate_plot', cmd.auto_arg[0]['iterate']),
     ('area_plot', cmd.auto_arg[0]['get_area']),
+    ('contact_map_plot', cmd.auto_arg[0]['zoom']),
 ])
 cmd.auto_arg[1].update([
     ('pca_plot', cmd.auto_arg[0]['disable']),
