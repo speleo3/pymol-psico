@@ -281,6 +281,22 @@ DESCRIPTION
         cmd.scene(self.name, 'recall')
         cmd.scene(self.name, 'delete')
 
+
+def goodsell_lighting():
+    """
+DESCRIPTION
+
+    Mostly flat lighting, similar to the famous illustrations by David
+    Goodsell. Works well with spheres representation.
+    """
+    cmd.set("ambient", 0.6)
+    cmd.set("direct", 0.6)
+    cmd.set("reflect", 0.1)
+    cmd.set("shininess", 60.0)
+    cmd.set("ray_shadow", 'off')
+    cmd.set("specular_intensity", 0.0)
+
+
 # commands
 cmd.alias('z', 'zoom visible')
 cmd.alias('x', 'nice')
@@ -289,6 +305,7 @@ cmd.extend('cbm', cbm)
 cmd.extend('cbs', cbs)
 cmd.extend('spectrumany', spectrumany)
 cmd.extend('spectrum_states', spectrum_states)
+cmd.extend('goodsell_lighting', goodsell_lighting)
 
 # tab-completion of arguments
 cmd.auto_arg[0]['spectrumany'] = [ expression_sc  , 'expression'      , ', ' ]
