@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 def mcsalign(mobile, target,

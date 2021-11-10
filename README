@@ -31,7 +31,10 @@ INSTALLATION
 
         import psico.fullinit
 
-EXTERNAL PROGRAMS AND LIBRARIES
+DEPENDENCIES
+
+    * PyMOL (https://pymol.org/)
+    * Python 3.7+
 
     Some functions in psico require the following python modules:
 

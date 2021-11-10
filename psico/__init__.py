@@ -11,7 +11,7 @@ PyMOL> psico.helping.write_html_ref('psico-commands.html')
 License: BSD-2-Clause
 '''
 
-__version__ = '3.5'
+__version__ = '4.0'
 
 try:
     from pymol import cmd
@@ -48,8 +48,6 @@ __all__ = [
     'load_mtz_cctbx',
 ]
 
-if pymol_version < 1.6:
-    __all__.append('morphing')
 
 def make_global():
     '''

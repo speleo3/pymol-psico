@@ -8,8 +8,6 @@ http://www.genome.jp/aaindex/
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 def _assert_package_import():

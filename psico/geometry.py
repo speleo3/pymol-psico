@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd
 
 def qdelaunay(X, n=0, m=0, options='Qt', qdelaunay_exe='qdelaunay'):

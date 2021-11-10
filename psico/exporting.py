@@ -9,13 +9,7 @@ formats.
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
-try:
-    file
-except NameError:
-    from io import FileIO as file
-
+from io import FileIO as file
 from pymol import cmd, CmdException
 from pymol import selector
 
@@ -388,7 +382,6 @@ SEE ALSO
     save
     '''
     _assert_package_import()
-    from . import pymol_version
 
     selection = selector.process(selection)
     state, quiet = int(state), int(quiet)
@@ -431,23 +424,6 @@ SEE ALSO
     
     # Write coordinates of selection
     pdbstr = cmd.get_pdbstr(selection, state)
-
-    # fix END records
-    if state == 0 and pymol_version < 1.6:
-        pdbstr = '\n'.join(line for line in pdbstr.splitlines() if line != 'END') + '\nEND\n'
-
-    # anisotropic b-factors
-    if int(aniso) and pymol_version < 1.6 and \
-            cmd.get_model('first (%s)' % selection).atom[0].u_aniso[0] != 0.0:
-        def mergeaniso():
-            atom_it = iter(cmd.get_model(selection, state).atom)
-            for line in pdbstr.splitlines(True):
-                yield line
-                if line[:6] in ['ATOM  ', 'HETATM']:
-                    yield 'ANISOU' + line[6:28] + \
-                            ''.join('%7.0f' % (u*1e4) for u in next(atom_it).u_aniso) + \
-                            line[70:]
-        pdbstr = ''.join(mergeaniso())
 
     f.write(pdbstr)
     f.close()

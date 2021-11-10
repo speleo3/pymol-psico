@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 if not __name__.endswith('.fitting'):
     raise Exception("Must do 'import psico.fitting' instead of 'run ...'")
 

@@ -6,13 +6,7 @@ Normal mode calculation using external apps or libraries.
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
+from io import StringIO
 from pymol import cmd, stored, CmdException
 from pymol import selector
 

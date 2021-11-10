@@ -201,11 +201,7 @@ SEE ALSO
     from MMTK.PDB import PDBConfiguration
     from MMTK.Proteins import Protein
     from MMTK.MolecularSurface import surfaceAndVolume
-
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        from io import StringIO
+    from io import StringIO
 
     selection = selector.process(selection)
     state, quiet = int(state), int(quiet)

@@ -4,8 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 if not __name__.endswith('.fasta'):
     raise Exception("Must do 'import psico.fasta' instead of 'run ...'")
 

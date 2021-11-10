@@ -6,20 +6,11 @@ Orientation, displacement and angle measurments of helices and domains.
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 from chempy import cpv
 
-if cmd.get_version()[1] < 1.2:
-    # legacy support to run this script standalone with PyMOL 0.99
-    def get_unused_name(name):
-        import random
-        return name + '%04d' % random.randint(0, 1000)
-    STATE = 1
-else:
-    from pymol.cmd import get_unused_name
-    STATE = -1
+from pymol.cmd import get_unused_name
+STATE = -1
 
 def _vec_sum(vec_list):
     # this is the same as

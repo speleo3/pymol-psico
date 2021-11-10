@@ -6,8 +6,6 @@ Plotting with matplotlib
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 if not __name__.endswith('.plotting'):
     raise Exception("Must do 'import psico.plotting' instead of 'run ...'")
 

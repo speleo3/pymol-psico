@@ -6,8 +6,6 @@ Electrostatics (simple alternative to the APBS Tools Plugin)
 License: BSD-2-Clause
 '''
 
-from __future__ import print_function
-
 from pymol import cmd, CmdException
 
 template_apbs_in = '''

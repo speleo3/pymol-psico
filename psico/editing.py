@@ -4,9 +4,6 @@
 License: BSD-2-Clause
 '''
 
-from __future__ import absolute_import
-from __future__ import with_statement
-
 import sys
 
 from pymol import cmd, CmdException
@@ -446,10 +443,7 @@ SEE ALSO
 
     dss, dssp, stride
     '''
-    try:
-        import urllib2
-    except ImportError:
-        import urllib.request as urllib2
+    import urllib.request as urllib2
 
     state, quiet = int(state), int(quiet)
 
@@ -505,9 +499,7 @@ SEE ALSO
         except urllib2.URLError:
             raise CmdException('URL request failed')
 
-        if sys.version_info[0] > 2:
-            lines = (line.decode('ascii', 'ignore') for line in lines)
-
+        lines = (line.decode('ascii', 'ignore') for line in lines)
         lines = iter(lines)
 
         for line in lines:
