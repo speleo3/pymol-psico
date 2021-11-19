@@ -449,6 +449,31 @@ DESCRIPTION
     return r
 
 
+def extinction_coefficient(selection="all", state=-1, *, quiet=1, _self=cmd):
+    """
+DESCRIPTION
+
+    Extinction coefficient at 280 nm.
+    """
+    from pymol.util import compute_mass
+
+    nW = _self.count_atoms(f"({selection}) & resn TRP & guide", state=state)
+    nY = _self.count_atoms(f"({selection}) & resn TYR & guide", state=state)
+    nSS = _self.count_atoms(
+        f"({selection}) & resn CYS & elem S & bound_to elem S",
+        state=state) // 2
+    eps = nW * 5500 + nY * 1490 + nSS * 125
+    implicit = _self.count_atoms(f"({selection}) & hydro") == 0
+    mass = compute_mass(selection, state, implicit=implicit, _self=_self)
+    A_280 = eps / mass
+
+    if not int(quiet):
+        print(" Extinction coefficient at 280nm: "
+              f"{eps}/(M*cm), {A_280:.4f} g/L")
+
+    return (eps, A_280)
+
+
 if 'centerofmass' not in cmd.keyword:
     cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)
@@ -457,6 +482,7 @@ cmd.extend('get_sasa_ball', get_sasa_ball)
 cmd.extend('get_sasa_mmtk', get_sasa_mmtk)
 cmd.extend('get_raw_distances', get_raw_distances)
 cmd.extend('csp', csp)
+cmd.extend('extinction_coefficient', extinction_coefficient)
 
 cmd.auto_arg[0].update([
     ('centerofmass', cmd.auto_arg[0]['zoom']),

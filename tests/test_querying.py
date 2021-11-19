@@ -1,5 +1,6 @@
 import psico.querying
 from pymol import cmd
+from pytest import approx
 
 
 def test_iterate_to_list():
@@ -16,6 +17,29 @@ def test_csp():
     cmd.fab("DD", "m3")
     assert psico.querying.csp("m1") == -2
     assert psico.querying.csp("m2", "m3") == 4
+
+
+def test_extinction_coefficient():
+    cmd.reinitialize()
+    eps_reduced = 2 * 5500 + 3 * 1490
+    eps_ss_1 = eps_reduced + 1 * 125
+    eps_ss_2 = eps_reduced + 2 * 125
+    cmd.fab("AWWYYYCCCC", "m1")
+    eps, A_280 = psico.querying.extinction_coefficient("m1")
+    assert eps == eps_reduced
+    assert A_280 == approx(eps_reduced / 1345.58908)
+    cmd.remove("hydro")
+    eps, A_280 = psico.querying.extinction_coefficient("m1")
+    assert eps == eps_reduced
+    assert A_280 == approx(eps_reduced / 1347.60496)
+    cmd.bond("7/SG", "8/SG")
+    eps, A_280 = psico.querying.extinction_coefficient("m1")
+    assert eps == eps_ss_1
+    assert A_280 == approx(eps_ss_1 / 1345.58908)
+    cmd.bond("9/SG", "10/SG")
+    eps, A_280 = psico.querying.extinction_coefficient("m1")
+    assert eps == eps_ss_2
+    assert A_280 == approx(eps_ss_2 / 1343.5732)
 
 
 #def centerofmass(selection='(all)', state=-1, quiet=1):
