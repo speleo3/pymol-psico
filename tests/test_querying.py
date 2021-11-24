@@ -10,6 +10,18 @@ def test_iterate_to_list():
     assert r == ["N", "CA", "C", "O"]
 
 
+def test_iterate_state_to_list():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    r = psico.querying.iterate_state_to_list(-1, "not hydro", "(x,y,z)")
+    assert len(r) == 4
+    assert r[0] == approx([-1.1945616, 0.201105937, -0.2060566])
+    assert r[1] == approx([0.23043768, 0.318106502, -0.5020566])
+    assert r[2] == approx([1.05943620, -0.38989559, 0.54194343])
+    assert r[3] == approx([0.54543632, -0.97489464, 1.49894345])
+
+
+
 def test_csp():
     cmd.reinitialize()
     cmd.fab("A/1/ ARKA B/1/ GERD", "m1")

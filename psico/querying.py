@@ -420,6 +420,22 @@ def iterate_to_list(selection, expression, _self=cmd):
     return outlist
 
 
+def iterate_state_to_list(state: int,
+                          selection: str,
+                          expression: str,
+                          *,
+                          _self=cmd) -> list:
+    """
+    API-only function to capture "iterate_state" results in a list.
+    """
+    outlist = []
+    _self.iterate_state(state,
+                        selection,
+                        f"outlist.append(({expression}))",
+                        space={"outlist": outlist})
+    return outlist
+
+
 def csp(sele1, sele2='', quiet=1, var="formal_charge", _self=cmd):
     """
 DESCRIPTION
