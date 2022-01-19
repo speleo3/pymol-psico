@@ -2,7 +2,7 @@
 psico installation script
 '''
 
-from distutils.core import setup
+from setuptools import setup
 
 try:
 	from psico import __version__
