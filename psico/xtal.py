@@ -316,6 +316,104 @@ EXAMPLE
     cmd.disable(name)
     cmd.group('%s_%s' % (prefix, suffix), '%s_%s_*' % (prefix, suffix))
 
+from chempy import cpv
+
+class PutCenterCallback(object):
+    prev_v = None
+
+    def __init__(self, name, corner=0):
+        self.name = name
+        self.corner = corner
+        self.cb_name = cmd.get_unused_name('_cb')
+
+    def load(self):
+        cmd.load_callback(self, self.cb_name)
+
+    def __call__(self):
+        if self.name not in cmd.get_names('objects'):
+            import threading
+            threading.Thread(None, cmd.delete, args=(self.cb_name,)).start()
+            return
+
+        v = cmd.get_view()
+        if v == self.prev_v:
+            return
+        self.prev_v = v
+
+        t = v[12:15]
+
+        if self.corner:
+            vp = cmd.get_viewport()
+            R_mc = [v[0:3], v[3:6], v[6:9]]
+            off_c = [0.15 * v[11] * vp[0] / vp[1], 0.15 * v[11], 0.0]
+            if self.corner in [2,3]:
+                off_c[0] *= -1
+            if self.corner in [3,4]:
+                off_c[1] *= -1
+            off_m = cpv.transform(R_mc, off_c)
+            t = cpv.add(t, off_m)
+
+        z = -v[11] / 30.0
+        m = [z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, t[0] / z, t[1] / z, t[2] / z, 1]
+        cmd.set_object_ttt(self.name, m)
+
+
+
+def axes(name='axes', object=None):
+    '''
+DESCRIPTION
+
+    Puts coordinate axes to the lower left corner of the viewport.
+    '''
+    from pymol import cgo
+
+    if object is None:
+        object = cmd.get_object_list()[0]
+
+    sym = cmd.get_symmetry(object)
+    cell_edges = sym[0:3]
+    cell_angles = sym[3:6]
+
+    basis = cellbasis(cell_angles, cell_edges)
+    print(basis)
+
+
+    cmd.set('auto_zoom', 0)
+
+    w = 0.06 # cylinder width
+    l = 0.75 # cylinder length
+    h = 0.25 # cone hight
+    d = w * 1.618 # cone base diameter
+    obj = []
+    
+    import numpy as np
+
+    A,B,C = basis[:3,:3].T
+    r = A / np.linalg.norm(A) 
+    rgb = [1., 0., 0.]
+    obj.extend([
+        cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
+        cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
+    ])
+
+    r = B / np.linalg.norm(B) 
+    rgb = [0., 1., 0.]
+    obj.extend([
+        cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
+        cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
+    ])
+
+    r = C / np.linalg.norm(C) 
+    rgb = [0., 0., 1.]
+    obj.extend([
+        cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
+        cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
+    ])
+
+    PutCenterCallback(name, 1).load()
+    cmd.load_cgo(obj, name)
+
+cmd.extend('axes', axes)
 cmd.extend('supercell', supercell)
 cmd.extend('symexpcell', symexpcell)
 cmd.extend('biomolecule', biomolecule)
