@@ -319,10 +319,6 @@ EXAMPLE
 from chempy import cpv
 
 class PutCenterCallback(object):
-    """
-    This class will keep a CGO object located in the bottom left. 
-    Source: https://pymolwiki.org/index.php/Axes
-    """
     prev_v = None
 
     def __init__(self, name, corner=0):
@@ -368,7 +364,6 @@ def axes(name='axes', object=None):
 DESCRIPTION
 
     Puts coordinate axes to the lower left corner of the viewport.
-    The angles of the axes correspond to the crystallographic basis vectors. 
     '''
     from pymol import cgo
 
