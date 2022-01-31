@@ -363,6 +363,9 @@ DESCRIPTION
 
     Draw arrows corresponding to the crystallographic axes.
 
+    The default color palette is colorblind friendly but close to the familiar red, green, and blue for the a, b, and, c axes respectively.
+    (See https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=3 for details)
+
 USAGE
 
     cell_axes [ object, [, a_color [, b_color [, c_color, [ name]]]]
