@@ -393,40 +393,41 @@ ARGUMENTS
     cell_angles = sym[3:6]
 
     basis = cellbasis(cell_angles, cell_edges)
-    print(basis)
 
 
     cmd.set('auto_zoom', 0)
 
     w = 0.06 # cylinder width
     l = 0.75 # cylinder length
-    h = 0.25 # cone hight
+    h = 0.25 # cone height
     d = w * 1.618 # cone base diameter
     obj = []
     
     import numpy as np
 
     A,B,C = basis[:3,:3].T
-    r = A / np.linalg.norm(A) 
+    r = A
+    r = np.where(np.isclose(r, 0., atol=1e-5), 0., r)
+    r = r / np.linalg.norm(r) 
     rgb = cmd.get_color_tuple(a_color)
     obj.extend([
         cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
         cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
     ])
 
-    r = B / np.linalg.norm(B) 
-    rgb = cmd.get_color_tuple(b_color)
-    obj.extend([
-        cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
-        cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
-    ])
-
-    r = C / np.linalg.norm(C) 
-    rgb = cmd.get_color_tuple(c_color)
-    obj.extend([
-        cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
-        cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
-    ])
+    def get_cgo_vector_list(r, color_name, eps=1e-5):
+        rgb = cmd.get_color_tuple(color_name)
+        r = r / np.linalg.norm(r) 
+        r = np.where(np.isclose(r, 0.0, atol=eps), 0., r) #see https://github.com/schrodinger/pymol-open-source/issues/220
+        cgo_list = [
+            cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
+            cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
+        ]
+        return cgo_list
+    
+    obj = get_cgo_vector_list(A, a_color) + \
+          get_cgo_vector_list(B, b_color) + \
+          get_cgo_vector_list(C, c_color) 
 
     PutCenterCallback(name, 1).load()
     cmd.load_cgo(obj, name)
@@ -439,4 +440,5 @@ cmd.extend('biomolecule', biomolecule)
 # tab-completion of arguments
 cmd.auto_arg[0]['biomolecule'] = cmd.auto_arg[0]['pseudoatom']
 cmd.auto_arg[3]['supercell'] = cmd.auto_arg[0]['pseudoatom']
+cmd.auto_arg[0]["cell_axes"] = [cmd.object_sc, "object", ""]
 
