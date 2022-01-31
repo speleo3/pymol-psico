@@ -357,13 +357,28 @@ class PutCenterCallback(object):
         m = [z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, t[0] / z, t[1] / z, t[2] / z, 1]
         cmd.set_object_ttt(self.name, m)
 
-
-
-def axes(name='axes', object=None):
+def cell_axes(object=None, a_color='0xd95f02', b_color='0x1b9e77', c_color='0x7570b3', name='cell_axes'):
     '''
 DESCRIPTION
 
-    Puts coordinate axes to the lower left corner of the viewport.
+    Draw arrows corresponding to the crystallographic axes.
+
+USAGE
+
+    cell_axes [ object, [, a_color [, b_color [, c_color, [ name]]]]
+
+ARGUMENTS
+
+    object = string: name of object to take cell definition from
+
+    a_color = string: color of a-axis {default: '0xd95f02'}
+
+    b_color = string: color of b-axis {default: '0x1b9e77'}
+
+    c_color = string: color of c-axis {default: '0x7570b3'}
+
+    name = string: name of the cgo object to create {default: cell_axes}
+
     '''
     from pymol import cgo
 
@@ -390,21 +405,21 @@ DESCRIPTION
 
     A,B,C = basis[:3,:3].T
     r = A / np.linalg.norm(A) 
-    rgb = [1., 0., 0.]
+    rgb = cmd.get_color_tuple(a_color)
     obj.extend([
         cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
         cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
     ])
 
     r = B / np.linalg.norm(B) 
-    rgb = [0., 1., 0.]
+    rgb = cmd.get_color_tuple(b_color)
     obj.extend([
         cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
         cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
     ])
 
     r = C / np.linalg.norm(C) 
-    rgb = [0., 0., 1.]
+    rgb = cmd.get_color_tuple(c_color)
     obj.extend([
         cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
         cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
@@ -413,7 +428,7 @@ DESCRIPTION
     PutCenterCallback(name, 1).load()
     cmd.load_cgo(obj, name)
 
-cmd.extend('axes', axes)
+cmd.extend('cell_axes', cell_axes)
 cmd.extend('supercell', supercell)
 cmd.extend('symexpcell', symexpcell)
 cmd.extend('biomolecule', biomolecule)
@@ -422,4 +437,3 @@ cmd.extend('biomolecule', biomolecule)
 cmd.auto_arg[0]['biomolecule'] = cmd.auto_arg[0]['pseudoatom']
 cmd.auto_arg[3]['supercell'] = cmd.auto_arg[0]['pseudoatom']
 
-# vi: ts=4:sw=4:smarttab:expandtab
