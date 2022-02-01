@@ -7,6 +7,7 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, CmdException
+from chempy import cpv
 
 def cellbasis(angles, edges):
     '''
@@ -316,7 +317,6 @@ EXAMPLE
     cmd.disable(name)
     cmd.group('%s_%s' % (prefix, suffix), '%s_%s_*' % (prefix, suffix))
 
-from chempy import cpv
 
 class PutCenterCallback(object):
     prev_v = None
@@ -363,7 +363,8 @@ DESCRIPTION
 
     Draw arrows corresponding to the crystallographic axes.
 
-    The default color palette is colorblind friendly but close to the familiar red, green, and blue for the a, b, and, c axes respectively.
+    The default color palette is colorblind friendly but close to the familiar 
+    red, green, and blue for the a, b, and, c axes respectively.
     (See https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=3 for details)
 
 USAGE
@@ -442,3 +443,4 @@ cmd.auto_arg[0]['biomolecule'] = cmd.auto_arg[0]['pseudoatom']
 cmd.auto_arg[3]['supercell'] = cmd.auto_arg[0]['pseudoatom']
 cmd.auto_arg[0]["cell_axes"] = [cmd.object_sc, "object", ""]
 
+# vi: ts=4:sw=4:smarttab:expandtab
