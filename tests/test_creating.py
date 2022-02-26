@@ -1,11 +1,11 @@
 import psico.creating
 import psico.querying
-import os
+from pathlib import Path
 from pymol import cmd
 from pytest import approx
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
-FILENAME_WITH_MSE = os.path.join(DATA_DIR, '2x19-frag-mse.pdb')
+DATA_PATH = Path(__file__).resolve().parent / 'data'
+FILENAME_WITH_MSE = DATA_PATH / '2x19-frag-mse.pdb'
 
 
 def test_sidechaincenters():
@@ -27,7 +27,23 @@ def test_sidechaincenters():
     assert r == approx([5, 20, 5, 5, 5])
 
 
-# def join_states(name, selection='all', discrete=-1, zoom=0, quiet=1):
+def test_join_states():
+    cmd.reinitialize()
+    cmd.load(DATA_PATH / "1nmr-frag-nohydro.pdb", "m1", multiplex=1)
+    assert len(cmd.get_names()) == 4
+    assert cmd.count_states() == 1
+
+    psico.creating.join_states("m2", "m1_*", discrete=0)
+    assert cmd.count_states("m2") == 4
+    assert cmd.count_discrete("m2") == 0
+    assert cmd.count_atoms("m2") == 241
+
+    psico.creating.join_states("m3", "m1_*", discrete=1)
+    assert cmd.count_states("m3") == 4
+    assert cmd.count_discrete("m3") == 1
+    assert cmd.count_atoms("m3") == 241 * 4
+
+
 # def ramp_levels(name, levels, quiet=1):
 # def pdb2pqr(name, selection='all', ff='amber', debump=1, opt=1, assignonly=0,
 # def corina(name, selection, exe='corina', state=-1, preserve=0, quiet=1):
