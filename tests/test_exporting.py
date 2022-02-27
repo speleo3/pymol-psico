@@ -2,6 +2,9 @@ import psico.exporting
 import pytest
 from pytest import approx
 from pymol import cmd
+from pathlib import Path
+
+DATA_PATH = Path(__file__).resolve().parent / 'data'
 
 save_traj_params = [
     ('dcd', psico.exporting.save_traj),
@@ -40,10 +43,23 @@ def test_save_traj(ext, save_func, tmp_path):
     assert coords3 == approx(coords2, abs=1e-2)
 
 
+def test_save_pdb_without_ter(tmp_path):
+    cmd.reinitialize()
+    cmd.load(DATA_PATH / '2x19-frag-mse.pdb')
+    cmd.remove("resi 135")
+    cmd.alter("resi 136-137", "chain='C'")
+    assert cmd.get_pdbstr().count("TER") == 2
+    filename = tmp_path / "pdbwithoutter.pdb"
+    psico.exporting.save_pdb_without_ter(filename, "all")
+    with open(filename) as handle:
+        content = handle.read()
+    assert content.count("TER") == 0
+    assert content.count("ATOM") == 26
+
+
 # def get_pdb_sss(selection='(all)', state=-1, quiet=1):
 # def get_pdb_seqres(selection='all', quiet=1):
 # def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0, seqres=0, quiet=1):
 # def save(filename, selection='(all)', state=-1, format='',
 # def unittouu(string, dpi=90.0):
 # def paper_png(filename, width=100, height=0, dpi=300, ray=1):
-# def save_pdb_without_ter(filename, selection, *args, **kwargs):
