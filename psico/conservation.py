@@ -25,22 +25,21 @@ USAGE
 EXAMPLE
 
     fetch 1ubq, async=0
-    consurfdb 3nhe, B, 1ubq
+    consurfdb 5nvg, A, 1ubq
 
 SEE ALSO
 
     load_consurf
     '''
-    try:
-        import urllib2
-    except ImportError:
-        import urllib.request as urllib2
+    import ssl
+    import urllib.request as urllib2
 
     code = code.upper()
-    url = 'http://bental.tau.ac.il/new_ConSurfDB/DB/%s/%s/r4s.res' % (code, chain)
+    url = 'https://consurfdb.tau.ac.il/DB/%s%s/consurf_summary.txt' % (code, chain)
+    context = ssl._create_unverified_context()
 
     try:
-        handle = urllib2.urlopen(url)
+        handle = urllib2.urlopen(url, context=context)
     except urllib2.HTTPError:
         raise CmdException('no pre-calculated profile for %s/%s' % (code, chain))
 
@@ -76,8 +75,8 @@ SEE ALSO
     from .seqalign import needle_alignment, alignment_mapping
     from . import one_letter
 
-    # reduced pattern that matches both r4s.res and consurf.grades
-    pattern = re.compile(r'\s*(\d+)\s+([A-Y])\s+([-.0-9]+)\s')
+    # reduced pattern that matches r4s.res, consurf.grades and consurf_summary.txt
+    pattern = re.compile(r'\s*(\d+)\s+([A-Y])\s+(?:-\s+|\S+:\w*\s+)?([-.0-9]+)\s')
 
     scores = []
     seqlist = []
