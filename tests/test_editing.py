@@ -21,6 +21,17 @@ def test_split_chains():
     assert cmd.get_chains('foo_0001') == ['A']
 
 
+def test_split_chains__pymol2():
+    from pymol2 import PyMOL
+    with PyMOL() as p1, PyMOL() as p2:
+        p1.cmd.fab("A/1/ AA B/1/ GG", "m1")
+        p2.cmd.fab("C/1/ CC D/1/ DD", "m1")
+        psico.editing.split_chains("m1", _self=p1.cmd)
+        psico.editing.split_chains("m1", _self=p2.cmd)
+        assert p1.cmd.get_names() == ["m1", "m1_A", "m1_B"]
+        assert p2.cmd.get_names() == ["m1", "m1_C", "m1_D"]
+
+
 def test_split_molecules():
     cmd.reinitialize()
     cmd.fab('ACD', 'm1')

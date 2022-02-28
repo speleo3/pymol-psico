@@ -11,7 +11,8 @@ from pymol import cmd, CmdException
 
 from .mcsalign import mcsalign
 
-def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1, **kwargs):
+def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1,
+        *, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -34,12 +35,12 @@ ARGUMENTS
     else:
         methods = methods.split()
     async_, quiet = int(kwargs.pop('async', async_)), int(quiet)
-    mobile_obj = cmd.get_object_list('first (' + mobile + ')')[0]
+    mobile_obj = _self.get_object_list('first (' + mobile + ')')[0]
     def myalign(method):
-        newmobile = cmd.get_unused_name(mobile_obj + '_' + method)
-        cmd.create(newmobile, mobile_obj)
+        newmobile = _self.get_unused_name(mobile_obj + '_' + method)
+        _self.create(newmobile, mobile_obj)
         start = time.time()
-        cmd.do('%s mobile=%s in %s, target=%s' % (method, newmobile, mobile, target))
+        _self.do('%s mobile=%s in %s, target=%s' % (method, newmobile, mobile, target))
         if not quiet:
             print('Finished: %s (%.2f sec)' % (method, time.time() - start))
     for method in methods:
@@ -55,7 +56,7 @@ ARGUMENTS
             myalign(method)
 
 def tmalign(mobile, target, mobile_state=1, target_state=1, args='',
-        exe='TMalign', ter=0, transform=1, object=None, quiet=0):
+        exe='TMalign', ter=0, transform=1, object=None, quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -79,6 +80,7 @@ ARGUMENTS
     ter = 0/1: If ter=0, then ignore chain breaks because TMalign will stop
     at first TER record {default: 0}
     '''
+    import pymol.exporting
     import subprocess, tempfile, os, re
     from .exporting import save_pdb_without_ter
 
@@ -91,11 +93,11 @@ ARGUMENTS
     target_ca_sele = '(%s) and (not hetatm) and name CA and alt +A' % (target)
 
     if ter:
-        save = cmd.save
+        save = pymol.exporting.save
     else:
         save = save_pdb_without_ter
-    save(mobile_filename, mobile_ca_sele, state=mobile_state)
-    save(target_filename, target_ca_sele, state=target_state)
+    save(mobile_filename, mobile_ca_sele, state=mobile_state, _self=_self)
+    save(target_filename, target_ca_sele, state=target_state, _self=_self)
 
     exe = cmd.exp_path(exe)
     args = [exe, mobile_filename, target_filename, '-m', matrix_filename] + args.split()
@@ -154,15 +156,15 @@ ARGUMENTS
     matrix.extend([0,0,0,1])
 
     if int(transform):
-        for model in cmd.get_object_list('(' + mobile + ')'):
-            cmd.transform_object(model, matrix, state=0, homogenous=1)
+        for model in _self.get_object_list(mobile):
+            _self.transform_object(model, matrix, state=0, homogenous=1)
     
     # alignment object
     if object is not None:
         mobile_idx, target_idx = [], []
         space = {'mobile_idx': mobile_idx, 'target_idx': target_idx}
-        cmd.iterate_state(mobile_state, mobile_ca_sele, 'mobile_idx.append("%s`%d" % (model, index))', space=space)
-        cmd.iterate_state(target_state, target_ca_sele, 'target_idx.append("%s`%d" % (model, index))', space=space)
+        _self.iterate_state(mobile_state, mobile_ca_sele, 'mobile_idx.append("%s`%d" % (model, index))', space=space)
+        _self.iterate_state(target_state, target_ca_sele, 'target_idx.append("%s`%d" % (model, index))', space=space)
         for i, aa in enumerate(alignment[0]):
             if aa == '-':
                 mobile_idx.insert(i, None)
@@ -170,7 +172,7 @@ ARGUMENTS
             if aa == '-':
                 target_idx.insert(i, None)
         if (len(mobile_idx) == len(target_idx) == len(alignment[2])):
-            cmd.rms_cur(
+            _self.rms_cur(
                     ' '.join(idx for (idx, m) in zip(mobile_idx, alignment[1]) if m in ':.'),
                     ' '.join(idx for (idx, m) in zip(target_idx, alignment[1]) if m in ':.'),
                     cycles=0, matchmaker=4, object=object)
@@ -185,7 +187,7 @@ ARGUMENTS
 
     return r
 
-def dyndom_parse_info(filename, selection='(all)', quiet=0):
+def dyndom_parse_info(filename, selection='(all)', quiet=0, *, _self=cmd):
     import re
     fixed = False
     fixed_name = None
@@ -212,8 +214,8 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
             if not quiet:
                 print('Domain ' + dom_nr + ' (' + color + '): resi ' + resi)
             name = 'domain_' + dom_nr
-            cmd.select(name, '(%s) and (resi %s)' % (selection, resi), 0)
-            cmd.color(color, name)
+            _self.select(name, '(%s) and (resi %s)' % (selection, resi), 0)
+            _self.color(color, name)
             if fixed:
                 fixed_name = name
             continue
@@ -225,12 +227,13 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0):
             bending.append(resi)
     if len(bending) > 0:
         name = 'bending'
-        cmd.select(name, '(%s) and (resi %s)' % (selection, '+'.join(bending)), 0)
-        cmd.color('green', name)
+        _self.select(name, '(%s) and (resi %s)' % (selection, '+'.join(bending)), 0)
+        _self.color('green', name)
     return fixed_name
 
 def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='', transform=1,
-        quiet=1, mobile_state=1, target_state=1, match='align', preserve=0):
+        quiet=1, mobile_state=1, target_state=1, match='align', preserve=0,
+        *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -254,13 +257,13 @@ USAGE
 
     mm = MatchMaker(
             '(%s) & polymer & state %d' % (mobile, mobile_state),
-            '(%s) & polymer & state %d' % (target, target_state), match)
+            '(%s) & polymer & state %d' % (target, target_state), match, _self=_self)
 
-    chains = cmd.get_chains(mm.mobile)
+    chains = _self.get_chains(mm.mobile)
     if len(chains) != 1:
         raise CmdException('mobile selection must be single chain')
     chain1id = chains[0]
-    chains = cmd.get_chains(mm.target)
+    chains = _self.get_chains(mm.target)
     if len(chains) != 1:
         raise CmdException('target selection must be single chain')
     chain2id = chains[0]
@@ -280,8 +283,8 @@ USAGE
         commandfile = os.path.join(tempdir, 'command.txt')
         infofile = os.path.join(tempdir, 'out_info')
 
-        save_pdb_without_ter(filename1, mm.mobile, state=mobile_state)
-        save_pdb_without_ter(filename2, mm.target, state=target_state)
+        save_pdb_without_ter(filename1, mm.mobile, state=mobile_state, _self=_self)
+        save_pdb_without_ter(filename2, mm.target, state=target_state, _self=_self)
 
         f = open(commandfile, 'w')
         f.write('title=out\nfilename1=%s\nchain1id=%s\nfilename2=%s\nchain2id=%s\n' \
@@ -300,7 +303,7 @@ USAGE
         if process.poll() != 0:
             raise CmdException('"%s" failed with status %d' % (exe, process.returncode))
 
-        cmd.color('gray', mobile)
+        _self.color('gray', mobile)
         fixed_name = dyndom_parse_info(infofile, mm.mobile, quiet)
     except OSError:
         raise CmdException('Cannot execute "%s", please provide full path to DynDom executable' % (exe))
@@ -311,9 +314,9 @@ USAGE
             print(' Not deleting temporary directory:', tempdir)
 
     if transform and fixed_name is not None:
-        cmd.align(fixed_name, target)
+        _self.align(fixed_name, target)
 
-def gdt_ts(mobile, target, cutoffs='1 2 4 8', quiet=1):
+def gdt_ts(mobile, target, cutoffs='1 2 4 8', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -324,9 +327,9 @@ DESCRIPTION
     mobile = '(' + mobile + ') and guide'
     target = '(' + target + ') and guide'
     ts = 0
-    N = min(cmd.count_atoms(mobile), cmd.count_atoms(target))
+    N = min(_self.count_atoms(mobile), _self.count_atoms(target))
     for cutoff in cutoffs:
-        x = cmd.align(mobile, target, cutoff=cutoff, transform=0)
+        x = _self.align(mobile, target, cutoff=cutoff, transform=0)
         p = float(x[1]) / N
         if not quiet:
             print(' GDT_TS: GDT_P%.1f = %.2f' % (cutoff, p))
@@ -362,16 +365,6 @@ DESCRIPTION
         rmsd.array = lambda x: x
     return rmsd
 
-def matchmaker(mobile, target, match):
-    '''
-DESCRIPTION
-
-    Legacy, deprecated, use MatchMaker instead
-    '''
-    mm = MatchMaker(mobile, target, match)
-    mm.autodelete = False
-    return mm.mobile, mm.target, mm.temporary
-
 class MatchMaker(object):
     '''
 DESCRIPTION
@@ -399,8 +392,9 @@ RESULT
     Properties "mobile" and "target" hold the matched subselections as
     selection strings.
     '''
-    def __init__(self, mobile, target, match):
-        self.autodelete = True
+    def __init__(self, mobile, target, match, *, autodelete=True, _self=cmd):
+        self._self = _self
+        self.autodelete = autodelete
         self.temporary = []
 
         if match == 'none':
@@ -411,24 +405,24 @@ RESULT
             self.target = '(%s) %s (%s)' % (target, match, mobile)
         elif match in ['align', 'super']:
             self.align(mobile, target, match)
-        elif match in cmd.get_names('all') and cmd.get_type(match) in ('object:', 'object:alignment'):
+        elif match in _self.get_names('all') and _self.get_type(match) in ('object:', 'object:alignment'):
             self.from_alignment(mobile, target, match)
         else:
             raise CmdException('unkown match method', match)
 
     def check(self):
-        return cmd.count_atoms(self.mobile) == cmd.count_atoms(self.target)
+        return self._self.count_atoms(self.mobile) == self._self.count_atoms(self.target)
 
     def align(self, mobile, target, match):
         '''
         Align mobile to target using the alignment method given by "match"
         '''
-        aln_obj = cmd.get_unused_name('_')
+        aln_obj = self._self.get_unused_name('_')
         self.temporary.append(aln_obj)
 
         align = cmd.keyword[match][0]
-        align(mobile, target, cycles=0, transform=0, object=aln_obj)
-        cmd.disable(aln_obj)
+        align(mobile, target, cycles=0, transform=0, object=aln_obj, _self=self._self)
+        self._self.disable(aln_obj)
 
         self.from_alignment(mobile, target, aln_obj)
 
@@ -437,7 +431,7 @@ RESULT
         Use alignment given by "aln_obj" (name of alignment object)
         '''
         from .selecting import wait_for
-        wait_for(aln_obj)
+        wait_for(aln_obj, _self=self._self)
 
         self.mobile = '(%s) and %s' % (mobile, aln_obj)
         self.target = '(%s) and %s' % (target, aln_obj)
@@ -449,12 +443,12 @@ RESULT
         # need to pick those columns that have no gap in any of the two
         # given selections
 
-        mobileidx = set(cmd.index(mobile))
-        targetidx = set(cmd.index(target))
+        mobileidx = set(self._self.index(mobile))
+        targetidx = set(self._self.index(target))
         mobileidxsel = []
         targetidxsel = []
 
-        for column in cmd.get_raw_alignment(aln_obj):
+        for column in self._self.get_raw_alignment(aln_obj):
             mobiles = mobileidx.intersection(column)
             if len(mobiles) == 1:
                 targets = targetidx.intersection(column)
@@ -462,8 +456,8 @@ RESULT
                     mobileidxsel.extend(mobiles)
                     targetidxsel.extend(targets)
 
-        self.mobile = cmd.get_unused_name('_mobile')
-        self.target = cmd.get_unused_name('_target')
+        self.mobile = self._self.get_unused_name('_mobile')
+        self.target = self._self.get_unused_name('_target')
         self.temporary.append(self.mobile)
         self.temporary.append(self.target)
 
@@ -473,20 +467,30 @@ RESULT
         if len(mobile_objects) == len(target_objects) == 1:
             mobile_index_list = [idx[1] for idx in mobileidxsel]
             target_index_list = [idx[1] for idx in targetidxsel]
-            cmd.select_list(self.mobile, mobile_objects.pop(), mobile_index_list, mode='index')
-            cmd.select_list(self.target, target_objects.pop(), target_index_list, mode='index')
+            self._self.select_list(self.mobile, mobile_objects.pop(), mobile_index_list, mode='index')
+            self._self.select_list(self.target, target_objects.pop(), target_index_list, mode='index')
         else:
-            cmd.select(self.mobile, ' '.join('%s`%d' % idx for idx in mobileidxsel))
-            cmd.select(self.target, ' '.join('%s`%d' % idx for idx in targetidxsel))
+            self._self.select(self.mobile, ' '.join('%s`%d' % idx for idx in mobileidxsel))
+            self._self.select(self.target, ' '.join('%s`%d' % idx for idx in targetidxsel))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        self._cleanup()
+        self.autodelete = False
 
     def __del__(self):
+        self._cleanup()
+
+    def _cleanup(self):
         if not self.autodelete:
             return
         for name in self.temporary:
-            cmd.delete(name)
+            self._self.delete(name)
 
 def local_rms(mobile, target, window=20, mobile_state=1, target_state=1,
-        match='align', load_b=1, visualize=1, quiet=1):
+        match='align', load_b=1, visualize=1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -533,10 +537,10 @@ EXAMPLE
     w4 = window // 4
 
     mm = MatchMaker('(%s) and guide' % (mobile),
-            '(%s) and guide' % (target), match)
+            '(%s) and guide' % (target), match, _self=_self)
 
-    model_mobile = cmd.get_model(mm.mobile)
-    model_target = cmd.get_model(mm.target)
+    model_mobile = _self.get_model(mm.mobile)
+    model_target = _self.get_model(mm.target)
 
     if len(model_mobile.atom) != len(model_mobile.atom):
         raise CmdException('number of atoms differ, please check match method')
@@ -572,14 +576,14 @@ EXAMPLE
             print(' resi %4d: RMS = %6.3f (%4d atoms)' % (resv, resv2b[resv], i_to - i_from + 1))
 
     if load_b:
-        cmd.alter(mobile, 'b=resv2b.get(resv, -1.0)', space={'resv2b': resv2b})
+        _self.alter(mobile, 'b=resv2b.get(resv, -1.0)', space={'resv2b': resv2b})
 
     if load_b and visualize:
-        cmd.color('yellow', '(%s) and b < -0.5' % (mobile))
-        cmd.spectrum('b', 'blue_white_red', '(%s) and b > -0.5' % (mobile))
-        cmd.show_as('cartoon', mobile)
-        cmd.hide('cartoon', '(%s) and b < -0.5' % (mobile))
-        cmd.cartoon('putty', mobile)
+        _self.color('yellow', '(%s) and b < -0.5' % (mobile))
+        _self.spectrum('b', 'blue_white_red', '(%s) and b > -0.5' % (mobile))
+        _self.show_as('cartoon', mobile)
+        _self.hide('cartoon', '(%s) and b < -0.5' % (mobile))
+        _self.cartoon('putty', mobile)
 
     return resv2b
 
@@ -607,17 +611,17 @@ SEE ALSO
     alignto, cmd.util.mass_align, align_all.py from Robert Campbell
     '''
     zoom, quiet = int(zoom), int(quiet)
-    sele_name = cmd.get_unused_name('_')
-    cmd.select(sele_name, selection) # for speed
-    models = cmd.get_object_list(sele_name)
+    sele_name = _self.get_unused_name('_')
+    _self.select(sele_name, selection) # for speed
+    models = _self.get_object_list(sele_name)
     if reference is None:
         reference = models[0]
         models = models[1:]
     elif reference in models:
         models.remove(reference)
     else:
-        cmd.select(sele_name, reference, merge=1)
-    if cmd.is_string(method):
+        _self.select(sele_name, reference, merge=1)
+    if isinstance(method, str):
         if method in cmd.keyword:
             method = cmd.keyword[method][0]
         else:
@@ -626,7 +630,7 @@ SEE ALSO
         x = method(mobile='%s and model %s' % (sele_name, model),
                 target='%s and model %s' % (sele_name, reference), **kwargs)
         if not quiet:
-            if cmd.is_sequence(x):
+            if isinstance(x, (list, tuple)):
                 print('%-20s RMS = %8.3f (%d atoms)' % (model, x[0], x[1]))
             elif isinstance(x, float):
                 print('%-20s RMS = %8.3f' % (model, x))
@@ -638,8 +642,8 @@ SEE ALSO
                 print('%-20s' % (model,))
 
     if zoom:
-        cmd.zoom(sele_name)
-    cmd.delete(sele_name)
+        _self.zoom(sele_name)
+    _self.delete(sele_name)
 
 def _run_theseus(args, tempdir, preserve, quiet):
     '''
@@ -695,7 +699,8 @@ DESCRIPTION
     return translations, rotations
 
 def theseus(mobile, target, match='align', cov=0, cycles=200,
-        mobile_state=1, target_state=1, exe='theseus', preserve=0, quiet=1):
+        mobile_state=1, target_state=1, exe='theseus', preserve=0, quiet=1,
+        *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -730,9 +735,9 @@ SEE ALSO
     mobile_filename = os.path.join(tempdir, 'mobile.pdb')
     target_filename = os.path.join(tempdir, 'target.pdb')
 
-    mm = MatchMaker(mobile, target, match)
-    cmd.save(mobile_filename, mm.mobile, mobile_state)
-    cmd.save(target_filename, mm.target, target_state)
+    mm = MatchMaker(mobile, target, match, _self=_self)
+    _self.save(mobile_filename, mm.mobile, mobile_state)
+    _self.save(target_filename, mm.target, target_state)
 
     exe = cmd.exp_path(exe)
     args = [exe, '-a0', '-c' if cov else '-v', '-i%d' % cycles,
@@ -742,16 +747,16 @@ SEE ALSO
     matrices = [R[0:3] + [i*t[0]] + R[3:6] + [i*t[1]] + R[6:9] + [i*t[2], 0,0,0, 1]
             for (R, t, i) in zip(rotations, translations, [-1,1])]
 
-    obj_list = cmd.get_object_list('(' + mobile + ')')
+    obj_list = _self.get_object_list(mobile)
     for obj in obj_list:
-        cmd.transform_object(obj, matrices[0], 0, transpose=1)
-        cmd.transform_object(obj, matrices[1], 0)
+        _self.transform_object(obj, matrices[0], 0, transpose=1)
+        _self.transform_object(obj, matrices[1], 0)
 
     if not quiet:
         print(' theseus: done')
 
 def intra_theseus(selection, state=1, cov=0, cycles=200,
-        exe='theseus', preserve=0, quiet=1):
+        exe='theseus', preserve=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -781,7 +786,7 @@ SEE ALSO
     tempdir = tempfile.mkdtemp()
     filename = os.path.join(tempdir, 'mobile.pdb')
 
-    cmd.save(filename, selection, 0)
+    _self.save(filename, selection, 0)
 
     exe = cmd.exp_path(exe)
     args = [exe, '-a0', '-c' if cov else '-v', '-i%d' % cycles, filename]
@@ -794,10 +799,10 @@ SEE ALSO
             for (R, t) in zip(rotations, translations)]
 
     # intra fit states
-    obj_list = cmd.get_object_list('(' + selection + ')')
+    obj_list = _self.get_object_list(selection)
     for i, m in enumerate(matrices):
         for obj in obj_list:
-            cmd.transform_object(obj, m, i+1, transpose=1)
+            _self.transform_object(obj, m, i+1, transpose=1)
 
     # fit back to given state
     if 0 < state <= len(matrices):
@@ -805,13 +810,13 @@ SEE ALSO
         for i in [3,7,11]:
             m[i] *= -1
         for obj in obj_list:
-            cmd.transform_object(obj, m, 0)
+            _self.transform_object(obj, m, 0)
 
     if not quiet:
         print(' intra_theseus: %d states aligned' % (len(matrices)))
 
 def prosmart(mobile, target, mobile_state=1, target_state=1,
-        exe='prosmart', transform=1, object=None, quiet=0):
+        exe='prosmart', transform=1, object=None, quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -827,8 +832,8 @@ DESCRIPTION
     mobile_filename = os.path.join(tempdir, 'mobile.pdb')
     target_filename = os.path.join(tempdir, 'target.pdb')
 
-    cmd.save(mobile_filename, mobile, state=mobile_state)
-    cmd.save(target_filename, target, state=target_state)
+    _self.save(mobile_filename, mobile, state=mobile_state)
+    _self.save(target_filename, target, state=target_state)
 
     exe = cmd.exp_path(exe)
     args = [exe, '-p1', mobile_filename, '-p2', target_filename, '-a']
@@ -851,14 +856,14 @@ DESCRIPTION
         if int(transform):
             matrix = [v for m in matrix for v in m]
             assert len(matrix) == 4*4
-            for model in cmd.get_object_list('(' + mobile + ')'):
-                cmd.transform_object(model, matrix, state=0)
+            for model in _self.get_object_list(mobile):
+                _self.transform_object(model, matrix, state=0)
 
         if object:
             from .importing import load_aln
             alnfiles = xglob('Residue_Alignment_Scores/*/*.txt')
             alnfiles = [x for x in alnfiles if not x.endswith('_clusters.txt')]
-            load_aln(alnfiles[0], object, mobile, target)
+            load_aln(alnfiles[0], object, mobile, target, _self=_self)
 
     except OSError:
         raise CmdException('Cannot execute "%s", please provide full path to prosmart executable' % (exe))
@@ -917,19 +922,19 @@ SEE ALSO
 
     cycles, quiet = int(cycles), int(quiet)
     mobile_state, target_state = int(mobile_state), int(target_state)
-    mobile_obj = querying.get_object_name(mobile, 1)
+    mobile_obj = querying.get_object_name(mobile, 1, _self=_self)
 
-    if mobile_state < 1: mobile_state = querying.get_object_state(mobile_obj)
-    if target_state < 1: target_state = querying.get_selection_state(target)
+    if mobile_state < 1: mobile_state = querying.get_object_state(mobile_obj, _self=_self)
+    if target_state < 1: target_state = querying.get_selection_state(target, _self=_self)
 
     if int(guide):
         mobile = '(%s) and guide' % (mobile)
         target = '(%s) and guide' % (target)
 
-    mm = MatchMaker(mobile, target, match)
+    mm = MatchMaker(mobile, target, match, _self=_self)
 
-    Y = asarray(querying.get_coords(mm.mobile, mobile_state))
-    X = asarray(querying.get_coords(mm.target, target_state))
+    Y = asarray(_self.get_coords(mm.mobile, mobile_state))
+    X = asarray(_self.get_coords(mm.target, target_state))
 
     if int(seed):
         R, t = identity(3), zeros(3)
@@ -961,11 +966,11 @@ SEE ALSO
     m = identity(4)
     m[0:3,0:3] = R
     m[0:3,3] = t
-    cmd.transform_object(mobile_obj, list(m.flat))
+    _self.transform_object(mobile_obj, list(m.flat))
 
     if int(load_b):
         b_iter = iter(-log(scales))
-        cmd.alter(mm.mobile, 'b = next(b_iter)', space={'b_iter': b_iter, 'next': next})
+        _self.alter(mm.mobile, 'b = next(b_iter)', space={'b_iter': b_iter, 'next': next})
 
     if not quiet:
         print(' xfit: %d atoms aligned' % (len(X)))
@@ -1006,12 +1011,12 @@ SEE ALSO
     if int(guide):
         selection = '(%s) and guide' % (selection)
 
-    mobile_objs = cmd.get_object_list(selection)
+    mobile_objs = _self.get_object_list(selection)
     n_states_objs = []
     X = []
 
     for obj in mobile_objs:
-        X_obj = get_ensemble_coords('({}) & {}'.format(selection, obj))
+        X_obj = get_ensemble_coords('({}) & {}'.format(selection, obj), _self=_self)
 
         if X and len(X_obj) and len(X[0]) != len(X_obj[0]):
             raise CmdException('objects have different number of atoms')
@@ -1076,15 +1081,15 @@ SEE ALSO
         for state_i in range(n_states):
             m[0:3, 0:3] = R[transformation_i].T
             m[3, 0:3] = -t[transformation_i]
-            cmd.transform_object(mobile_obj, list(m.flat), state=state_i + 1)
+            _self.transform_object(mobile_obj, list(m.flat), state=state_i + 1)
             transformation_i += 1
 
         # fit back to first state
-        cmd.transform_object(mobile_obj, list(back.flat), state=0)
+        _self.transform_object(mobile_obj, list(back.flat), state=0)
 
         if int(load_b):
             b_iter = iter(-log(scales))
-            cmd.alter('({}) & {} & state 1'.format(selection, mobile_obj),
+            _self.alter('({}) & {} & state 1'.format(selection, mobile_obj),
                       'b = next(b_iter)',
                       space={'b_iter': b_iter, 'next': next})
 
@@ -1119,7 +1124,7 @@ REFERENCE
     '''
     from numpy import asarray
     from csb.statistics.mixtures import SegmentMixture as Mixture
-    from .querying import get_coords, get_object_name
+    from .querying import get_object_name
 
     K, guide, quiet = int(K), int(guide), int(quiet)
     async_ = int(kwargs.pop('async', async_))
@@ -1128,7 +1133,7 @@ REFERENCE
         async_ = not quiet
 
     if isinstance(target, str) and target.isdigit() and \
-            cmd.count_atoms('?' + target) == 0 and cmd.count_states(mobile) > 1:
+            _self.count_atoms('?' + target) == 0 and _self.count_states(mobile) > 1:
         print(' Warning: sanity test suggest you want "intra_promix"')
         return intra_promix(mobile, target, prefix, 0, guide, quiet, async_)
 
@@ -1136,14 +1141,14 @@ REFERENCE
         mobile = '(%s) and guide' % (mobile)
         target = '(%s) and guide' % (target)
 
-    cmd.color('gray', mobile)
-    obj = get_object_name(mobile)
-    mm = MatchMaker(mobile, target, match)
+    _self.color('gray', mobile)
+    obj = get_object_name(mobile, _self=_self)
+    mm = MatchMaker(mobile, target, match, _self=_self)
     selection = mm.mobile
 
     X = asarray([
-        get_coords(mm.mobile, mobile_state),
-        get_coords(mm.target, target_state),
+        _self.get_coords(mm.mobile, mobile_state),
+        _self.get_coords(mm.target, target_state),
     ])
 
     if not async_:
@@ -1191,8 +1196,8 @@ REFERENCE
 
     Mixture = mixtures.ConformerMixture if conformers else mixtures.SegmentMixture
 
-    obj = get_object_name(selection)
-    n_models = cmd.count_states(obj)
+    obj = get_object_name(selection, _self=_self)
+    n_models = _self.count_states(obj)
 
     if guide:
         selection = '(%s) and guide' % (selection)
@@ -1200,8 +1205,8 @@ REFERENCE
     if n_models < 2:
         raise CmdException('object needs multiple states')
 
-    X = asarray(get_ensemble_coords(selection))
-    assert X.shape == (n_models, cmd.count_atoms(selection), 3)
+    X = asarray(get_ensemble_coords(selection, _self=_self))
+    assert X.shape == (n_models, _self.count_atoms(selection), 3)
 
     if not async_:
         _promix(**locals())
@@ -1214,6 +1219,7 @@ REFERENCE
 def _promix(conformers=0, prefix=None,
         obj=NotImplemented, selection=NotImplemented,
         X=NotImplemented, K=NotImplemented, Mixture=NotImplemented,
+        _self=cmd,
         **_):
 
     if not prefix:
@@ -1221,10 +1227,10 @@ def _promix(conformers=0, prefix=None,
             prefix = obj + '_conformer'
         else:
             prefix = obj + '_segment'
-    cmd.delete(prefix + '_*')
+    _self.delete(prefix + '_*')
 
     id_list = []
-    cmd.iterate(selection, 'id_list.append(ID)', space=locals())
+    _self.iterate(selection, 'id_list.append(ID)', space=locals())
 
     mixture = Mixture.new(X, K)
     membership = mixture.membership
@@ -1234,15 +1240,15 @@ def _promix(conformers=0, prefix=None,
         for (i,k) in enumerate(membership):
             states_list[k] += 1
             name = '%s_%d' % (prefix, k+1)
-            cmd.create(name, obj, i+1, states_list[k])
+            _self.create(name, obj, i+1, states_list[k])
     else:
-        cmd.color('gray', selection)
+        _self.color('gray', selection)
         for k in range(mixture.K):
             name = '%s_%d' % (prefix, k+1)
             id_list_k = [i for (i, m) in zip(id_list, membership) if m == k]
-            cmd.select_list(name, obj, id_list_k)
-            cmd.disable(name)
-            cmd.color(k + 2, name)
+            _self.select_list(name, obj, id_list_k)
+            _self.disable(name)
+            _self.color(k + 2, name)
 
     for k, (sigma, w) in enumerate(zip(mixture.sigma, mixture.w)):
         print(' %s_%d: sigma = %6.3f, w = %.3f' % (prefix, k+1, sigma, w))

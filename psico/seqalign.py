@@ -9,7 +9,7 @@ License: BSD-2-Clause
 '''
 
 from Bio.SeqIO import _FormatToIterator
-from pymol import cmd, CmdException
+from pymol import CmdException
 
 def _assert_package_import():
     if not __name__.endswith('.seqalign'):

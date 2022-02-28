@@ -12,7 +12,7 @@ def _assert_package_import():
 
 
 def select_pepseq(pattern, selection='all', name='sele', state=1, quiet=1,
-        cutoff=4.0, one_letter=None):
+        cutoff=4.0, one_letter=None, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -70,7 +70,7 @@ SEE ALSO
         idx_list.append((model,index))
         prev[:] = coord
 
-    cmd.iterate_state(state, '(%s) and guide' % (selection),
+    _self.iterate_state(state, '(%s) and guide' % (selection),
             'callback(model, index, resn, (x, y, z))', space=locals())
 
     matches = list(re.finditer(pattern.upper(), ''.join(seq_list)))
@@ -85,20 +85,20 @@ SEE ALSO
         start, stop = m.span()
         sel_list.extend('%s`%d' % idx for idx in idx_list[start:stop] if idx is not None)
 
-    return cmd.select(name, '(' + selection + ') and byres (none ' + ' '.join(sel_list) + ')')
+    return _self.select(name, '(' + selection + ') and byres (none ' + ' '.join(sel_list) + ')')
 
 
-def select_nucseq(pattern, selection='all', name='sele', state=1, quiet=1):
+def select_nucseq(pattern, selection='all', name='sele', state=1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Find a nucleic acid sequence pattern in given atom selection.
     '''
     one_letter = dict(["AA", "CC", "TT", "GG", "UU"])
-    return select_pepseq(pattern, selection, name, state, quiet, 6.5, one_letter)
+    return select_pepseq(pattern, selection, name, state, quiet, 6.5, one_letter, _self=_self)
 
 
-def select_sspick(selection, name=None, caonly=0, quiet=0):
+def select_sspick(selection, name=None, caonly=0, quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -119,7 +119,7 @@ ARGUMENTS
     caonly, quiet = int(caonly), int(quiet)
 
     qkeys = set()
-    cmd.iterate('bycalpha (%s)' % (selection),
+    _self.iterate('bycalpha (%s)' % (selection),
             'qkeys.add(((model,segi,chain,ss), resv))', space={'qkeys': qkeys})
 
     def in_intervals(i, intervals):
@@ -134,7 +134,7 @@ ARGUMENTS
         if in_intervals(resv, element):
             continue
         resv_set = set()
-        cmd.iterate('/%s/%s/%s//CA and ss "%s"' % key, 'resv_set.add(resv)',
+        _self.iterate('/%s/%s/%s//CA and ss "%s"' % key, 'resv_set.add(resv)',
                 space={'resv_set': resv_set})
         resv_min = resv
         resv_max = resv
@@ -158,13 +158,13 @@ ARGUMENTS
 
     sele = ' '.join(sele_list)
     if name is not None:
-        cmd.select(name, sele)
+        _self.select(name, sele)
     elif not quiet:
         print(' Selection: ' + sele)
 
     return sele
 
-def diff(sele1, sele2, byres=1, name=None, operator='in', quiet=0):
+def diff(sele1, sele2, byres=1, name=None, operator='in', quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -187,16 +187,16 @@ SEE ALSO
     '''
     byres, quiet = int(byres), int(quiet)
     if name is None:
-        name = cmd.get_unused_name('diff')
+        name = _self.get_unused_name('diff')
     if operator == 'align':
-        alnobj = cmd.get_unused_name('__aln')
-        cmd.align(sele1, sele2, cycles=0, transform=0, object=alnobj)
+        alnobj = _self.get_unused_name('__aln')
+        _self.align(sele1, sele2, cycles=0, transform=0, object=alnobj)
         sele = '(%s) and not %s' % (sele1, alnobj)
-        cmd.select(name, sele)
-        cmd.delete(alnobj)
+        _self.select(name, sele)
+        _self.delete(alnobj)
     else:
         sele = '(%s) and not ((%s) %s (%s))' % (sele1, sele1, operator, sele2)
-        cmd.select(name, sele)
+        _self.select(name, sele)
     if not quiet:
         if byres:
             seleiter = 'byca ' + name
@@ -204,10 +204,10 @@ SEE ALSO
         else:
             seleiter = name
             expr = 'print("/%s/%s/%s/%s`%s/%s" % (model,segi,chain,resn,resi,name))'
-        cmd.iterate(seleiter, expr)
+        _self.iterate(seleiter, expr)
     return name
 
-def symdiff(sele1, sele2, byres=1, name=None, operator='in', quiet=0):
+def symdiff(sele1, sele2, byres=1, name=None, operator='in', quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -219,15 +219,15 @@ SEE ALSO
     '''
     byres, quiet = int(byres), int(quiet)
     if name is None:
-        name = cmd.get_unused_name('symdiff')
-    tmpname = cmd.get_unused_name('__tmp')
+        name = _self.get_unused_name('symdiff')
+    tmpname = _self.get_unused_name('__tmp')
     diff(sele1, sele2, byres, name, operator, quiet)
     diff(sele2, sele1, byres, tmpname, operator, quiet)
-    cmd.select(name, tmpname, merge=1)
-    cmd.delete(tmpname)
+    _self.select(name, tmpname, merge=1)
+    _self.delete(tmpname)
     return name
 
-def collapse_resi(selection='(sele)', quiet=1):
+def collapse_resi(selection='(sele)', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -242,7 +242,7 @@ ARGUMENTS
     '''
     from collections import defaultdict
     s_dict = defaultdict(set)
-    cmd.iterate(selection, 's_dict[model,segi,chain].add(resv)', space=locals())
+    _self.iterate(selection, 's_dict[model,segi,chain].add(resv)', space=locals())
     r_all = []
     for key, s in s_dict.items():
         s = sorted(s)
@@ -259,19 +259,19 @@ ARGUMENTS
             print(' collapse_resi: ' + str(r))
     return ' '.join(r_all)
 
-def wait_for(name, state=0, quiet=1):
+def wait_for(name, state=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Wait for "name" to be available as selectable object.
     '''
-    if cmd.count_atoms('?' + name, 1, state) == 0:
-        s = cmd.get_setting_boolean('suspend_updates')
-        if s: cmd.set('suspend_updates', 0)
-        cmd.refresh()
-        if s: cmd.set('suspend_updates')
+    if _self.count_atoms('?' + name, 1, state) == 0:
+        s = _self.get_setting_boolean('suspend_updates')
+        if s: _self.set('suspend_updates', 0)
+        _self.refresh()
+        if s: _self.set('suspend_updates')
 
-def select_distances(names='', name='sele', state=1, selection='all', cutoff=-1, quiet=1):
+def select_distances(names='', name='sele', state=1, selection='all', cutoff=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -295,31 +295,31 @@ SEE ALSO
     from .querying import get_raw_distances
 
     state, cutoff, quiet = int(state), float(cutoff), int(quiet)
-    states = [state] if state else list(range(1, cmd.count_states(selection)+1))
+    states = [state] if state else list(range(1, _self.count_states(selection)+1))
 
     sele_dict = defaultdict(set)
     for state in states:
-        distances = get_raw_distances(names, state, selection)
+        distances = get_raw_distances(names, state, selection, _self=_self)
         for idx1, idx2, dist in distances:
             if cutoff <= 0.0 or dist <= cutoff:
                 sele_dict[idx1[0]].add(idx1[1])
                 sele_dict[idx2[0]].add(idx2[1])
 
-    cmd.select(name, 'none')
-    tmp_name = cmd.get_unused_name('_')
+    _self.select(name, 'none')
+    tmp_name = _self.get_unused_name('_')
 
     r = 0
     for model in sele_dict:
-        cmd.select_list(tmp_name, model, list(sele_dict[model]), mode='index')
-        r = cmd.select(name, tmp_name, merge=1)
-        cmd.delete(tmp_name)
+        _self.select_list(tmp_name, model, list(sele_dict[model]), mode='index')
+        r = _self.select(name, tmp_name, merge=1)
+        _self.delete(tmp_name)
 
     if not quiet:
         print(' Selector: selection "%s" defined with %d atoms.' % (name, r))
     return r
 
 
-def select_range(name="", selection="", merge=1):
+def select_range(name="", selection="", merge=1, *, _self=cmd):
     """
 DESCRIPTION
 
@@ -333,25 +333,25 @@ ARGUMENTS
     selection = str: Selection expression {default: name}
     """
     if not name:
-        name = cmd.get_names("selections", enabled_only=1)[0]
+        name = _self.get_names("selections", enabled_only=1)[0]
 
     if not selection:
         selection = name
 
-    tmpsele = cmd.get_unused_name("_tmpsele")
-    cmd.select(tmpsele, selection)
+    tmpsele = _self.get_unused_name("_tmpsele")
+    _self.select(tmpsele, selection)
 
     try:
-        for model in cmd.get_object_list(tmpsele):
-            idx_first = cmd.index(f"first (%{model} & {tmpsele})")[0]
-            idx_last = cmd.index(f"last (%{model} & {tmpsele})")[0]
+        for model in _self.get_object_list(tmpsele):
+            idx_first = _self.index(f"first (%{model} & {tmpsele})")[0]
+            idx_last = _self.index(f"last (%{model} & {tmpsele})")[0]
             assert idx_first[0] == idx_last[0]
-            cmd.select(name,
+            _self.select(name,
                        f"%{model} & index {idx_first[1]}-{idx_last[1]}",
                        merge=merge)
             merge = 1
     finally:
-        cmd.delete(tmpsele)
+        _self.delete(tmpsele)
 
 
 class select_temporary:
@@ -363,17 +363,18 @@ DESCRIPTION
     >>> with select_temporary(sele_expr) as named_sele:
     ...     assert named_sele in cmd.get_names()
     '''
-    def __init__(self, sele, prefix="_sele"):
+    def __init__(self, sele, prefix="_sele", *, _self=cmd):
+        self._self = _self
         self.sele = sele
         self.prefix = prefix
 
     def __enter__(self):
-        self.name = cmd.get_unused_name(self.prefix)
-        cmd.select(self.name, self.sele)
+        self.name = self._self.get_unused_name(self.prefix)
+        self._self.select(self.name, self.sele)
         return self.name
 
     def __exit__(self, type, value, traceback):
-        cmd.delete(self.name)
+        self._self.delete(self.name)
 
 
 # commands

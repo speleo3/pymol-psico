@@ -43,11 +43,11 @@ DESCRIPTION
     API only. Get model color as #xxxxxx to be used with matplotlib.
     '''
     from .querying import get_color
-    return get_color(model, 0, 2)
+    return get_color(model, 0, 2, _self=_self)
 
 def rms_plot(selection='guide', ref1=None, ref2=None, state1=1, state2=-1,
         match='align', cur=0, maxlabels=20, size=20, alpha=0.75,
-        filename=None, quiet=1):
+        filename=None, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -69,21 +69,21 @@ ARGUMENTS
 
     cur = 0/1: if 1, use rms_cur instead of rms (no fitting) {default: 0}
     '''
-    from .fitting import matchmaker
+    from .fitting import MatchMaker
     from . import matplotlib_fix
     from matplotlib.pyplot import figure
 
     state1, state2, cur, quiet = int(state1), int(state2), int(cur), int(quiet)
     maxlabels, size, alpha = int(maxlabels), float(size), float(alpha)
 
-    models = cmd.get_object_list('(' + selection + ')')
+    models = _self.get_object_list('(' + selection + ')')
     if ref1 is None:
         ref1 = models[0]
     if ref2 is None:
         ref2 = models[-1]
     if state2 == -1:
         if ref1 == ref2:
-            state2 = cmd.count_states(ref2)
+            state2 = _self.count_states(ref2)
         else:
             state2 = 1
 
@@ -97,9 +97,10 @@ ARGUMENTS
             if model == ref:
                 mobile = target = '(%s) and (%s)' % (model, selection)
             else:
-                mobile, target, tmp_names = matchmaker('(%s) and (%s)' % \
-                        (model, selection), ref, match)
-                tmp_names_all.extend(tmp_names)
+                mm = MatchMaker(f"({model}) and ({selection})",
+                                ref, match, autodelete=False, _self=_self)
+                mobile, target = mm.mobile, mm.target
+                tmp_names_all.extend(mm.temporary)
             sele_pairs[key] = (mobile, target)
 
     x_list = []
@@ -107,13 +108,13 @@ ARGUMENTS
     colors = []
     text_list = []
 
-    _rms = cmd.rms_cur if cur else cmd.rms
+    _rms = _self.rms_cur if cur else _self.rms
     def rms(model, ref, state, ref_state):
         mobile, target = sele_pairs[model, ref]
         return _rms(mobile, target, state, ref_state, matchmaker=4)
 
     for model in models:
-        for state in range(1, cmd.count_states(model)+1):
+        for state in range(1, _self.count_states(model)+1):
             rms1 = rms(model, ref1, state, state1)
             rms2 = rms(model, ref2, state, state2)
             x_list.append(rms1)
@@ -122,7 +123,7 @@ ARGUMENTS
             text_list.append('%s(%d)' % (model, state))
 
     for name in tmp_names_all:
-        cmd.delete(name)
+        _self.delete(name)
 
     fig = figure()
     plt = fig.add_subplot(111, xlabel='RMSD to %s (state %d)' % (ref1, state1),
@@ -137,7 +138,7 @@ ARGUMENTS
     _showfigure(fig, filename, quiet)
 
 def pca_plot(aln_object, ref='all', state=0, maxlabels=20, size=20, invert='',
-        which=(0,1), alpha=0.75, filename=None, quiet=1, load_b=0):
+        which=(0,1), alpha=0.75, filename=None, quiet=1, load_b=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -191,29 +192,29 @@ EXAMPLE
 
     state, quiet = int(state), int(quiet)
     maxlabels = int(maxlabels)
-    if cmd.is_string(which):
-        which = cmd.safe_list_eval(which)
+    if isinstance(which, str):
+        which = _self.safe_list_eval(which)
 
-    if aln_object not in cmd.get_names_of_type('object:alignment'):
+    if aln_object not in _self.get_names_of_type('object:alignment'):
         print(' Warning: first argument should be an alignment object')
 
         from .fitting import extra_fit
 
         selection = aln_object
-        aln_object = cmd.get_unused_name('aln')
-        extra_fit(selection, cycles=0, transform=0, object=aln_object)
+        aln_object = _self.get_unused_name('aln')
+        extra_fit(selection, cycles=0, transform=0, object=aln_object, _self=_self)
 
     if state == 0:
-        states = list(range(1, cmd.count_states()+1))
+        states = list(range(1, _self.count_states()+1))
     elif state < 0:
-        states = [cmd.get_state()]
+        states = [_self.get_state()]
     else:
         states = [state]
 
-    models = cmd.get_object_list(aln_object)
-    references = set(cmd.get_object_list('(' + ref + ')')).intersection(models)
+    models = _self.get_object_list(aln_object)
+    references = set(_self.get_object_list('(' + ref + ')')).intersection(models)
     others = set(models).difference(references)
-    aln = cmd.get_raw_alignment(aln_object)
+    aln = _self.get_raw_alignment(aln_object)
 
     if not quiet:
         print(' PCA References:', ', '.join(references))
@@ -228,7 +229,7 @@ EXAMPLE
 
     for state in states:
         idx2xyz = dict()
-        cmd.iterate_state(state, aln_object, 'idx2xyz[model,index] = (x,y,z)',
+        _self.iterate_state(state, aln_object, 'idx2xyz[model,index] = (x,y,z)',
                 space={'idx2xyz': idx2xyz})
 
         for pos in aln:
@@ -254,16 +255,16 @@ EXAMPLE
         raise CmdException(str(e), 'PCA Error')
 
     if int(load_b):
-        cmd.alter('byobj ' + aln_object, 'b=-0.01')
+        _self.alter('byobj ' + aln_object, 'b=-0.01')
         b_dict = {}
         i = which[0]
         b_array = (V[i].reshape((-1, 3))**2).sum(1)**0.5
         for pos, b in zip(aln, b_array):
             for idx in pos:
                 b_dict[idx] = b
-        cmd.alter(aln_object, 'b=b_dict.get((model,index), -0.01)', space=locals())
-        cmd.color('yellow', 'byobj ' + aln_object)
-        cmd.spectrum('b', 'blue_red', aln_object + ' and b > -0.01')
+        _self.alter(aln_object, 'b=b_dict.get((model,index), -0.01)', space=locals())
+        _self.color('yellow', 'byobj ' + aln_object)
+        _self.spectrum('b', 'blue_red', aln_object + ' and b > -0.01')
 
     X_labels = [i[1:3] for i in c_iter(references)]
     Y_labels = [i[1:3] for i in c_iter(others)]
@@ -305,7 +306,7 @@ EXAMPLE
     _showfigure(fig, filename, quiet)
 
 def iterate_plot(selection, expr_y, expr_x=None, scatter=0, filename=None,
-        space=None, quiet=1):
+        space=None, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -331,14 +332,14 @@ EXAMPLE
 
     scatter, quiet = int(scatter), int(quiet)
     if space is None:
-        space = {'cmd': cmd, 'stored': cmd.pymol.stored}
+        space = {'cmd': cmd, 'stored': _self.pymol.stored}
 
-    if cmd.is_string(selection):
+    if isinstance(selection, str):
         if selection.startswith('['):
             sele_list = selection[1:-1].split(',')
         else:
             sele_list = ['(%s) and (%s)' % (model, selection) for model in
-                    cmd.get_object_list('(' + selection + ')')]
+                    _self.get_object_list('(' + selection + ')')]
     else:
         sele_list = selection
 
@@ -347,13 +348,13 @@ EXAMPLE
 
     for selection in sele_list:
         space['_values'] = y_values = []
-        cmd.iterate(selection, '_values.append(' + expr_y + ')', space=space)
+        _self.iterate(selection, '_values.append(' + expr_y + ')', space=space)
 
         if expr_x is None:
             x_values = list(range(len(y_values)))
         else:
             space['_values'] = x_values = []
-            cmd.iterate(selection, '_values.append(' + expr_x + ')', space=space)
+            _self.iterate(selection, '_values.append(' + expr_x + ')', space=space)
 
         color = get_model_color(selection)
 

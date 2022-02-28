@@ -71,7 +71,7 @@ DESCRIPTION
         print('Wrote {} frames to file {}'.format(n_frames, filename))
 
 
-def save_traj(filename, selection='(all)', format='', box=0, quiet=1):
+def save_traj(filename, selection='(all)', format='', box=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -93,7 +93,6 @@ ARGUMENTS
     determined from filename extension)
     '''
     _assert_package_import()
-    from . import querying
 
     box = int(box)
 
@@ -113,13 +112,13 @@ ARGUMENTS
         raise CmdException('Unknown format:', format)
 
     # Get NATOMS, NSTATES
-    NATOMS = cmd.count_atoms(selection)
-    NSTATES = cmd.count_states(selection)
+    NATOMS = _self.count_atoms(selection)
+    NSTATES = _self.count_states(selection)
 
     # size of periodic box
     if box:
         try:
-            boxdim = cmd.get_symmetry(selection)[0:3]
+            boxdim = _self.get_symmetry(selection)[0:3]
         except:
             boxdim = [0,0,0]
     else:
@@ -129,7 +128,7 @@ ARGUMENTS
 
     # Write Trajectory Coordinates
     for state in range(1, NSTATES+1):
-        xyz = querying.get_coords(selection, state)
+        xyz = _self.get_coords(selection, state)
         outfile.writeCoordSet(xyz)
 
     outfile.close()
@@ -252,7 +251,7 @@ http://ambermd.org/formats.html#restart
 
 ## pdb header stuff
 
-def get_pdb_sss(selection='(all)', state=-1, quiet=1):
+def get_pdb_sss(selection='(all)', state=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -275,7 +274,7 @@ ARGUMENT
     # Get a list of CA atoms and read the secondary structure
     # annotation This loop assumes that the atoms are in consecutive
     # order i.e. sorted by chain & resi
-    for at in cmd.get_model( '(' + selection + ') and n. CA and polymer',
+    for at in _self.get_model('(' + selection + ') and n. CA and polymer',
                              state=state).atom:
         if at.ss == '': continue 
 
@@ -311,7 +310,7 @@ ARGUMENT
                         0))
     return ''.join(ssstr)
 
-def get_pdb_seqres(selection='all', quiet=1):
+def get_pdb_seqres(selection='all', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -330,7 +329,7 @@ DESCRIPTION
         prev[1] = resi
         sequences[-1][1].append(resn)
 
-    cmd.iterate('polymer & (%s)' % selection,
+    _self.iterate('polymer & (%s)' % selection,
             'callback((model, chain), resi, resn)', space=locals())
 
     buf = []
@@ -349,7 +348,8 @@ DESCRIPTION
 
     return buf
 
-def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0, seqres=0, quiet=1):
+def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0,
+        seqres=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -398,8 +398,8 @@ SEE ALSO
     # Write the CRYST1 line if possible
     if symm:
         try:
-            obj1 = cmd.get_object_list(selection)[0]
-            sym = cmd.get_symmetry(obj1)
+            obj1 = _self.get_object_list(selection)[0]
+            sym = _self.get_symmetry(obj1)
             if len(sym) != 7:
                 raise
             f.write("CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-10s%4d\n" % tuple(sym + [1]))
@@ -423,7 +423,7 @@ SEE ALSO
                 print(' Info: No secondary structure information')
     
     # Write coordinates of selection
-    pdbstr = cmd.get_pdbstr(selection, state)
+    pdbstr = _self.get_pdbstr(selection, state)
 
     f.write(pdbstr)
     f.close()
@@ -432,7 +432,7 @@ SEE ALSO
         print('Wrote PDB to \''+filename+'\'')
 
 def save(filename, selection='(all)', state=-1, format='',
-        ref='', ref_state=-1, quiet=1, *args, **kwargs):
+        ref='', ref_state=-1, quiet=1, *args, _self=cmd, **kwargs):
     '''
 ADDITIONAL NOTE
 
@@ -441,8 +441,9 @@ ADDITIONAL NOTE
     '''
     if not (format == 'pdb' or format == '' and filename.endswith('.pdb')):
         from pymol.exporting import save
-        return save(filename, selection, state, format, ref, ref_state, quiet, *args, **kwargs)
-    save_pdb(filename, selection, state, 1, 1, 0, quiet)
+        return save(filename, selection, state, format, ref, ref_state, quiet,
+                *args, **kwargs, _self=_self)
+    save_pdb(filename, selection, state, 1, 1, 0, quiet, _self=_self)
 save.__doc__ = cmd.save.__doc__ + save.__doc__
 
 def unittouu(string, dpi=90.0):
@@ -465,7 +466,7 @@ DESCRIPTION
         raise ValueError("unknown unit: " + str(unit))
     return retval * uuconv[unit]
 
-def paper_png(filename, width=100, height=0, dpi=300, ray=1):
+def paper_png(filename, width=100, height=0, dpi=300, ray=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -498,9 +499,9 @@ SEE ALSO
     dpi, ray = float(dpi), int(ray)
     width = unittouu(width, dpi)
     height = unittouu(height, dpi)
-    cmd.png(filename, width, height, dpi, ray)
+    _self.png(filename, width, height, dpi, ray)
 
-def save_pdb_without_ter(filename, selection, *args, **kwargs):
+def save_pdb_without_ter(filename, selection, *args, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -508,10 +509,10 @@ DESCRIPTION
     DynDom stop reading PDB files at TER records, which might be undesired in
     case of missing loops.
     '''
-    v = cmd.get_setting_boolean('pdb_use_ter_records')
-    if v: cmd.set('pdb_use_ter_records', 0)
-    cmd.save(filename, selection, *args, **kwargs)
-    if v: cmd.set('pdb_use_ter_records')
+    v = _self.get_setting_boolean('pdb_use_ter_records')
+    if v: _self.set('pdb_use_ter_records', 0)
+    _self.save(filename, selection, *args, **kwargs)
+    if v: _self.set('pdb_use_ter_records')
 
 ## pymol command stuff
 

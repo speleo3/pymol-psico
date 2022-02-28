@@ -30,7 +30,7 @@ DESCRIPTION
     return basis * edges # numpy.array multiplication!
 
 def supercell(a=1, b=1, c=1, object=None, color='green', name='supercell',
-        withmates=1, prefix='m'):
+        withmates=1, prefix='m', *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -65,10 +65,10 @@ SEE ALSO
     from pymol import cgo
 
     if object is None:
-        object = cmd.get_object_list()[0]
+        object = _self.get_object_list()[0]
     withmates = int(withmates)
 
-    sym = cmd.get_symmetry(object)
+    sym = _self.get_symmetry(object)
     cell_edges = sym[0:3]
     cell_angles = sym[3:6]
 
@@ -109,17 +109,17 @@ SEE ALSO
 
         if withmates:
             groupname = groupname_fmt % tuple(t)
-            symexpcell(groupname + '_', object, *t)
-            cmd.group(groupname, groupname + '_*')
+            symexpcell(groupname + '_', object, *t, _self=_self)
+            _self.group(groupname, groupname + '_*')
 
     obj.append(cgo.END)
 
     if name != 'none':
-        cmd.delete(name)
-        cmd.load_cgo(obj, name)
-        cmd.color(color, name)
+        _self.delete(name)
+        _self.load_cgo(obj, name)
+        _self.color(color, name)
 
-def symexpcell(prefix='mate', object=None, a=0, b=0, c=0):
+def symexpcell(prefix='mate', object=None, a=0, b=0, c=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -146,9 +146,9 @@ SEE ALSO
     from pymol import xray
 
     if object is None:
-        object = cmd.get_object_list()[0]
+        object = _self.get_object_list()[0]
 
-    sym = cmd.get_symmetry(object)
+    sym = _self.get_symmetry(object)
     cell_edges = sym[0:3]
     cell_angles = sym[3:6]
     spacegroup = sym[6]
@@ -156,7 +156,7 @@ SEE ALSO
     basis = cellbasis(cell_angles, cell_edges)
     basis = numpy.matrix(basis)
 
-    extent = cmd.get_extent(object)
+    extent = _self.get_extent(object)
     center = sum(numpy.array(extent)) * 0.5
     center = numpy.matrix(center.tolist() + [1.0]).T
     center_cell = basis.I * center
@@ -178,15 +178,15 @@ SEE ALSO
         mat_list = list(mat.flat)
 
         name = '%s%d' % (prefix, i)
-        cmd.create(name, object)
-        cmd.transform_object(name, mat_list, 0)
+        _self.create(name, object)
+        _self.transform_object(name, mat_list, 0)
 
-        cmd.set_title(name, 1, "{}_{}{}{}".format(i, *(shift + 5).tolist()))
+        _self.set_title(name, 1, "{}_{}{}{}".format(i, *(shift + 5).tolist()))
 
         if len(matrices) > 1:
-            cmd.color(i + 1, name)
+            _self.color(i + 1, name)
 
-def pdbremarks(filename):
+def pdbremarks(filename, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -194,7 +194,7 @@ DESCRIPTION
     remarkNum as key and list of lines as value.
     '''
     remarks = dict()
-    if not cmd.is_string(filename):
+    if not isinstance(filename, str):
         f = filename
     elif filename[-3:] == '.gz':
         import gzip
@@ -210,7 +210,7 @@ DESCRIPTION
     return remarks
 
 def biomolecule(name=None, filename=None, prefix=None, number=1, suffix=None,
-        quiet=0):
+        quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -249,7 +249,7 @@ EXAMPLE
     number, quiet = int(number), int(quiet)
 
     if name is None:
-        name = cmd.get_object_list()[0]
+        name = _self.get_object_list()[0]
     if prefix is None:
         prefix = name
     if suffix is None:
@@ -257,7 +257,7 @@ EXAMPLE
     if filename is None:
         candidates = [
             '%s.pdb' % (name),
-            '%s/%s.pdb' % (cmd.get('fetch_path'), name),
+            '%s/%s.pdb' % (_self.get('fetch_path'), name),
             local_mirror_pdb(name),
         ]
         for filename in candidates:
@@ -268,7 +268,7 @@ EXAMPLE
         if not quiet:
             print('loading from %s' % (filename))
 
-    remarks = pdbremarks(filename)
+    remarks = pdbremarks(filename, _self=_self)
     if 350 not in remarks:
         raise CmdException('There is no REMARK 350 in ' + filename)
 
@@ -295,7 +295,7 @@ EXAMPLE
         raise CmdException('no BIOMOLECULE number %d' % (number))
 
     if numpy is not None:
-        mat_source = numpy.reshape(cmd.get_object_matrix(name), (4,4))
+        mat_source = numpy.reshape(_self.get_object_matrix(name), (4,4))
         mat_source = numpy.matrix(mat_source)
 
     for chains, matrices in biomt[number].items():
@@ -305,17 +305,17 @@ EXAMPLE
             copy = '%s_%s_%d' % (prefix, suffix, num)
             if not quiet:
                 print('creating %s' % (copy))
-            cmd.create(copy, 'model %s and chain %s' % (name, '+'.join(chains)))
-            cmd.alter(copy, 'segi="%d"' % (num))
+            _self.create(copy, 'model %s and chain %s' % (name, '+'.join(chains)))
+            _self.alter(copy, 'segi="%d"' % (num))
 
             if numpy is not None:
                 mat = mat_source * numpy.reshape(mat, (4,4)) * mat_source.I
                 mat = list(mat.flat)
 
-            cmd.transform_object(copy, mat)
+            _self.transform_object(copy, mat)
 
-    cmd.disable(name)
-    cmd.group('%s_%s' % (prefix, suffix), '%s_%s_*' % (prefix, suffix))
+    _self.disable(name)
+    _self.group('%s_%s' % (prefix, suffix), '%s_%s_*' % (prefix, suffix))
 
 
 class PutCenterCallback(object):

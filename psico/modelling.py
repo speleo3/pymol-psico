@@ -10,7 +10,8 @@ def _assert_package_import():
     if not __name__.endswith('.modelling'):
         raise CmdException("Must do 'import psico.modelling' instead of 'run ...'")
 
-def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=3, quiet=1):
+def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=3,
+        quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -56,19 +57,19 @@ EXAMPLE
     inplace, sculpt = int(inplace), int(sculpt)
     mode = int(mode)
     quiet = int(quiet)
-    org = cmd.get_object_list(selection)[0]
-    tmp = cmd.get_unused_name()
+    org = _self.get_object_list(selection)[0]
+    tmp = _self.get_unused_name()
     new_resn = new_resn.upper()
     new_resn = three_letter.get(new_resn, new_resn)
 
     if inplace:
         cpy = org
     else:
-        cpy = cmd.get_unused_name(org + '_cpy')
-        cmd.create(cpy, org, -1, 1, zoom=0)
+        cpy = _self.get_unused_name(org + '_cpy')
+        _self.create(cpy, org, -1, 1, zoom=0)
 
     scr = []
-    cmd.iterate('first (%s)' % selection, 'scr[:] = (segi,chain,resi,resn)', space={'scr': scr})
+    _self.iterate('first (%s)' % selection, 'scr[:] = (segi,chain,resi,resn)', space={'scr': scr})
     res = '/%s/%s/%s/%s' % tuple([cpy] + scr[:3])
 
     if mode == 1:
@@ -100,61 +101,61 @@ EXAMPLE
         old_chi = []
         for args in zip(atoms, atoms[1:], atoms[2:], atoms[3:]):
             try:
-                old_chi.append(cmd.get_dihedral(*args))
+                old_chi.append(_self.get_dihedral(*args))
             except:
                 break
 
-    cmd.remove('%s and not name CA+C+N+O+OXT' % (res))
+    _self.remove('%s and not name CA+C+N+O+OXT' % (res))
 
     # start the wizard to count the number of rotamers for this residue
-    cmd.wizard("mutagenesis")
-    cmd.get_wizard().set_mode(new_resn)
-    cmd.get_wizard().set_hyd(hydrogens)
+    _self.wizard("mutagenesis")
+    _self.get_wizard().set_mode(new_resn)
+    _self.get_wizard().set_hyd(hydrogens)
 
-    with selecting.select_temporary(res) as res_named_sele:
-        cmd.get_wizard().do_select(res_named_sele)
+    with selecting.select_temporary(res, _self=_self) as res_named_sele:
+        _self.get_wizard().do_select(res_named_sele)
 
     def get_best_state_bump():
         best_state = (1, 1e9)
-        cmd.create(tmp, '%s and not name CA+C+N+O or (%s within 8.0 of (%s and name CB))' % \
+        _self.create(tmp, '%s and not name CA+C+N+O or (%s within 8.0 of (%s and name CB))' % \
                 (mutagenesis.obj_name, cpy, mutagenesis.obj_name), zoom=0, singletons=1)
-        cmd.bond('name CB and %s in %s' % (tmp, mutagenesis.obj_name),
+        _self.bond('name CB and %s in %s' % (tmp, mutagenesis.obj_name),
                 'name CA and %s in %s' % (tmp, res))
-        cmd.sculpt_activate(tmp)
-        for i in range(1, cmd.count_states(tmp)+1):
-            score = cmd.sculpt_iterate(tmp, state=i)
+        _self.sculpt_activate(tmp)
+        for i in range(1, _self.count_states(tmp)+1):
+            score = _self.sculpt_iterate(tmp, state=i)
             if not quiet:
                 print('Frame %d Score %.2f' % (i, score))
             if score < best_state[1]:
                 best_state = (i, score)
-        cmd.delete(tmp)
+        _self.delete(tmp)
         if not quiet:
             print(' Best: Frame %d Score %.2f' % best_state)
         return best_state
 
-    if cmd.count_states(mutagenesis.obj_name) < 2 or mode > 0:
+    if _self.count_states(mutagenesis.obj_name) < 2 or mode > 0:
         best_state = (1, -1.0)
     else:
         best_state = get_best_state_bump()
 
     if mode != 3:
-        cmd.frame(best_state[0])
+        _self.frame(best_state[0])
 
-    cmd.get_wizard().apply()
-    cmd.wizard()
+    _self.get_wizard().apply()
+    _self.wizard()
 
     if mode == 1:
         atoms = [res + '/' + name for name in chi_atoms.get(new_resn, [])]
         for args in zip(atoms, atoms[1:], atoms[2:], atoms[3:], old_chi):
-            cmd.set_dihedral(*args)
-        cmd.unpick()
+            _self.set_dihedral(*args)
+        _self.unpick()
 
     if sculpt > 0:
         sculpt_relax(res, 0, sculpt == 2, cpy)
 
     return cpy
 
-def mutate_all(selection, new_resn, inplace=1, sculpt=0, *args, **kwargs):
+def mutate_all(selection, new_resn, inplace=1, sculpt=0, *args, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -169,12 +170,12 @@ SEE ALSO
     '''
     inplace, sculpt = int(inplace), int(sculpt)
 
-    if sculpt and len(cmd.get_object_list('(' + selection + ')')) > 1:
+    if sculpt and len(_self.get_object_list('(' + selection + ')')) > 1:
         raise CmdException('Sculpting in multiple models not supported')
 
     kwargs.pop('_self', None)
     sele_list = set()
-    cmd.iterate(selection,
+    _self.iterate(selection,
             'sele_list.add("/%s/%s/%s/%s" % (model, segi, chain, resi))',
             space={'sele_list': sele_list})
     for sele in sele_list:
@@ -183,7 +184,7 @@ SEE ALSO
         sculpt_relax('(' + ' '.join(sele_list) + ')', 0, sculpt == 2)
 
 def sculpt_relax(selection, backbone=1, neighbors=0, model=None, cycles=100,
-        state=0, quiet=1):
+        state=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -205,39 +206,39 @@ USAGE
     cycles, state, quiet = int(cycles), int(state), int(quiet)
 
     sele = selector.process(selection)
-    org = cmd.get_object_list(sele)[0]
+    org = _self.get_object_list(sele)[0]
     if model is None:
         model = org
     elif model != org:
         sele = sele.replace('(%s)' % org, '(%s)' % model)
 
-    cmd.protect()
-    cmd.deprotect(sele)
+    _self.protect()
+    _self.deprotect(sele)
     if not backbone:
-        cmd.protect('name CA+C+N+O+OXT')
+        _self.protect('name CA+C+N+O+OXT')
 
-    cmd.sculpt_activate(model, state)
-    cmd.set('sculpt_vdw_weight', 0.25, model) # Low VDW forces
-    cmd.set('sculpt_field_mask', 0x1FF, model) # Default
+    _self.sculpt_activate(model, state)
+    _self.set('sculpt_vdw_weight', 0.25, model) # Low VDW forces
+    _self.set('sculpt_field_mask', 0x1FF, model) # Default
 
     if neighbors:
-        cmd.sculpt_iterate(model, state, int(cycles * 0.25))
-        cmd.deprotect('byres (%s within 6.0 of (%s))' % (model, sele))
+        _self.sculpt_iterate(model, state, int(cycles * 0.25))
+        _self.deprotect('byres (%s within 6.0 of (%s))' % (model, sele))
         if not backbone:
-            cmd.protect('name CA+C+N+O+OXT')
-        cmd.sculpt_iterate(model, state, cycles=int(cycles * 0.50))
+            _self.protect('name CA+C+N+O+OXT')
+        _self.sculpt_iterate(model, state, cycles=int(cycles * 0.50))
     else:
-        cmd.sculpt_iterate(model, state, int(cycles * 0.75))
+        _self.sculpt_iterate(model, state, int(cycles * 0.75))
 
-    cmd.set('sculpt_field_mask', 0x01F, model) # Local Geometry Only
-    cmd.sculpt_iterate(model, state, int(cycles * 0.25))
+    _self.set('sculpt_field_mask', 0x01F, model) # Local Geometry Only
+    _self.sculpt_iterate(model, state, int(cycles * 0.25))
 
-    cmd.unset('sculpt_vdw_weight', model)
-    cmd.unset('sculpt_field_mask', model)
-    cmd.sculpt_deactivate(model)
-    cmd.deprotect()
+    _self.unset('sculpt_vdw_weight', model)
+    _self.unset('sculpt_field_mask', model)
+    _self.sculpt_deactivate(model)
+    _self.deprotect()
 
-def add_missing_atoms(selection='all', cycles=200, quiet=1):
+def add_missing_atoms(selection='all', cycles=200, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -275,16 +276,16 @@ SEE ALSO
         'VAL': set(['CB', 'CG1', 'CG2']),
     }
 
-    namedsele = cmd.get_unused_name('_')
-    cmd.select(namedsele, selection, 0)
+    namedsele = _self.get_unused_name('_')
+    _self.select(namedsele, selection, 0)
 
     namelists = defaultdict(list)
-    cmd.iterate('(%s) and polymer' % namedsele,
+    _self.iterate('(%s) and polymer' % namedsele,
             'namelists[model,segi,chain,resn,resi,resv].append(name)',
             space=locals())
 
     sele_dict = defaultdict(list)
-    tmp_name = cmd.get_unused_name('_')
+    tmp_name = _self.get_unused_name('_')
 
     for key, namelist in namelists.items():
         resn = key[3]
@@ -300,17 +301,17 @@ SEE ALSO
                     a.chain = key[2]
                     a.resi = key[4]
                     a.resi_number = key[5]
-                cmd.load_model(frag, tmp_name, 1, zoom=0)
+                _self.load_model(frag, tmp_name, 1, zoom=0)
 
                 skey = '/%s/%s/%s/%s`%s' % key[:5]
-                cmd.remove(skey + ' and not name N+C+O+OXT+CA')
-                cmd.align(tmp_name, skey + ' and name N+C+CA', cycles=0)
-                cmd.remove(tmp_name + ' and (name N+C+O+CA or hydro)')
-                cmd.fuse('name CB and ' + tmp_name, 'name CA and ' + skey, move=0)
+                _self.remove(skey + ' and not name N+C+O+OXT+CA')
+                _self.align(tmp_name, skey + ' and name N+C+CA', cycles=0)
+                _self.remove(tmp_name + ' and (name N+C+O+CA or hydro)')
+                _self.fuse('name CB and ' + tmp_name, 'name CA and ' + skey, move=0)
                 if resn == 'PRO':
-                    cmd.bond(skey + '/N', skey + '/CD')
-                cmd.unpick()
-                cmd.delete(tmp_name)
+                    _self.bond(skey + '/N', skey + '/CD')
+                _self.unpick()
+                _self.delete(tmp_name)
 
                 sele_dict[key[0]].append(skey)
 
@@ -320,12 +321,12 @@ SEE ALSO
                 print(' Mutating ' + skey + ' failed')
 
     for model in sele_dict:
-        cmd.sort(model)
+        _self.sort(model)
         sculpt_relax(' '.join(sele_dict[model]), 0, 0, model, cycles)
 
-    cmd.delete(namedsele)
+    _self.delete(namedsele)
 
-def peptide_rebuild(name, selection='all', cycles=1000, state=1, quiet=1):
+def peptide_rebuild(name, selection='all', cycles=1000, state=1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -349,11 +350,11 @@ SEE ALSO
     feedback['actions'] = False
 
     # work with named selection
-    namedsele = cmd.get_unused_name('_')
-    cmd.select(namedsele, '{} & present'.format(selection), 0)
+    namedsele = _self.get_unused_name('_')
+    _self.select(namedsele, '{} & present'.format(selection), 0)
 
     identifiers = []
-    cmd.iterate(namedsele + ' and polymer and guide and alt +A',
+    _self.iterate(namedsele + ' and polymer and guide and alt +A',
             'identifiers.append([segi,chain,resi,resv,resn])', space=locals())
 
     model = models.Indexed()
@@ -377,49 +378,49 @@ SEE ALSO
     if not quiet:
         print(' Loading model...')
 
-    cmd.load_model(model, name, 1, zoom=0)
-    if cmd.get_setting_boolean('auto_remove_hydrogens'):
-        cmd.remove(name + ' and hydro')
+    _self.load_model(model, name, 1, zoom=0)
+    if _self.get_setting_boolean('auto_remove_hydrogens'):
+        _self.remove(name + ' and hydro')
 
-    cmd.protect(name + ' in ' + namedsele)
-    cmd.sculpt_activate(name)
-    cmd.update(name, namedsele, 1, state)
-    cmd.delete(namedsele)
+    _self.protect(name + ' in ' + namedsele)
+    _self.sculpt_activate(name)
+    _self.update(name, namedsele, 1, state)
+    _self.delete(namedsele)
 
     if not quiet:
         print(' Sculpting...')
 
-    cmd.set('sculpt_field_mask', 0x003, name) # bonds and angles only
-    cmd.sculpt_iterate(name, 1, int(cycles / 4))
+    _self.set('sculpt_field_mask', 0x003, name) # bonds and angles only
+    _self.sculpt_iterate(name, 1, int(cycles / 4))
 
-    cmd.set('sculpt_field_mask', 0x09F, name) # local + torsions
-    cmd.sculpt_iterate(name, 1, int(cycles / 4))
+    _self.set('sculpt_field_mask', 0x09F, name) # local + torsions
+    _self.sculpt_iterate(name, 1, int(cycles / 4))
 
-    cmd.set('sculpt_field_mask', 0x0FF, name) # ... + vdw
-    cmd.sculpt_iterate(name, 1, int(cycles / 2))
+    _self.set('sculpt_field_mask', 0x0FF, name) # ... + vdw
+    _self.sculpt_iterate(name, 1, int(cycles / 2))
 
-    cmd.sculpt_deactivate(name)
-    cmd.deprotect(name)
-    cmd.unset('sculpt_field_mask', name)
+    _self.sculpt_deactivate(name)
+    _self.deprotect(name)
+    _self.unset('sculpt_field_mask', name)
 
     if not quiet:
         print(' Connecting peptide...')
 
-    pairs = cmd.find_pairs(name + ' and name C', name + ' and name N', 1, 1, 2.0)
+    pairs = _self.find_pairs(name + ' and name C', name + ' and name N', 1, 1, 2.0)
     for pair in pairs:
-        cmd.bond(*pair)
-    cmd.h_fix(name)
+        _self.bond(*pair)
+    _self.h_fix(name)
 
     if not quiet:
         print(' peptide_rebuild: done')
 
 
-def get_seq(selection, chainbreak='/', unknown='A'):
+def get_seq(selection, chainbreak='/', unknown='A', *, _self=cmd):
     '''Gets the one-letter sequence, including residues without coordinates
     '''
     seq_list = []
 
-    cmd.iterate('(%s) & polymer' % (selection),
+    _self.iterate('(%s) & polymer' % (selection),
             'seq_list.append((resn, resv))',
             space={'seq_list': seq_list})
 
@@ -441,7 +442,7 @@ def get_seq(selection, chainbreak='/', unknown='A'):
 
 
 def peptide_rebuild_modeller(name, selection='all', hetatm=0, sequence=None,
-        nmodels=1, hydro=0, quiet=1):
+        nmodels=1, hydro=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -497,16 +498,16 @@ ARGUMENTS
         env.io.hetatm = hetatm
 
         # prevent PyMOL to put TER records before MSE residues (bug #3512313)
-        cmd.alter('(%s) and polymer' % (selection), 'type="ATOM"')
+        _self.alter('(%s) and polymer' % (selection), 'type="ATOM"')
 
-        cmd.save(pdbfile, selection)
+        _self.save(pdbfile, selection)
         mdl = modeller.model(env, file=pdbfile)
 
         aln = modeller.alignment(env)
         aln.append_model(mdl, align_codes='foo', atom_files=pdbfile)
 
         # get sequence from non-present atoms
-        if not sequence and cmd.count_atoms('(%s) & !present' % (selection)):
+        if not sequence and _self.count_atoms('(%s) & !present' % (selection)):
             sequence = get_seq(selection)
 
         if sequence:
@@ -532,14 +533,14 @@ ARGUMENTS
         a.make()
 
         for output in a.outputs:
-            cmd.load(output['name'], name, quiet=quiet)
+            _self.load(output['name'], name, quiet=quiet)
     finally:
         os.chdir(cwd)
         shutil.rmtree(tempdir)
 
-    cmd.align(name, selection, cycles=0)
+    _self.align(name, selection, cycles=0)
     if not sequence:
-        update_identifiers(name, selection)
+        update_identifiers(name, selection, _self=_self)
 
     if not quiet:
         print(' peptide_rebuild_modeller: done')

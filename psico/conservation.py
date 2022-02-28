@@ -9,7 +9,7 @@ if not __name__.endswith('.conservation'):
 
 from pymol import cmd, CmdException
 
-def consurfdb(code, chain='A', selection=None, palette='red_white_blue', quiet=1):
+def consurfdb(code, chain='A', selection=None, palette='red_white_blue', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -44,18 +44,18 @@ SEE ALSO
         raise CmdException('no pre-calculated profile for %s/%s' % (code, chain))
 
     if selection is None:
-        object_list = cmd.get_object_list()
+        object_list = _self.get_object_list()
         if code not in object_list:
             if code.lower() in object_list:
                 code = code.lower()
             else:
                 from .importing import fetch
-                fetch(code)
+                fetch(code, _self=_self)
         selection = '%s and chain %s' % (code, chain)
 
-    load_consurf(handle, selection, palette, quiet)
+    load_consurf(handle, selection, palette, quiet, _self=_self)
 
-def load_consurf(filename, selection, palette='red_white_blue', quiet=1):
+def load_consurf(filename, selection, palette='red_white_blue', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -81,12 +81,12 @@ SEE ALSO
     scores = []
     seqlist = []
 
-    if cmd.is_string(filename):
+    if isinstance(filename, (str, bytes)):
         handle = open(filename)
     else:
         handle = filename
 
-    if len(cmd.get_chains(selection)) > 1:
+    if len(_self.get_chains(selection)) > 1:
         print(' Warning: selection spans multiple chains')
 
     for line in handle:
@@ -101,7 +101,7 @@ SEE ALSO
         seqlist.append(m.group(2))
 
     selection = '(%s) and polymer' % selection
-    model_ca = cmd.get_model(selection + ' and guide')
+    model_ca = _self.get_model(selection + ' and guide')
     model_seq = ''.join(one_letter.get(a.resn, 'X') for a in model_ca.atom)
     sequence = ''.join(seqlist)
 
@@ -109,16 +109,12 @@ SEE ALSO
     scores_resi = dict((model_ca.atom[i].resi, scores[j])
             for (i, j) in alignment_mapping(*aln))
 
-    cmd.alter(selection, 'b=scores.get(resi, -10)',
+    _self.alter(selection, 'b=scores.get(resi, -10)',
             space={'scores': scores_resi}, quiet=quiet)
 
     if palette:
-        cmd.color('yellow', selection + ' and b<-9')
-        if ' ' in palette:
-            from .viewing import spectrumany as spectrum
-        else:
-            spectrum = cmd.spectrum
-        spectrum('b', palette, selection + ' and b>-9.5')
+        _self.color('yellow', selection + ' and b<-9')
+        _self.spectrum('b', palette, selection + ' and b>-9.5')
 
 cmd.extend('consurfdb', consurfdb)
 cmd.extend('load_consurf', load_consurf)

@@ -10,7 +10,7 @@ def _assert_package_import():
     if not __name__.endswith('.creating'):
         raise CmdException("Must do 'import psico.creating' instead of 'run ...'")
 
-def join_states(name, selection='all', discrete=-1, zoom=0, quiet=1):
+def join_states(name, selection='all', discrete=-1, zoom=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -33,23 +33,23 @@ ARGUMENTS
     if discrete == -2:
         _assert_package_import()
         from .selecting import wait_for
-        aln_obj = cmd.get_unused_name('_')
-    models = cmd.get_object_list('(' + selection + ')')
+        aln_obj = _self.get_unused_name('_')
+    models = _self.get_object_list('(' + selection + ')')
     for i in range(len(models)):
         if discrete == -1 and i > 0:
-            cmd.remove('(%s) and not (alt A+ and (%s) in (%s))' % (name, name, models[i]))
-            cmd.create(name, '(%s) in (%s)' % (models[i], name), 1, i+1, 0, 0, quiet)
+            _self.remove('(%s) and not (alt A+ and (%s) in (%s))' % (name, name, models[i]))
+            _self.create(name, '(%s) in (%s)' % (models[i], name), 1, i+1, 0, 0, quiet)
         elif discrete == -2 and i > 0:
-            cmd.align(models[i], name, cycles=0, transform=0, object=aln_obj)
-            wait_for(aln_obj)
-            cmd.remove('(%s) and not (%s)' % (name, aln_obj))
-            cmd.create(name, name, 1, i+1, 0, 0, quiet)
-            cmd.update(name, '(%s) and (%s)' % (models[i], aln_obj), i+1, 1, 0, quiet)
-            cmd.delete(aln_obj)
+            _self.align(models[i], name, cycles=0, transform=0, object=aln_obj)
+            wait_for(aln_obj, _self=_self)
+            _self.remove('(%s) and not (%s)' % (name, aln_obj))
+            _self.create(name, name, 1, i+1, 0, 0, quiet)
+            _self.update(name, '(%s) and (%s)' % (models[i], aln_obj), i+1, 1, 0, quiet)
+            _self.delete(aln_obj)
         else:
-            cmd.create(name, models[i], 1, i+1, discrete == 1, 0, quiet)
+            _self.create(name, models[i], 1, i+1, discrete == 1, 0, quiet)
     if int(zoom):
-        cmd.zoom(name, state=0)
+        _self.zoom(name, state=0)
 
 sidechaincenteratoms = {
     'GLY': ('CA',),
@@ -77,7 +77,7 @@ sidechaincenteratoms = {
 
 sidechaincentermethods = ['bahar1996', 'centroid']
 
-def sidechaincenters(object='scc', selection='all', method='bahar1996', name='PS1'):
+def sidechaincenters(object='scc', selection='all', method='bahar1996', name='PS1', *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -123,12 +123,12 @@ SEE ALSO
 
     atmap = dict()
     if method in ['bahar1996', '1', 1]:
-        modelAll = cmd.get_model('(%s) and resn %s' % (selection, '+'.join(sidechaincenteratoms)))
+        modelAll = _self.get_model('(%s) and resn %s' % (selection, '+'.join(sidechaincenteratoms)))
         for at in modelAll.atom:
             if at.name in sidechaincenteratoms[at.resn]:
                 atmap.setdefault((at.segi, at.chain, at.resn, at.resi), []).append(at)
     elif method in ['centroid', '2', 2]:
-        modelAll = cmd.get_model('(%s) and polymer and not (hydro or name C+N+O)' % selection)
+        modelAll = _self.get_model('(%s) and polymer and not (hydro or name C+N+O)' % selection)
         for at in modelAll.atom:
             atmap.setdefault((at.segi, at.chain, at.resn, at.resi), []).append(at)
     else:
@@ -157,14 +157,16 @@ SEE ALSO
             setattr(atom, key, getattr(at, key))
         model.add_atom(atom)
     model.update_index()
-    if object in cmd.get_object_list():
-        cmd.delete(object)
-    cmd.load_model(model, object)
+    if object in _self.get_object_list():
+        _self.delete(object)
+    _self.load_model(model, object)
     return model
 
-def ramp_levels(name, levels, quiet=1):
+def ramp_levels(name, levels, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
+
+    Deprecated: Use cmd.ramp_update() instead.
 
     Changes the slot levels of a ramp.
 
@@ -172,36 +174,12 @@ SEE ALSO
 
     ramp_new, isolevel
     '''
-    quiet = int(quiet)
-    if cmd.is_string(levels):
-        levels = cmd.safe_list_eval(levels)
+    return _self.ramp_update(name, levels, quiet=quiet)
 
-    try:
-        position = cmd.get_names('all').index(name)
-
-        odata = cmd.get_session(name, 1, 1, 0, 0)['names'][0]
-        if odata[4] != 8:
-            raise TypeError('not a ramp')
-        data = odata[5]
-    except:
-        raise CmdException('Get session data for ramp "%s" failed' % (name))
-
-    if len(levels) != len(data[3]):
-        raise CmdException('number of levels must agree with existing object')
-
-    map_name = data[6]
-    colors = [data[4][i:i+3] for i in range(0, len(data[4]), 3)]
-    cmd.ramp_new(name, map_name, levels, colors, quiet=quiet)
-
-    # restore original position
-    if position == 0:
-        cmd.order(name, location='top')
-    else:
-        cmd.order(cmd.get_names('all')[position-1] + ' ' + name)
 
 def pdb2pqr(name, selection='all', ff='amber', debump=1, opt=1, assignonly=0,
         ffout='', ph=None, neutraln=0, neutralc=0, state=-1, preserve=0,
-        exe='pdb2pqr', quiet=1):
+        exe='pdb2pqr', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -253,7 +231,7 @@ ARGUMENTS
     args.extend([infile, outfile])
 
     try:
-        cmd.save(infile, selection, state)
+        _self.save(infile, selection, state)
 
         p = subprocess.Popen(args, cwd=tmpdir,
                 universal_newlines=True,
@@ -269,7 +247,7 @@ ARGUMENTS
         if remark5:
             print(''.join(remark5))
 
-        cmd.load(outfile, name)
+        _self.load(outfile, name)
     except OSError:
         raise CmdException('Cannot execute "%s"' % (exe))
     finally:
@@ -281,7 +259,7 @@ ARGUMENTS
     if not quiet:
         print(' pdb2pqr: done')
 
-def corina(name, selection, exe='corina', state=-1, preserve=0, quiet=1):
+def corina(name, selection, exe='corina', state=-1, preserve=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -294,7 +272,7 @@ DESCRIPTION
     state, preserve, quiet = int(state), int(preserve), int(quiet)
 
     if state < 1:
-        state = querying.get_selection_state(selection)
+        state = querying.get_selection_state(selection, _self=_self)
 
     tmpdir = tempfile.mkdtemp()
     infile = os.path.join(tmpdir, 'in.sdf')
@@ -305,7 +283,7 @@ DESCRIPTION
     stderr = ''
 
     try:
-        cmd.save(infile, selection, state)
+        _self.save(infile, selection, state)
         stdout, stderr = subprocess.Popen(args, cwd=tmpdir,
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
@@ -322,7 +300,7 @@ DESCRIPTION
         if not os.path.exists(outfile):
             raise CmdException("corina failed: " + stderr.strip())
 
-        cmd.load(outfile, name)
+        _self.load(outfile, name)
     except OSError:
         raise CmdException('Cannot execute "%s"' % (exe))
     finally:
@@ -335,7 +313,8 @@ DESCRIPTION
         print(' corina: done')
 
 def prepwizard(name, selection='all', options='', state=-1,
-        preserve=0, exe='$SCHRODINGER/utilities/prepwizard', quiet=1):
+        preserve=0, exe='$SCHRODINGER/utilities/prepwizard', quiet=1,
+        *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -370,7 +349,7 @@ ARGUMENTS
     args = [exe, '-mse', '-fillsidechains', '-WAIT']
 
     if options:
-        if cmd.is_string(options):
+        if isinstance(options, (str, bytes)):
             options = shlex.split(options)
         args.extend(options)
 
@@ -380,7 +359,7 @@ ARGUMENTS
     args.extend([infile, outfile])
 
     try:
-        cmd.save(os.path.join(tmpdir, infile), selection, state)
+        _self.save(os.path.join(tmpdir, infile), selection, state)
 
         p = subprocess.Popen(args, cwd=tmpdir,
                 universal_newlines=True,
@@ -397,7 +376,7 @@ ARGUMENTS
 
             raise CmdException('%s failed with exit status %d' % (args[0], p.returncode))
 
-        cmd.load(os.path.join(tmpdir, outfile), name)
+        _self.load(os.path.join(tmpdir, outfile), name)
     except OSError:
         raise CmdException('Cannot execute "%s"' % (exe))
     finally:
@@ -410,7 +389,7 @@ ARGUMENTS
         print(' prepwizard: done')
 
 def fiber(seq, num=4, name='', rna=0, single=0, repeats=0,
-        preserve=0, exe='$X3DNA/bin/fiber', quiet=1):
+        preserve=0, exe='$X3DNA/bin/fiber', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -468,7 +447,7 @@ EXAMPLES
         args.append('-single')
 
     if not name:
-        name = cmd.get_unused_name('fiber-' + str(num) + '_')
+        name = _self.get_unused_name('fiber-' + str(num) + '_')
 
     tmpdir = tempfile.mkdtemp()
     outfile = os.path.join(tmpdir, 'out.pdb')
@@ -494,7 +473,7 @@ EXAMPLES
             if p.returncode != 0:
                 raise CmdException('Returned non-zero status: ' + str(args))
 
-            cmd.load(outfile, name, quiet=quiet)
+            _self.load(outfile, name, quiet=quiet)
 
     except OSError:
         raise CmdException('Cannot execute "%s"' % (exe))

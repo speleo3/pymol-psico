@@ -15,13 +15,13 @@ def _assert_package_import():
         raise CmdException("Must do 'import psico.aaindex' instead of 'run ...'")
 
 _aaindex1 = None
-def _get_aaindex1():
+def _get_aaindex1(*, _self=cmd):
     '''
     Get a global AAindex instance for "fetch_path/aaindex1"
     '''
     global _aaindex1
     if _aaindex1 is None:
-        _aaindex1 = AAindex(1, cmd.get('fetch_path'), 0)
+        _aaindex1 = AAindex(1, _self.get('fetch_path'), 0)
     return _aaindex1
 
 class AAindex(dict):
@@ -93,10 +93,7 @@ class AAindex(dict):
             return float(x)
 
         if not os.path.exists(filename):
-            try:
-                import urllib.request as urllib
-            except ImportError:
-                import urllib
+            import urllib.request as urllib
             url = 'ftp://ftp.genome.jp/pub/db/community/aaindex/' + os.path.basename(filename)
             if not quiet:
                 print('Downloading "%s"' % (url))
@@ -244,7 +241,7 @@ class MatrixRecord(Record):
             return x[half]
         return (x[half - 1] + x[half]) / 2.0
 
-def aaindex2b(key, selection='all', var='b', quiet=1):
+def aaindex2b(key, selection='all', var='b', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -278,7 +275,7 @@ SEE ALSO
 
     quiet = int(quiet)
 
-    aaindex = _get_aaindex1()
+    aaindex = _get_aaindex1(_self=_self)
 
     try:
         entry = aaindex[key]
@@ -297,9 +294,9 @@ SEE ALSO
             return median
         return value
 
-    cmd.alter(selection, var + '=lookup(resn)', space=locals())
+    _self.alter(selection, var + '=lookup(resn)', space=locals())
 
-def hydropathy2b(selection='all', var='b', quiet=1):
+def hydropathy2b(selection='all', var='b', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -309,11 +306,10 @@ SEE ALSO
 
     aaindex2b
     '''
-    r = aaindex2b('KYTJ820101', selection, var, quiet)
+    r = aaindex2b('KYTJ820101', selection, var, quiet, _self=_self)
 
     if not quiet:
-        from .viewing import spectrumany
-        spectrumany(var, 'white forest', selection)
+        _self.spectrum(var, 'white forest', selection)
 
     return r
 

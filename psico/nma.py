@@ -13,7 +13,8 @@ from pymol import selector
 def normalmodes_pdbmat(selection, cutoff=10.0, force=1.0, mass='COOR',
         first=7, last=10, choose='LOWE', substruct='RESI', blocksize=4,
         exe='pdbmat', diag_exe='diagrtb',
-        prefix='mode', states=7, factor=-1, clean=1, quiet=1, async_=-1, **kwargs):
+        prefix='mode', states=7, factor=-1, clean=1, quiet=1, async_=-1,
+        *, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -68,7 +69,7 @@ ARGUMENTS
 
     from pymol.wizard.message import Message
     wiz = Message(['normalmodes: please wait ...', ''], dismiss=0)
-    cmd.set_wizard(wiz)
+    _self.set_wizard(wiz)
 
     import threading
     t = threading.Thread(target=_normalmodes, args=args + [wiz])
@@ -77,7 +78,8 @@ ARGUMENTS
 
 def _normalmodes(selection, cutoff, force, mass,
         first, last, choose, substruct, blocksize,
-        exe, diag_exe, prefix, states, factor, clean, quiet, wiz=None):
+        exe, diag_exe, prefix, states, factor, clean, quiet, wiz=None,
+        *, _self=cmd):
     import tempfile, subprocess, os, shutil, sys
     from chempy import cpv
 
@@ -93,7 +95,7 @@ def _normalmodes(selection, cutoff, force, mass,
         print(' normalmodes: Temporary directory is', tempdir)
 
     try:
-        sele_name = cmd.get_unused_name('__pdbmat')
+        sele_name = _self.get_unused_name('__pdbmat')
     except AttributeError:
         sele_name = '__pdbmat'
 
@@ -101,8 +103,8 @@ def _normalmodes(selection, cutoff, force, mass,
         filename = os.path.join(tempdir, 'mobile.pdb')
         commandfile = os.path.join(tempdir, 'pdbmat.dat')
 
-        cmd.select(sele_name, '(%s) and not hetatm' % (selection))
-        cmd.save(filename, sele_name)
+        _self.select(sele_name, '(%s) and not hetatm' % (selection))
+        _self.save(filename, sele_name)
         
         f = open(commandfile, 'w')
         f.write('''! pdbmat file
@@ -120,7 +122,7 @@ def _normalmodes(selection, cutoff, force, mass,
             print(' normalmodes: running', exe, '...')
         if wiz is not None:
             wiz.message[1] = 'running pdbmat'
-            cmd.refresh_wizard()
+            _self.refresh_wizard()
         process = subprocess.Popen([exe], cwd=tempdir,
                 universal_newlines=True,
                 stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
@@ -133,9 +135,9 @@ def _normalmodes(selection, cutoff, force, mass,
             natoms = len(open(os.path.join(tempdir, 'pdbmat.xyzm')).readlines())
         except Exception as e:
             print(e)
-            natoms = cmd.count_atoms(sele_name)
+            natoms = _self.count_atoms(sele_name)
 
-        if natoms != cmd.count_atoms(sele_name):
+        if natoms != _self.count_atoms(sele_name):
             raise CmdException('pdbmat did not recognize all atoms')
 
         commandfile = os.path.join(tempdir, 'diagrtb.dat')
@@ -160,7 +162,7 @@ def _normalmodes(selection, cutoff, force, mass,
             print(' normalmodes: running', exe, '...')
         if wiz is not None:
             wiz.message[1] = 'running diagrtb'
-            cmd.refresh_wizard()
+            _self.refresh_wizard()
         process = subprocess.Popen([exe], cwd=tempdir,
                 universal_newlines=True,
                 stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
@@ -174,7 +176,7 @@ def _normalmodes(selection, cutoff, force, mass,
 
         if wiz is not None:
             wiz.message[1] = 'generating objects'
-            cmd.refresh_wizard()
+            _self.refresh_wizard()
 
         states = int(states)
         factor = float(factor)
@@ -182,24 +184,24 @@ def _normalmodes(selection, cutoff, force, mass,
             factor = natoms**0.5
         for mode in range(first, last+1):
             name = prefix + '%d' % mode
-            cmd.delete(name)
+            _self.delete(name)
 
             if not quiet:
                 print(' normalmodes: object "%s" for mode %d with freq. %.6f' % \
                         (name, mode, frequencies[mode-1]))
 
             for state in range(1, states+1):
-                cmd.create(name, sele_name, 1, state, zoom=0)
-                cmd.alter_state(state, name,
+                _self.create(name, sele_name, 1, state, zoom=0)
+                _self.alter_state(state, name,
                         '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
                         space={'cpv': cpv, 'myit': iter(eigenfacs[mode-1]),
                             'next': next,
                             'myfac': factor * (state - (states+1)/2.0)})
 
         # if CA only selection, show ribbon trace
-        if natoms == cmd.count_atoms('(%s) and name CA' % sele_name):
-            cmd.set('ribbon_trace_atoms', 1, prefix + '*')
-            cmd.show_as('ribbon', prefix + '*')
+        if natoms == _self.count_atoms('(%s) and name CA' % sele_name):
+            _self.set('ribbon_trace_atoms', 1, prefix + '*')
+            _self.show_as('ribbon', prefix + '*')
 
         # store results
         if not hasattr(stored, 'nma_results'):
@@ -221,7 +223,7 @@ def _normalmodes(selection, cutoff, force, mass,
             print(' normalmodes: Working directory "%s" not removed!' % (tempdir))
         # cmd.delete(sele_name)
         if wiz is not None:
-            cmd.set_wizard_stack([w for w in cmd.get_wizard_stack() if w != wiz])
+            _self.set_wizard_stack([w for w in _self.get_wizard_stack() if w != wiz])
 
 def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
     line_it = iter(open(filename))
@@ -246,7 +248,7 @@ def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
     return eigenfacs, values
 
 def normalmodes_mmtk(selection, cutoff=12.0, ff='Deformation', first=7, last=10,
-        prefix='mmtk', states=7, factor=-1, quiet=1):
+        prefix='mmtk', states=7, factor=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -292,7 +294,7 @@ DESCRIPTION
     if model == 'calpha':
         selection = '(%s) and polymer and name CA' % (selection)
 
-    f = StringIO(cmd.get_pdbstr(selection))
+    f = StringIO(_self.get_pdbstr(selection))
     conf = PDBConfiguration(f)
     items = conf.createPeptideChains(model)
 
@@ -324,11 +326,11 @@ DESCRIPTION
         filename = tempfile.mktemp(suffix='.pdb')
         sequence = DCD.writePDB(universe, None, filename)
         z = [a.index for a in sequence]
-        selection = cmd.get_unused_name('_')
-        cmd.load(filename, selection, zoom=0)
+        selection = _self.get_unused_name('_')
+        _self.load(filename, selection, zoom=0)
         os.remove(filename)
 
-        if cmd.count_atoms(selection) != natoms:
+        if _self.count_atoms(selection) != natoms:
             print('hmm... still wrong number of atoms')
 
     def eigenfacs_iter(mode):
@@ -337,29 +339,29 @@ DESCRIPTION
 
     for mode in range(first, min(last, len(modes)) + 1):
         name = prefix + '%d' % mode
-        cmd.delete(name)
+        _self.delete(name)
 
         if not quiet:
             print(' normalmodes: object "%s" for mode %d with freq. %.6f' % \
                     (name, mode, frequencies[mode-1]))
 
         for state in range(1, states+1):
-            cmd.create(name, selection, 1, state, zoom=0)
-            cmd.alter_state(state, name,
+            _self.create(name, selection, 1, state, zoom=0)
+            _self.alter_state(state, name,
                     '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
                     space={'cpv': cpv, 'myit': eigenfacs_iter(mode),
                         'next': next,
                         'myfac': 1e2 * factor * ((state-1.0)/(states-1.0) - 0.5)})
 
-    cmd.delete(selection)
+    _self.delete(selection)
     if model == 'calpha':
-        cmd.set('ribbon_trace_atoms', 1, prefix + '*')
-        cmd.show_as('ribbon', prefix + '*')
+        _self.set('ribbon_trace_atoms', 1, prefix + '*')
+        _self.show_as('ribbon', prefix + '*')
     else:
-        cmd.show_as('lines', prefix + '*')
+        _self.show_as('lines', prefix + '*')
 
 def normalmodes_prody(selection, cutoff=15, first=7, last=10, guide=1,
-        prefix='prody', states=7, factor=-1, quiet=1):
+        prefix='prody', states=7, factor=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -376,10 +378,10 @@ DESCRIPTION
 
     if guide:
         selection = '(%s) and guide and alt A+' % (selection)
-    tmpsele = cmd.get_unused_name('_')
-    cmd.select(tmpsele, selection)
+    tmpsele = _self.get_unused_name('_')
+    _self.select(tmpsele, selection)
 
-    f = StringIO(cmd.get_pdbstr(tmpsele))
+    f = StringIO(_self.get_pdbstr(tmpsele))
     conf = prody.parsePDBStream(f)
 
     modes = prody.ANM()
@@ -395,7 +397,7 @@ DESCRIPTION
 
     for mode in range(first, last + 1):
         name = prefix + '%d' % mode
-        cmd.delete(name)
+        _self.delete(name)
 
         if not quiet:
             print(' normalmodes: object "%s" for mode %d' % (name, mode))
@@ -403,17 +405,17 @@ DESCRIPTION
         for state in range(1, states+1):
             xyz_it = iter(modes[mode-7].getArrayNx3() * (factor *
                     ((state-1.0)/(states-1.0) - 0.5)))
-            cmd.create(name, tmpsele, 1, state, zoom=0)
-            cmd.alter_state(state, name, '(x,y,z) = next(xyz_it) + (x,y,z)',
+            _self.create(name, tmpsele, 1, state, zoom=0)
+            _self.alter_state(state, name, '(x,y,z) = next(xyz_it) + (x,y,z)',
                     space={'xyz_it': xyz_it, 'next': next})
 
-    cmd.delete(tmpsele)
+    _self.delete(tmpsele)
 
     if guide:
-        cmd.set('ribbon_trace_atoms', 1, prefix + '*')
-        cmd.show_as('ribbon', prefix + '*')
+        _self.set('ribbon_trace_atoms', 1, prefix + '*')
+        _self.show_as('ribbon', prefix + '*')
     else:
-        cmd.show_as('lines', prefix + '*')
+        _self.show_as('lines', prefix + '*')
 
 cmd.extend('normalmodes_pdbmat', normalmodes_pdbmat)
 cmd.extend('normalmodes_mmtk', normalmodes_mmtk)

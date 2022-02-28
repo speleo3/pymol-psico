@@ -50,7 +50,7 @@ EXAMPLE
     from csb.bio.utils import distance_sq, wfit, fit
 
     # moving object
-    m_objects = cmd.get_object_list(mobile)
+    m_objects = _self.get_object_list(mobile)
     if len(m_objects) != 1:
         # If selection covers multiple objects, call "mcsalign" for every object
         for m_object in m_objects:
@@ -59,8 +59,8 @@ EXAMPLE
         return
 
     # get molecules from selections
-    m_sdf = get_molstr(mobile, mobile_state)
-    t_sdf = get_molstr(target, target_state)
+    m_sdf = get_molstr(mobile, mobile_state, _self=_self)
+    t_sdf = get_molstr(target, target_state, _self=_self)
 
     # find maximum common substructure
     m_indices, t_indices = get_mcs_indices(method, quiet, m_sdf, t_sdf, timeout, int(exact))
@@ -72,8 +72,8 @@ EXAMPLE
         print(' MCS-Align: found MCS with %d atoms (%s)' % (len(m_indices), m_objects[0]))
 
     # coordinates
-    Y = take(cmd.get_coords(mobile, mobile_state), m_indices, 0)
-    X = take(cmd.get_coords(target, target_state), t_indices, 0)
+    Y = take(_self.get_coords(mobile, mobile_state), m_indices, 0)
+    X = take(_self.get_coords(target, target_state), t_indices, 0)
 
     # weighted RMS fitting
     R, t = fit(X, Y)
@@ -86,7 +86,7 @@ EXAMPLE
     m = identity(4)
     m[0:3,0:3] = R
     m[0:3,3] = t
-    cmd.transform_object(m_objects[0], list(m.flat), mobile_state)
+    _self.transform_object(m_objects[0], list(m.flat), mobile_state)
 
     if object:
         t_idx_list = iterate_state_to_list(target_state, target, 'model, index')
@@ -110,16 +110,16 @@ def iterate_state_to_list(state, selection, expression, space=None, _self=cmd):
     return space['_result_list']
 
 
-def get_molstr(sele, state):
+def get_molstr(sele, state, *, _self=cmd):
     '''Export the given selection to a molfile string'''
     try:
         # new in PyMOL 1.8.4
-        return cmd.get_str('mol', sele, state)
+        return _self.get_str('mol', sele, state)
     except Exception as e:
         print(e)
 
     from chempy import io
-    model = cmd.get_model(sele, state)
+    model = _self.get_model(sele, state)
     for a in model.atom:
         a.symbol = a.symbol.capitalize()
     return ''.join(io.mol.toList(model))

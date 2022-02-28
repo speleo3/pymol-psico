@@ -71,7 +71,8 @@ def validate_apbs_exe(exe):
     return exe
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
-        preserve=0, exe='', assign=-1, focus='', quiet=1, _template=''):
+        preserve=0, exe='', assign=-1, focus='', quiet=1, _template='',
+        *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -112,40 +113,40 @@ SEE ALSO
     stem = os.path.join(tempdir, 'map')
 
     # temporary object
-    tmpname = cmd.get_unused_name('mol' if preserve else '_')
-    cmd.create(tmpname, selection, state, 1)
+    tmpname = _self.get_unused_name('mol' if preserve else '_')
+    _self.create(tmpname, selection, state, 1)
 
     # partial charges
     assign = [assign]
     if assign[0] == -1:
         # auto detect if selection has charges and radii
-        cmd.iterate(tmpname,
+        _self.iterate(tmpname,
                 'assign[0] *= (elec_radius * partial_charge) == 0.0',
                 space=locals())
     if assign[0]:
-        cmd.remove('hydro and model ' + tmpname)
-        add_missing_atoms(tmpname, quiet=quiet)
+        _self.remove('hydro and model ' + tmpname)
+        add_missing_atoms(tmpname, quiet=quiet, _self=_self)
         protein_assign_charges_and_radii(tmpname)
     elif not quiet:
         print(' Notice: using exsiting charges and radii')
 
-    cmd.save(pqrfile, tmpname, 1, format='pqr', quiet=quiet)
+    _self.save(pqrfile, tmpname, 1, format='pqr', quiet=quiet)
 
     # grid dimensions
-    extent = cmd.get_extent(tmpname)
-    extentfocus = cmd.get_extent(focus) if focus else extent
+    extent = _self.get_extent(tmpname)
+    extentfocus = _self.get_extent(focus) if focus else extent
     fglen = [(emax-emin + 2*buffer) for (emin, emax) in zip(*extentfocus)]
     cglen = [(emax-emin + 4*buffer) for (emin, emax) in zip(*extent)]
 
     if not preserve:
-        cmd.delete(tmpname)
+        _self.delete(tmpname)
 
     apbs_in = {
         'pqrfile': pqrfile,
         'fgcent': 'mol 1',
         'fglen': '%f %f %f' % tuple(fglen),
         'cglen': '%f %f %f' % tuple(cglen),
-        'srad': cmd.get('solvent_radius'),
+        'srad': _self.get('solvent_radius'),
         'mapfile': stem,
     }
 
@@ -182,7 +183,7 @@ SEE ALSO
             raise CmdException('dx file missing')
 
         # load map
-        cmd.load(dx_list[0], name, quiet=quiet)
+        _self.load(dx_list[0], name, quiet=quiet)
     except OSError:
         raise CmdException('Cannot execute "%s"' % (exe))
     finally:
@@ -192,7 +193,7 @@ SEE ALSO
             print(' Notice: not deleting %s' % (tempdir))
 
 def apbs_surface(selection='all', maximum=None, minimum=None, map_name=None,
-        ramp_name=None, grid=0.5, quiet=1):
+        ramp_name=None, grid=0.5, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -221,9 +222,9 @@ SEE ALSO
     quiet = int(quiet)
 
     if ramp_name is None:
-        ramp_name = cmd.get_unused_name('ramp')
+        ramp_name = _self.get_unused_name('ramp')
     if map_name is None:
-        map_name = cmd.get_unused_name('map')
+        map_name = _self.get_unused_name('map')
 
     map_new_apbs(map_name, selection, float(grid), quiet=quiet)
 
@@ -234,18 +235,18 @@ SEE ALSO
     else:
         kwargs = {'selection': selection}
 
-    cmd.ramp_new(ramp_name, map_name, **kwargs)
+    _self.ramp_new(ramp_name, map_name, **kwargs)
 
-    object_names = cmd.get_object_list('(' + selection + ')')
+    object_names = _self.get_object_list('(' + selection + ')')
     for name in object_names:
-        cmd.set('surface_color', ramp_name, name)
+        _self.set('surface_color', ramp_name, name)
 
-    cmd.show('surface', selection)
-    cmd.set('surface_solvent', 0)
-    cmd.set('surface_ramp_above_mode', 1)
+    _self.show('surface', selection)
+    _self.set('surface_solvent', 0)
+    _self.set('surface_ramp_above_mode', 1)
 
 def volume_esp(name, map, stops=[0.1, 1.0], neg='red', pos='blue',
-        opacity=0.2, quiet=1):
+        opacity=0.2, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -283,7 +284,7 @@ SEE ALSO
         from pymol.colorramping import ColorRamp
     except ImportError:
         print(' Warning: volume_esp is deprecated')
-        stdevD = cmd.get_volume_histogram(map, 0)[3]
+        stdevD = _self.get_volume_histogram(map, 0)[3]
         stops = [s * stdevD for s in stops]
         ramp = [
             -stops[1], neg, opacity,
@@ -293,11 +294,11 @@ SEE ALSO
         ]
         if len(stops) == 3:
             ramp = [-stops[2], neg, opacity] + ramp + [stops[2], pos, opacity]
-        cmd.volume(name, map, ramp, quiet=quiet)
+        _self.volume(name, map, ramp, quiet=quiet)
         return
 
-    c_neg = cmd.get_color_tuple(neg)
-    c_pos = cmd.get_color_tuple(pos)
+    c_neg = _self.get_color_tuple(neg)
+    c_pos = _self.get_color_tuple(pos)
 
     c_pos_0 = c_pos + (0.0,)
     c_pos_1 = c_pos + (opacity,)
@@ -314,13 +315,13 @@ SEE ALSO
     else:
         raise CmdException('need 2 or 3 stops')
 
-    cmd.volume(name, map, quiet=quiet)
+    _self.volume(name, map, quiet=quiet)
 
     # get_volume_histogram returns zeros without refresh
-    with set_temporary(suspend_updates='off'):
-        cmd.refresh()
+    with set_temporary(suspend_updates='off', _self=_self):
+        _self.refresh()
 
-    minD, maxD, meanD, stdevD = cmd.get_volume_histogram(name)[:4]
+    minD, maxD, meanD, stdevD = _self.get_volume_histogram(name)[:4]
 
     v_ramp = []
     c_ramp = ColorRamp(360)
@@ -331,12 +332,12 @@ SEE ALSO
         v_ramp.extend(c)
         c_ramp.addColor(i, c)
 
-    cmd.set_volume_ramp(name, v_ramp)
-    cmd.volume_color(name, c_ramp.getRamp())
-    cmd.recolor(name)
+    _self.set_volume_ramp(name, v_ramp)
+    _self.volume_color(name, c_ramp.getRamp())
+    _self.recolor(name)
 
 def volume_fofc(name, map, stops=[2.5, 3.0, 4.0], neg='red', pos='green',
-        opacity=0.4, quiet=1):
+        opacity=0.4, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 

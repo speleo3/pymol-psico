@@ -6,7 +6,7 @@ License: BSD-2-Clause
 
 from pymol import cmd
 
-def save_settings(filename='~/.pymolrc-settings.py', quiet=1):
+def save_settings(filename='~/.pymolrc-settings.py', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
  
@@ -20,10 +20,10 @@ DESCRIPTION
     if not filename.endswith('.py'):
         print('Warning: filename should end with ".py"')
     # temporatily load default settings and remember them
-    cmd.reinitialize('store_defaults')
-    cmd.reinitialize('original_settings')
-    original = [(name, cmd.get(name)) for name in get_name_list()]
-    cmd.reinitialize('settings')
+    _self.reinitialize('store_defaults')
+    _self.reinitialize('original_settings')
+    original = [(name, _self.get(name)) for name in get_name_list()]
+    _self.reinitialize('settings')
     # dump to file
     filename = cmd.exp_path(filename)
     f = open(filename, 'w')
@@ -33,7 +33,7 @@ DESCRIPTION
     f.write('    print("Loading settings from " + ' + repr(filename) + ')\n')
     count = 0
     for name, o_value in original:
-        value = cmd.get(name)
+        value = _self.get(name)
         if value != o_value:
             f.write('cmd.set("%s", %s)\n' % (name, repr(value)))
             if not quiet:
@@ -43,7 +43,7 @@ DESCRIPTION
     if not quiet:
         print('Dumped %d settings to %s' % (count, filename))
 
-def paper_settings(fancy=0, quiet=0):
+def paper_settings(fancy=0, quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -63,12 +63,12 @@ NOTES
     '''
     fancy, quiet = int(fancy), int(quiet)
     if fancy == 1:
-        cmd.set('cartoon_fancy_helices', 1, quiet=quiet)
-        cmd.set('cartoon_highlight_color', 'grey50', quiet=quiet)
-    cmd.set('cartoon_side_chain_helper', 1, quiet=quiet)
-    cmd.set('ray_shadows', 0, quiet=quiet)
-    cmd.set('opaque_background', 0, quiet=quiet)
-    cmd.bg_color('white')
+        _self.set('cartoon_fancy_helices', 1, quiet=quiet)
+        _self.set('cartoon_highlight_color', 'grey50', quiet=quiet)
+    _self.set('cartoon_side_chain_helper', 1, quiet=quiet)
+    _self.set('ray_shadows', 0, quiet=quiet)
+    _self.set('opaque_background', 0, quiet=quiet)
+    _self.bg_color('white')
 
 class set_temporary(object):
     '''
@@ -79,20 +79,21 @@ DESCRIPTION
     >>> with set_temporary(pdb_retain_ids=1):
     ...    cmd.save('out.pdb')
     '''
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, _self=cmd, **kwargs):
+        self._self = _self
         self.sele = kwargs.pop('selection', '')
         self.args = args + tuple(kwargs.items())
     def __enter__(self):
         self.saved = []
         for k, v in self.args:
-            v_saved = cmd.get(k, self.sele)
+            v_saved = self._self.get(k, self.sele)
             if v != v_saved:
                 self.saved.append((k, v_saved))
-                cmd.set(k, v, self.sele)
+                self._self.set(k, v, self.sele)
         return self
     def __exit__(self, type, value, traceback):
         for k, v in self.saved:
-            cmd.set(k, v, self.sele)
+            self._self.set(k, v, self.sele)
 
 cmd.extend('save_settings', save_settings)
 cmd.extend('paper_settings', paper_settings)

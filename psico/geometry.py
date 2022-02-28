@@ -35,7 +35,7 @@ Triangulation using qdelaunay. (http://www.qhull.org)
         yield list(map(int, a))
 
 def delaunay(selection='enabled', name=None, cutoff=10.0, as_cgo=0,
-        qdelaunay_exe='qdelaunay', state=-1, quiet=1):
+        qdelaunay_exe='qdelaunay', state=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -54,13 +54,13 @@ SEE ALSO
     '''
     from chempy import cpv, Bond
     if name is None:
-        name = cmd.get_unused_name('delaunay')
+        name = _self.get_unused_name('delaunay')
     cutoff = float(cutoff)
     as_cgo = int(as_cgo)
     state, quiet = int(state), int(quiet)
     if state < 1:
-        state = cmd.get_state()
-    model = cmd.get_model(selection, state)
+        state = _self.get_state()
+    model = _self.get_model(selection, state)
     regions_iter = qdelaunay((a.coord for a in model.atom), 3, len(model.atom),
             qdelaunay_exe=qdelaunay_exe)
     edges = set(tuple(sorted([region[i-1], region[i]]))
@@ -90,7 +90,7 @@ SEE ALSO
         r.append((a,b,co))
 
     if not as_cgo:
-        cmd.load_model(model, name, 1)
+        _self.load_model(model, name, 1)
         return r
 
     from pymol.cgo import CYLINDER
@@ -103,7 +103,7 @@ SEE ALSO
         color = [mm(1-2*co), mm(1-abs(2*co-1)), mm(2*co-1)]
         obj.extend([CYLINDER] + e[0:6] + [0.05] + color + color)
 
-    cmd.load_cgo(obj, name)
+    _self.load_cgo(obj, name)
     return r
 
 cmd.extend('delaunay', delaunay)

@@ -248,15 +248,15 @@ SEE ALSO
     minimize_ob
     '''
     if present:
-        cmd.flag('fix', present, 'set')
-        cmd.flag('fix', selection, 'clear')
+        _self.flag('fix', present, 'set')
+        _self.flag('fix', selection, 'clear')
         selection = '({})|({})'.format(selection, present)
 
     ff = {'mmff': 'MMFF94'}.get(method, method)
     minimize_ob(selection, state, ff, nsteps=50, _self=_self)
 
     if present:
-        cmd.flag('fix', present, 'clear')
+        _self.flag('fix', present, 'clear')
 
 
 cmd.extend('clean_ob', clean_ob)

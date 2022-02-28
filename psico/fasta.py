@@ -11,7 +11,7 @@ import sys
 
 from pymol import cmd
 
-def fasta(selection='(all)', gapped=1, wrap=70, filename='', quiet=1):
+def fasta(selection='(all)', gapped=1, wrap=70, filename='', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -66,7 +66,7 @@ SEE ALSO
         prev.resv = resv
         write(one_letter.get(resn, 'X'))
 
-    cmd.iterate('(%s) & polymer' % (selection),
+    _self.iterate('(%s) & polymer' % (selection),
             '_cb((model, chain), resv, resn)',
             space={'_cb': callback})
 
@@ -78,7 +78,7 @@ SEE ALSO
             print(' Wrote sequence to "%s"' % filename)
         out.close()
 
-def pir(selection='(all)', wrap=70):
+def pir(selection='(all)', wrap=70, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -91,10 +91,10 @@ SEE ALSO
     from . import one_letter
     from chempy import cpv
     wrap = int(wrap)
-    for obj in cmd.get_object_list('(' + selection + ')'):
+    for obj in _self.get_object_list('(' + selection + ')'):
         seq = []
         prev_coord = None
-        model = cmd.get_model('/%s////CA and guide and (%s)' % (obj, selection))
+        model = _self.get_model('/%s////CA and guide and (%s)' % (obj, selection))
         for atom in model.atom:
             if prev_coord is not None and cpv.distance(atom.coord, prev_coord) > 4.0:
                 seq.append('/\n')
@@ -111,7 +111,7 @@ SEE ALSO
         for i in range(0, len(seq), wrap):
             print(''.join(seq[i:i+wrap]))
 
-def save_colored_fasta(filename, selection='(all)', gapped=1, quiet=1):
+def save_colored_fasta(filename, selection='(all)', gapped=1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -133,20 +133,20 @@ DESCRIPTION
         if stored.resv % 70 == 1:
             html.append(('</font>\n<br>%4d <font>' % (resv)).replace(' ', '&nbsp;'))
             stored.color = None
-        c = cmd.get_color_tuple(color)
+        c = _self.get_color_tuple(color)
         color = '#%02x%02x%02x' % tuple(int(0xFF * v) for v in c)
         aa = one_letter.get(resn, '-')
         if color != stored.color:
             html.append('</font><font color="' + color + '">')
             stored.color = color
         html.append(aa)
-    for obj in cmd.get_object_list('(' + selection + ')'):
-        for chain in cmd.get_chains('model %s and (%s)' % (obj, selection)):
+    for obj in _self.get_object_list('(' + selection + ')'):
+        for chain in _self.get_chains('model %s and (%s)' % (obj, selection)):
             sele = 'model %s and chain "%s" and (%s)' % (obj, chain, selection)
             html.append('\n<br>&gt;%s_%s<font>' % (obj, chain))
             stored.resv = None if gapped else 0
             stored.color = None
-            cmd.iterate(sele, 'callback(resv, resn, color)', space=locals())
+            _self.iterate(sele, 'callback(resv, resn, color)', space=locals())
             html.append('</font>')
     handle = open(filename, 'w')
     print('<html><body style="font-family:monospace">', file=handle)

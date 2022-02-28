@@ -7,7 +7,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
  
-def grepset(regexp=''):
+def grepset(regexp='', *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -42,7 +42,7 @@ SEE ALSO
         setting = pymol.setting._get_name(a)
         if regexp.search(setting):
             count += 1
-            matches.append( (setting, cmd.get_setting_text(a, '', -1)) )
+            matches.append( (setting, _self.get_setting_text(a, '', -1)) )
     # max length of the setting names that matched
     maxlen = max([len(s[0]) for s in matches] + [0])
     fmt = "%%-%ds : %%s" % (maxlen,)
@@ -162,7 +162,7 @@ SEE ALSO
         if (func.__module__, func.__name__) == ('pymol.helping', 'python_help'):
             continue
         if func.__module__.startswith(prefix) and hasattr(func, '__doc__'):
-            if cmd.is_string(func.__doc__):
+            if isinstance(func.__doc__, str):
                 ref.append([a, func])
     f = open(filename, 'w')
 

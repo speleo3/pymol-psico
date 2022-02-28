@@ -21,6 +21,15 @@ def test_iterate_state_to_list():
     assert r[3] == approx([0.54543632, -0.97489464, 1.49894345])
 
 
+def test_csp__pymol2():
+    from pymol2 import PyMOL
+    with PyMOL() as p1, PyMOL() as p2:
+        p1.cmd.fab("A/1/ ARKA B/1/ GERD", "m1")
+        p2.cmd.fab("EE", "m1")
+        p2.cmd.fab("DD", "m2")
+        assert psico.querying.csp("m1", _self=p1.cmd) == -2
+        assert psico.querying.csp("m1", "m2", _self=p2.cmd) == 4
+
 
 def test_csp():
     cmd.reinitialize()

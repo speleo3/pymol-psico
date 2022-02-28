@@ -27,7 +27,7 @@ DESCRIPTION
     '''
     return '/ebio/abt1_toolkit/share/wye/databases/pdb/all/pdb%s.ent' % (code.lower())
 
-def fetch(code, name='', type='pdb', quiet=1, **kwargs):
+def fetch(code, name='', type='pdb', quiet=1, *, _self=cmd, **kwargs):
     '''
 PSICO NOTES
 
@@ -67,30 +67,27 @@ PSICO NOTES
             if os.path.exists(filename):
                 if not quiet:
                     print(' Using local mirror: ' + str(filename))
-                cmd.load(filename, name if len(name) else code, **load_kwargs)
+                _self.load(filename, name if len(name) else code, **load_kwargs)
                 code_list.remove(code)
     if len(code_list) > 0:
         return pymol_fetch(' '.join(code_list), name, quiet=quiet, **kwargs)
 fetch.__doc__ += cmd.fetch.__doc__
 
 cath_domains = {}
-def cath_parse_domall(filename=''):
+def cath_parse_domall(filename='', *, _self=cmd):
     ''' 
     Download "CathDomall.seqreschopping" to fetch_path (once), parse it and
     store results in global dict "cath_domains".
     '''
     if filename == '':
-        fetch_path = cmd.get('fetch_path')
+        fetch_path = _self.get('fetch_path')
         if fetch_path == '.':
             import tempfile
             fetch_path = tempfile.gettempdir()
         basename = 'CathDomall.seqreschopping'
         filename = os.path.join(fetch_path, basename)
         if not os.path.exists(filename):
-            try:
-                import urllib2
-            except ImportError:
-                import urllib.request as urllib2
+            import urllib.request as urllib2
             handle = urllib2.urlopen('http://release.cathdb.info/latest/' + basename)
             out = open(filename, 'w')
             out.write(handle.read())
@@ -104,7 +101,7 @@ def cath_parse_domall(filename=''):
             domain.append((domid[4], resi[0], resi[1]))
         cath_domains[domid] = domain
 
-def fetch_cath(code, name='', **kwargs):
+def fetch_cath(code, name='', *, _self=cmd, **kwargs):
     if name == '':
         name = code
     kwargs['async'] = 0
@@ -113,7 +110,7 @@ def fetch_cath(code, name='', **kwargs):
         return r
     if code[5:7] == '00':
         if code[4] != '0':
-            cmd.remove(name + ' and not chain ' + code[4])
+            _self.remove(name + ' and not chain ' + code[4])
     else:
         try:
             if len(cath_domains) == 0:
@@ -126,12 +123,12 @@ def fetch_cath(code, name='', **kwargs):
                 if start and stop:
                     rsele += ' and resi %s-%s' % (start, stop)
                 rsele += ')'
-            cmd.remove(name + ' and not (' + rsele + ')')
+            _self.remove(name + ' and not (' + rsele + ')')
         except:
             print(' Warning: CATH domain resiude range handling failed')
             return -1
 
-def fetch_scop(code, name='', **kwargs):
+def fetch_scop(code, name='', *, _self=cmd, **kwargs):
     if name == '':
         name = code
     kwargs['async'] = 0
@@ -152,12 +149,12 @@ def fetch_scop(code, name='', **kwargs):
                 if start and stop:
                     rsele += ' and resi %s-%s' % (start, stop)
                 rsele += ')'
-            cmd.remove(name + ' and not (' + rsele + ')')
+            _self.remove(name + ' and not (' + rsele + ')')
     except:
         print(' Warning: SCOP domain resiude range handling failed')
         return -1
 
-def fetch_chain(code, name='', **kwargs):
+def fetch_chain(code, name='', *, _self=cmd, **kwargs):
     if name == '':
         name = code
     chain = code[4] if len(code) == 5 else code[5]
@@ -165,9 +162,9 @@ def fetch_chain(code, name='', **kwargs):
     r = fetch(code[:4], name, **kwargs)
     if cmd.is_error(r):
         return r
-    cmd.remove(name + ' and not chain ' + chain)
+    _self.remove(name + ' and not chain ' + chain)
 
-def loadall(pattern, group='', quiet=1, **kwargs):
+def loadall(pattern, group='', quiet=1, *, _self=cmd, **kwargs):
     '''
 DESCRIPTION
 
@@ -178,7 +175,7 @@ DESCRIPTION
     for filename in filenames:
         if not quiet:
             print(' Loading ' + filename)
-        cmd.load(filename, **kwargs)
+        _self.load(filename, **kwargs)
     if len(group):
         if kwargs.get('object', '') != '':
             print(' Warning: group and object arguments given')
@@ -188,9 +185,10 @@ DESCRIPTION
             members = [gz_ext_re.sub('', file_ext_re.sub('',
                 safe_oname_re.sub('_', os.path.split(filename)[-1])))
                 for filename in filenames]
-        cmd.group(group, ' '.join(members))
+        _self.group(group, ' '.join(members))
 
-def load_traj_dcd(filename, object='', state=0, start=1, stop=-1, quiet=1):
+def load_traj_dcd(filename, object='', state=0, start=1, stop=-1, quiet=1,
+        *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -210,12 +208,12 @@ SEE ALSO
 
     if object == '':
         object = os.path.splitext(os.path.basename(filename))[0]
-    if object not in cmd.get_object_list():
+    if object not in _self.get_object_list():
         raise CmdException('must load object topology before loading trajectory')
 
     if state < 1:
-        state = cmd.count_states(object) + 1
-    natom = cmd.count_atoms(object)
+        state = _self.count_states(object) + 1
+    natom = _self.count_atoms(object)
 
     endian = '<'
     handle = open(filename)
@@ -275,10 +273,11 @@ SEE ALSO
         coordset = list(map(list, list(zip(*XYZ))))
         assert len(coordset) == natom
 
-        load_coords(coordset, object, state)
+        _self.load_coords(coordset, object, state)
         state += 1
 
-def load_traj_crd(filename, object='', state=0, box=0, start=1, stop=-1, quiet=1):
+def load_traj_crd(filename, object='', state=0, box=0, start=1, stop=-1,
+        quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -297,11 +296,11 @@ SEE ALSO
     start, stop = int(start), int(stop)
     if object == '':
         object = os.path.splitext(os.path.basename(filename))[0]
-    if object not in cmd.get_object_list():
+    if object not in _self.get_object_list():
         raise CmdException('must load object topology before loading trajectory')
     if state < 1:
-        state = cmd.count_states(object) + 1
-    natom = cmd.count_atoms(object)
+        state = _self.count_states(object) + 1
+    natom = _self.count_atoms(object)
     line_it = iter(open(filename))
     next(line_it) # skip title
     def crd_coord_iter():
@@ -355,7 +354,7 @@ SEE ALSO
         coordset = [[next(coord_it), next(coord_it), next(coord_it)]
                 for _ in range(natom)]
         if frame >= start:
-            load_coords(coordset, object, state)
+            _self.load_coords(coordset, object, state)
             state += 1
         if stop > 0 and frame == stop:
             break
@@ -558,11 +557,11 @@ DESCRIPTION
             bnd.index = [i, s2i[o]]
             model.add_bond(bnd)
 
-    cmd.load_model(model, object, 1)
-    cmd.show_as('lines', object)
-    cmd.spectrum('b', 'rainbow', object)
+    _self.load_model(model, object, 1)
+    _self.show_as('lines', object)
+    _self.spectrum('b', 'rainbow', object)
 
-def set_raw_alignment(name, aln, transform=0, guide=''):
+def set_raw_alignment(name, aln, transform=0, guide='', *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -575,14 +574,14 @@ SEE ALSO
     cmd.set_raw_alignment in PyMOL 2.3
     '''
     if hasattr(cmd, 'set_raw_alignment') and not int(transform):
-        return cmd.set_raw_alignment(name, aln, guide=guide)
+        return _self.set_raw_alignment(name, aln, guide=guide)
 
     if not isinstance(aln[0], dict):
         aln = [dict(idx_pair) for idx_pair in aln]
     models = set(model for idx_pdict in aln for model in idx_pdict)
-    sele1 = cmd.get_unused_name('_sele1')
-    sele2 = cmd.get_unused_name('_sele2')
-    fit = cmd.fit if transform else cmd.rms_cur
+    sele1 = _self.get_unused_name('_sele1')
+    sele2 = _self.get_unused_name('_sele2')
+    fit = _self.fit if transform else _self.rms_cur
 
     if guide:
         models.remove(guide)
@@ -597,14 +596,14 @@ SEE ALSO
             if model1 in idx_pdict and model2 in idx_pdict:
                 index_list1.append(idx_pdict[model1])
                 index_list2.append(idx_pdict[model2])
-        cmd.select_list(sele1, model1, index_list1, mode='index')
-        cmd.select_list(sele2, model2, index_list2, mode='index')
+        _self.select_list(sele1, model1, index_list1, mode='index')
+        _self.select_list(sele2, model2, index_list2, mode='index')
         fit(sele1, sele2, cycles=0, matchmaker=4, object=name)
-    cmd.delete(sele1)
-    cmd.delete(sele2)
+    _self.delete(sele1)
+    _self.delete(sele2)
 
 def load_aln(filename, object=None, mobile=None, target=None, mobile_id=None,
-        target_id=None, format='', transform=0, quiet=1):
+        target_id=None, format='', transform=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -654,14 +653,14 @@ EXAMPLE
     if target is None: target = target_record.id
 
     try:
-        mobile_obj = cmd.get_object_list('(' + mobile + ')')[0]
-        target_obj = cmd.get_object_list('(' + target + ')')[0]
+        mobile_obj = _self.get_object_list('(' + mobile + ')')[0]
+        target_obj = _self.get_object_list('(' + target + ')')[0]
     except:
         raise CmdException('selection "%s" or "%s" does not exist' % (mobile, target))
 
     # get structure models and sequences
-    mobile_model = cmd.get_model('(%s) and guide' % mobile)
-    target_model = cmd.get_model('(%s) and guide' % target)
+    mobile_model = _self.get_model('(%s) and guide' % mobile)
+    target_model = _self.get_model('(%s) and guide' % target)
     mobile_sequence = ''.join(one_letter.get(a.resn, 'X') for a in mobile_model.atom)
     target_sequence = ''.join(one_letter.get(a.resn, 'X') for a in target_model.atom)
 
@@ -688,7 +687,7 @@ EXAMPLE
     set_raw_alignment(object, r, int(transform))
     return r
 
-def load_gro(filename, object='', state=-1, quiet=1, zoom=-1):
+def load_gro(filename, object='', state=-1, quiet=1, zoom=-1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -763,10 +762,10 @@ DESCRIPTION
     stream.close()
     pdb.extend(['END', ''])
 
-    cmd.read_pdbstr('\n'.join(pdb), object, int(state), quiet=int(quiet), zoom=int(zoom))
-    cmd.alter(object, '(ID,resi,segi) = (ID+100000*int(segi[:2]),resv+10000*int(segi[2:]),"")')
+    _self.read_pdbstr('\n'.join(pdb), object, int(state), quiet=int(quiet), zoom=int(zoom))
+    _self.alter(object, '(ID,resi,segi) = (ID+100000*int(segi[:2]),resv+10000*int(segi[2:]),"")')
 
-def load_coords(coords, object, state, quiet=1):
+def load_coords(coords, object, state, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -777,19 +776,12 @@ DESCRIPTION
 SEE ALSO
 
     cmd.load_coordset (new in 1.7.3.0)
-    pymol.experimenting.load_coords (considered broken!)
     '''
-    if hasattr(cmd, 'load_coordset'):
-        return cmd.load_coordset(coords, object, int(state))
+    return _self.load_coordset(coords, object, int(state))
 
-    if not (isinstance(coords, list) and isinstance(coords[0], list)):
-        coords = list(map(list, coords))
-    r = cmd._cmd.load_coords(cmd._COb, object, coords, int(state)-1,
-            cmd.loadable.model)
-    if cmd._raising(r): raise CmdException
-    return r
 
-def load_mtz(filename, prefix='', maptypes='FoFc 2FoFc', multistate=0, quiet=1):
+def load_mtz(filename, prefix='', maptypes='FoFc 2FoFc', multistate=0,
+        quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -822,10 +814,10 @@ USAGE
 
         name = prefix + '.' + maptype
         if not multistate:
-            cmd.delete(name)
+            _self.delete(name)
 
-        cmd.map_generate(name, filename, F, P, 'None', 0, 0, quiet)
-        if name not in cmd.get_names('objects'):
+        _self.map_generate(name, filename, F, P, 'None', 0, 0, quiet)
+        if name not in _self.get_names('objects'):
             print(' Error: Loading %s map failed.' % (maptype))
             raise CmdException('This PyMOL version might not be capable of loading MTZ files')
 

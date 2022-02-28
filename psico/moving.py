@@ -11,7 +11,7 @@ def _assert_package_import():
     if not __name__.endswith('.moving'):
         raise CmdException("Must do 'import psico.moving' instead of 'run ...'")
 
-def frames2states(selection, specification):
+def frames2states(selection, specification, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -25,15 +25,16 @@ EXAMPLE
     # reverse state order just for 1nmr
     frames2states 1nmr, 1:20 20:1
     '''
-    names = cmd.get_object_list('(' + selection + ')')
+    names = _self.get_object_list('(' + selection + ')')
     for x in specification.split():
         frame, state = x.split(':')
-        cmd.frame(int(frame))
+        _self.frame(int(frame))
         for name in names:
-            cmd.mview('store', object=name, state=int(state))
+            _self.mview('store', object=name, state=int(state))
 
 def save_movie_mpeg1(filename, mode='', first=0, last=0, preserve=0,
-        fps=25, twopass=1, vbitrate=16000, quiet=1, exe='mencoder'):
+        fps=25, twopass=1, vbitrate=16000, quiet=1, exe='mencoder',
+        *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -70,10 +71,10 @@ SEE ALSO
     first, last, quiet = int(first), int(last), int(quiet)
     fps, twopass, vbitrate = int(fps), int(twopass), int(vbitrate)
 
-    if cmd.is_string(mode):
+    if isinstance(mode, str):
         if mode == '':
-            if cmd.pymol.invocation.options.no_gui \
-                    or cmd.get_setting_boolean('ray_trace_frames'):
+            if _self.pymol.invocation.options.no_gui \
+                    or _self.get_setting_boolean('ray_trace_frames'):
                 mode = 'ray'
             else:
                 mode = 'draw'
@@ -91,7 +92,7 @@ SEE ALSO
 
     tmp_path = tempfile.mkdtemp()
     prefix = os.path.join(tmp_path, 'frame')
-    cmd.mpng(prefix, first, last, preserve, mode=mode)
+    _self.mpng(prefix, first, last, preserve, mode=mode)
 
     mpeg1line = '-mf type=png:fps=%d -ovc lavc -forceidx -noskip -of rawvideo' \
             + ' -mpegopts format=mpeg1 -lavcopts vcodec=mpeg1video:vbitrate=%d' \
@@ -122,7 +123,7 @@ SEE ALSO
     if not quiet:
         print(' save_movie: Done')
 
-def matrix_to_ttt(names, reverse=0, state=-1, quiet=1):
+def matrix_to_ttt(names, reverse=0, state=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -134,25 +135,25 @@ DESCRIPTION
     from . import querying
     reverse, state, quiet = int(reverse), int(state), int(quiet)
     ostate = state
-    for object in cmd.get_object_list('(' + names + ')'):
+    for object in _self.get_object_list('(' + names + ')'):
         if ostate < 1:
-            state = querying.get_object_state(object)
-        matrix = cmd.get_object_matrix(object, state)
-        for i in range(cmd.count_states(object)):
-            cmd.matrix_reset(object, i+1)
+            state = querying.get_object_state(object, _self=_self)
+        matrix = _self.get_object_matrix(object, state)
+        for i in range(_self.count_states(object)):
+            _self.matrix_reset(object, i+1)
         if reverse:
-            cmd.reset(object)
-            cmd.transform_object(object, matrix, homogenous=1)
+            _self.reset(object)
+            _self.transform_object(object, matrix, homogenous=1)
         else:
-            cmd.set_object_ttt(object, matrix)
+            _self.set_object_ttt(object, matrix)
 
-def get_keyframes(quiet=1):
+def get_keyframes(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Get the list of camera keyframes for the current movie.
     '''
-    s = cmd.get_session("none")
+    s = _self.get_session("none")
     viewelem_list = s["movie"][6]
     if not viewelem_list:
         return []
@@ -161,72 +162,72 @@ DESCRIPTION
         print(r)
     return r
 
-def get_closest_keyframe():
+def get_closest_keyframe(*, _self=cmd):
     '''
     Get the closest movie keyframe, or None if no keyframes defined.
     '''
-    keyframes = get_keyframes()
+    keyframes = get_keyframes(_self=_self)
     if not keyframes:
         return None
-    current = cmd.get_frame()
+    current = _self.get_frame()
     return min(keyframes, key=lambda i: abs(i - current))
 
-def closest_keyframe(quiet=1):
+def closest_keyframe(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Jump to the closest movie keyframe.
     '''
-    r = get_closest_keyframe()
+    r = get_closest_keyframe(_self=_self)
     if r is not None:
-        cmd.frame(r)
+        _self.frame(r)
     if not int(quiet):
         print(' Closest Keyframe: ' + str(r))
     return r
 
-def next_keyframe(quiet=1):
+def next_keyframe(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Jump to the next movie keyframe.
     '''
-    keyframes = get_keyframes()
-    current = cmd.get_frame()
+    keyframes = get_keyframes(_self=_self)
+    current = _self.get_frame()
     keyframes = [i for i in keyframes if i > current]
     if keyframes:
         r = keyframes[0]
-        cmd.frame(r)
+        _self.frame(r)
     else:
         r = None
     if not int(quiet):
         print(' Next Keyframe: ' + str(r))
     return r
 
-def prev_keyframe(quiet=1):
+def prev_keyframe(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Jump to the previous movie keyframe.
     '''
-    keyframes = get_keyframes()
-    current = cmd.get_frame()
+    keyframes = get_keyframes(_self=_self)
+    current = _self.get_frame()
     keyframes = [i for i in keyframes if i < current]
     if keyframes:
         r = keyframes[-1]
-        cmd.frame(r)
+        _self.frame(r)
     else:
         r = None
     if not int(quiet):
         print(' Previous Keyframe: ' + str(r))
     return r
 
-def get_mdo_commands(quiet=1):
+def get_mdo_commands(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Get the list of mdo commands.
     '''
-    s = cmd.get_session("none")
+    s = _self.get_session("none")
     commands = s["movie"][5] or []
     if not int(quiet):
         for frame, command in enumerate(commands, 1):
@@ -234,15 +235,15 @@ DESCRIPTION
                 print('mdo {}: {}'.format(frame, command.strip(';')))
     return commands
 
-def dump_mviews():
+def dump_mviews(*, _self=cmd):
     '''
 DESCRIPTION
 
     Dump the current movie as 'set_view' with 'mview store' commands.
     '''
-    for frame in get_keyframes() or ():
-        cmd.frame(frame)
-        print(cmd.get_view(3).strip())
+    for frame in get_keyframes(_self=_self) or ():
+        _self.frame(frame)
+        print(_self.get_view(3).strip())
         print('mview store, {}'.format(frame))
 
 cmd.extend('frames2states', frames2states)

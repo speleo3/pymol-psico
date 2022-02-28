@@ -6,7 +6,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-def save_xyzr(filename, selection='all', state=1, _colorsout=None):
+def save_xyzr(filename, selection='all', state=1, _colorsout=None, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -25,13 +25,13 @@ DESCRIPTION
 
     handle = open(filename, 'w')
     try:
-        cmd.iterate_state(state, selection, expr, space={
+        _self.iterate_state(state, selection, expr, space={
             'callback': lambda *args: handle.write(fmt % args),
             '_colorsout': _colorsout})
     finally:
         handle.close()
 
-def load_msms_surface(filename, name='', _colors=None):
+def load_msms_surface(filename, name='', _colors=None, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -41,7 +41,7 @@ DESCRIPTION
     from pymol.cgo import NORMAL, VERTEX, COLOR
 
     if _colors:
-        _colors = [cmd.get_color_tuple(c) for c in _colors]
+        _colors = [_self.get_color_tuple(c) for c in _colors]
 
     if filename.endswith('.vert') or filename.endswith('.face'):
         filename = filename[:-5]
@@ -88,16 +88,16 @@ DESCRIPTION
     cgobuf.append(cgo.END)
 
     if not name:
-        name = cmd.get_unused_name('msmssurf')
+        name = _self.get_unused_name('msmssurf')
 
-    cmd.load_cgo(cgobuf, name)
+    _self.load_cgo(cgobuf, name)
 
-def _get_solvent_radius(selection, state):
+def _get_solvent_radius(selection, state, *, _self=cmd):
     '''Get object-state level solvent_radius'''
     radius = [None]
 
     try:
-        cmd.iterate_state(state,
+        _self.iterate_state(state,
             'first ({})'.format(selection),
             'radius[0] = s.solvent_radius',
             space=locals())
@@ -109,10 +109,10 @@ def _get_solvent_radius(selection, state):
     except:
         print('Using global solvent_radius')
 
-    return cmd.get('solvent_radius')
+    return _self.get('solvent_radius')
 
 def msms_surface(selection='polymer', state=1, density=3, name='',
-        atomcolors=0, exe='msms', preserve=0, quiet=1):
+        atomcolors=0, exe='msms', preserve=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -155,7 +155,7 @@ EXAMPLE
     tmp_of = os.path.join(tmpdir, 'xxxx')
 
     try:
-        save_xyzr(tmp_if, selection, state, _colorsout=colors)
+        save_xyzr(tmp_if, selection, state, _colorsout=colors, _self=_self)
 
         subprocess.check_call([exe,
             '-density', str(density),
@@ -163,10 +163,10 @@ EXAMPLE
             '-if', tmp_if,
             '-of', tmp_of,
             '-no_area',
-            '-probe_radius', _get_solvent_radius(selection, state),
+            '-probe_radius', _get_solvent_radius(selection, state, _self=_self),
             ], cwd=tmpdir)
 
-        load_msms_surface(tmp_of, name, colors)
+        load_msms_surface(tmp_of, name, colors, _self=_self)
 
     except OSError:
         raise CmdException('Cannot execute exe=' + exe)
@@ -177,7 +177,7 @@ EXAMPLE
             print(' Notice: not deleting ' + tmpdir)
 
 def atmtypenumbers(filename='atmtypenumbers', selection='all', united=1,
-        quiet=1):
+        quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -202,7 +202,7 @@ EXAMPLE
     quiet = int(quiet)
 
     if (united and not quiet and
-            cmd.count_atoms('(%s) and hydro' % (selection))):
+            _self.count_atoms('(%s) and hydro' % (selection))):
         print(" Warning: united=1 but found hydrogens in selection")
 
     types = {}
@@ -248,9 +248,9 @@ EXAMPLE
             print(" Warning: no match for '%s/%s'" % (resn, name))
         return vdw
 
-    cmd.alter(selection, 'vdw = callback(resn, name, vdw)',
+    _self.alter(selection, 'vdw = callback(resn, name, vdw)',
             space={'callback': callback})
-    cmd.rebuild(selection)
+    _self.rebuild(selection)
 
 cmd.extend('save_xyzr', save_xyzr)
 cmd.extend('load_msms_surface', load_msms_surface)

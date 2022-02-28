@@ -8,7 +8,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
-def nice(selection='(all)', simple=1e5):
+def nice(selection='(all)', simple=1e5, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -24,17 +24,17 @@ USAGE
     nice [ selection ]
     '''
     simple = int(simple)
-    cmd.util.cbc(selection)
-    cmd.color('atomic', '(%s) and not elem C' % (selection))
-    if simple and cmd.count_atoms(selection) >= simple:
-        cmd.show_as('ribbon', selection)
-        cmd.show_as('lines', '(%s) and organic' % (selection))
-        cmd.show_as('nonbonded', '(%s) and inorganic' % (selection))
+    _self.util.cbc(selection)
+    _self.color('atomic', '(%s) and not elem C' % (selection))
+    if simple and _self.count_atoms(selection) >= simple:
+        _self.show_as('ribbon', selection)
+        _self.show_as('lines', '(%s) and organic' % (selection))
+        _self.show_as('nonbonded', '(%s) and inorganic' % (selection))
     else:
-        cmd.show_as('cartoon', selection)
-        cmd.show_as('sticks', '(%s) and organic' % (selection))
-        cmd.show_as('spheres', '(%s) and inorganic' % (selection))
-        cmd.show_as('nonbonded', '(%s) and solvent' % (selection))
+        _self.show_as('cartoon', selection)
+        _self.show_as('sticks', '(%s) and organic' % (selection))
+        _self.show_as('spheres', '(%s) and inorganic' % (selection))
+        _self.show_as('nonbonded', '(%s) and solvent' % (selection))
 
 def get_color_family(color):
     '''
@@ -57,7 +57,7 @@ DESCRIPTION
         raise CmdException(repr(color))
     return colors
 
-def cbm(selection='all', first_color=2):
+def cbm(selection='all', first_color=2, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -73,15 +73,15 @@ USAGE
         col_it = itertools.cycle(colors)
     else:
         col_it = itertools.count(int(first_color))
-    for model in cmd.get_object_list('(' + selection + ')'):
+    for model in _self.get_object_list('(' + selection + ')'):
         col = next(col_it)
         if selection in ['*', 'all']:
             # explicit model coloring for cmd.get_object_color_index to work
-            cmd.color(col, model)
+            _self.color(col, model)
         else:
-            cmd.color(col, '%s and (%s)' % (model, selection))
+            _self.color(col, '%s and (%s)' % (model, selection))
 
-def cbs(selection='all', first_color=2, quiet=1):
+def cbs(selection='all', first_color=2, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -98,8 +98,8 @@ DESCRIPTION
         if segi not in segi_colors:
             segi_colors[segi] = next(col_it)
         return segi_colors[segi]
-    cmd.alter(selection, 'color = callback(segi)', space=locals())
-    cmd.rebuild()
+    _self.alter(selection, 'color = callback(segi)', space=locals())
+    _self.rebuild()
 
 expression_sc = cmd.Shortcut([
     'count',
@@ -109,7 +109,7 @@ expression_sc = cmd.Shortcut([
     'pc',
 ])
 
-def spectrumany(expression, color_list, selection='(all)', minimum=None, maximum=None, quiet=1):
+def spectrumany(expression, color_list, selection='(all)', minimum=None, maximum=None, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -146,7 +146,7 @@ SEE ALSO
         print('failed! please provide at least 2 colors')
         return
 
-    colvec = [cmd.get_color_tuple(i) for i in colors]
+    colvec = [_self.get_color_tuple(i) for i in colors]
     parts = len(colvec) - 1
 
     expression = {'pc': 'partial_charge', 'fc': 'formal_charge',
@@ -154,13 +154,13 @@ SEE ALSO
     minmax_expr = {'resi': 'resv'}.get(expression, expression)
     discrete_expr = ['index', 'resi']
 
-    if cmd.count_atoms(selection) == 0:
+    if _self.count_atoms(selection) == 0:
         print('empty selection')
         return
 
     if None in [minimum, maximum]:
         e_list = list()
-        cmd.iterate(selection, 'e_list.append(%s)' % (minmax_expr), space=locals())
+        _self.iterate(selection, 'e_list.append(%s)' % (minmax_expr), space=locals())
         if minimum is None:
             minimum = min(e_list)
         if maximum is None:
@@ -177,7 +177,7 @@ SEE ALSO
         val_range = int(maximum - minimum + 1)
     else:
         val_range = maximum - minimum
-        cmd.color(colors[0], selection)
+        _self.color(colors[0], selection)
 
     steps = 60 // parts
     steps_total = steps * parts
@@ -190,14 +190,14 @@ SEE ALSO
             col_name = '0x%02x%02x%02x' % tuple(int(0xFF * v) for v in col_list)
             val_end = val_range * (i + 1 + p * steps) // steps_total + minimum
             if expression in discrete_expr:
-                cmd.color(col_name, '(%s) and %s %d-%d' % (selection, expression, val_start, val_end))
+                _self.color(col_name, '(%s) and %s %d-%d' % (selection, expression, val_start, val_end))
             else:
-                cmd.color(col_name, '(%s) and %s > %f' % (selection, expression, val_start))
+                _self.color(col_name, '(%s) and %s > %f' % (selection, expression, val_start))
             val_start = val_end
 
 def spectrum_states(selection='all', representations='cartoon ribbon',
         color_list='blue cyan green yellow orange red',
-        first=1, last=0, quiet=1):
+        first=1, last=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -231,7 +231,7 @@ SEE ALSO
     if len(colors) < 2:
         raise CmdException('please provide at least 2 colors')
 
-    colvec = [cmd.get_color_tuple(i) for i in colors]
+    colvec = [_self.get_color_tuple(i) for i in colors]
 
     # filter for valid <repr>_color settings
     settings = []
@@ -239,18 +239,18 @@ SEE ALSO
         if r[-1] == 's':
             r = r[:-1]
         s = r + '_color'
-        if s in cmd.setting.name_list:
+        if s in _self.setting.name_list:
             settings.append(s)
         elif not quiet:
             print(' Warning: no such setting: ' + repr(s))
 
     # object names only
-    selection = ' '.join(cmd.get_object_list('(' + selection + ')'))
-    if cmd.count_atoms(selection) == 0:
+    selection = ' '.join(_self.get_object_list('(' + selection + ')'))
+    if _self.count_atoms(selection) == 0:
         raise CmdException('empty selection')
 
     if last < 1:
-        last = cmd.count_states(selection)
+        last = _self.count_states(selection)
 
     val_range = int(last - first + 1)
     if val_range < 2:
@@ -263,7 +263,7 @@ SEE ALSO
         col_list = [colvec[p1][j] * ii + colvec[p0][j] * (1.0 - ii) for j in range(3)]
         col_name = '0x%02x%02x%02x' % tuple(int(0xFF * v) for v in col_list)
         for s in settings:
-            cmd.set(s, col_name, selection, state=i+first)
+            _self.set(s, col_name, selection, state=i+first)
 
 class scene_preserve(object):
     '''
@@ -271,30 +271,31 @@ DESCRIPTION
 
     API only. Context manager to restore the current scene on exit.
     '''
-    def __init__(self, **kwargs):
+    def __init__(self, *, _self=cmd, **kwargs):
+        self._self = _self
         self.kwargs = kwargs
     def __enter__(self):
         import random
         self.name = 'tmp_%d' % (random.randint(0, 1e8))
-        cmd.scene(self.name, 'store', **self.kwargs)
+        self._self.scene(self.name, 'store', **self.kwargs)
     def __exit__(self, type, value, traceback):
-        cmd.scene(self.name, 'recall')
-        cmd.scene(self.name, 'delete')
+        self._self.scene(self.name, 'recall')
+        self._self.scene(self.name, 'delete')
 
 
-def goodsell_lighting():
+def goodsell_lighting(*, _self=cmd):
     """
 DESCRIPTION
 
     Mostly flat lighting, similar to the famous illustrations by David
     Goodsell. Works well with spheres representation.
     """
-    cmd.set("ambient", 0.6)
-    cmd.set("direct", 0.6)
-    cmd.set("reflect", 0.1)
-    cmd.set("shininess", 60.0)
-    cmd.set("ray_shadow", 'off')
-    cmd.set("specular_intensity", 0.0)
+    _self.set("ambient", 0.6)
+    _self.set("direct", 0.6)
+    _self.set("reflect", 0.1)
+    _self.set("shininess", 60.0)
+    _self.set("ray_shadow", 'off')
+    _self.set("specular_intensity", 0.0)
 
 
 # commands

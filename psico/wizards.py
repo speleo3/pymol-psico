@@ -17,12 +17,12 @@ class Sspick(Wizard):
 
     def __init__(self, _self=cmd):
 
-        cmd.unpick();
+        _self.unpick();
         Wizard.__init__(self, _self)
 
-        self.mouse_selection_mode = cmd.get_setting_int('mouse_selection_mode')
-        cmd.set('mouse_selection_mode',0) # set selection mode to atomic
-        cmd.deselect() # disable the active selection (if any)
+        self.mouse_selection_mode = _self.get_setting_int('mouse_selection_mode')
+        _self.set('mouse_selection_mode',0) # set selection mode to atomic
+        _self.deselect() # disable the active selection (if any)
 
         self.error = None
         self.selection_mode = 1 if self.mouse_selection_mode == 6 else 0
@@ -41,7 +41,7 @@ class Sspick(Wizard):
 
     def set_mode(self, i):
         self.selection_mode = i
-        cmd.refresh_wizard()
+        self.cmd.refresh_wizard()
 
     def get_panel(self):
         return [
@@ -51,7 +51,7 @@ class Sspick(Wizard):
             ]
 
     def cleanup(self):
-        cmd.set('mouse_selection_mode', self.mouse_selection_mode)
+        self.cmd.set('mouse_selection_mode', self.mouse_selection_mode)
 
     def get_prompt(self):
         self.prompt = ['Pick an atom']
@@ -61,15 +61,15 @@ class Sspick(Wizard):
 
     def do_select(self, name): # map selects into picks
         from .selecting import select_sspick
-        if self.name not in cmd.get_names('selections', enabled_only=1):
-            self.name = cmd.get_unused_name('ss')
-        select_sspick(name, self.name, self.selection_mode)
-        cmd.enable(self.name)
-        cmd.refresh_wizard()
+        if self.name not in self.cmd.get_names('selections', enabled_only=1):
+            self.name = self.cmd.get_unused_name('ss')
+        select_sspick(name, self.name, self.selection_mode, _self=_self)
+        self.cmd.enable(self.name)
+        self.cmd.refresh_wizard()
 
     def do_pick(self, bondFlag):
         self.do_select('(pk1)')
-        cmd.unpick()
+        self.cmd.unpick()
 
 # enabling wizards with the "wizard" command is a bit ugly...
 

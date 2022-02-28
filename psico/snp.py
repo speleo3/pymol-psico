@@ -17,7 +17,7 @@ from pymol import cmd, CmdException
 # Email for Entrez connections
 emailaddress = "pymol@psico.snp"
 
-def snp_common(record, selection, label, name, quiet):
+def snp_common(record, selection, label, name, quiet, *, _self=cmd):
     '''
     Common part of snp_uniprot and snp_ncbi.
     Argument `record' must be a Bio.SwissProt.Record object with `sequence',
@@ -28,8 +28,8 @@ def snp_common(record, selection, label, name, quiet):
 
     label = int(label)
     quiet = int(quiet)
-    pdbids = cmd.get_object_list(selection)
-    chains = cmd.get_chains(selection)
+    pdbids = _self.get_object_list(selection)
+    chains = _self.get_chains(selection)
 
     if len(pdbids) != 1:
         print('please select one object')
@@ -42,7 +42,7 @@ def snp_common(record, selection, label, name, quiet):
     for chain in chains:
         print('chain ' + chain)
         res_list = []
-        cmd.iterate('(%s) and chain %s and name CA' % (selection, chain),
+        _self.iterate('(%s) and chain %s and name CA' % (selection, chain),
                 'res_list.append((resn,resv))', space=locals())
         seq = ''.join([one_letter.get(res[0], 'X') for res in res_list])
         align = needle_alignment(record.sequence, seq)
@@ -70,17 +70,17 @@ def snp_common(record, selection, label, name, quiet):
 
     for chain, resi in labels:
         lab = ', '.join(labels[(chain, resi)])
-        cmd.label('(%s) and chain %s and resi %d and name CA' % (selection, chain, resi), repr(lab))
+        _self.label('(%s) and chain %s and resi %d and name CA' % (selection, chain, resi), repr(lab))
 
     if len(snpi_str) == 0:
         print('no missense variants')
         return
 
     if name == '':
-        name = cmd.get_unused_name('nsSNPs')
-    cmd.select(name, '(%s) and (%s)' % (selection, ' or '.join(snpi_str)))
+        name = _self.get_unused_name('nsSNPs')
+    _self.select(name, '(%s) and (%s)' % (selection, ' or '.join(snpi_str)))
 
-def snp_uniprot(uniprotname, selection='(all)', label=1, name='', quiet=0):
+def snp_uniprot(uniprotname, selection='(all)', label=1, name='', quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -115,9 +115,9 @@ SEE ALSO
     from Bio import SwissProt
     handle = ExPASy.get_sprot_raw(uniprotname)
     record = SwissProt.read(handle)
-    snp_common(record, selection, label, name, quiet)
+    snp_common(record, selection, label, name, quiet, _self=_self)
 
-def snp_ncbi(query, selection='(all)', label=1, name='', quiet=0):
+def snp_ncbi(query, selection='(all)', label=1, name='', quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -208,7 +208,7 @@ SEE ALSO
     record.entry_name = seq.id
     record.sequence = str(seq.seq)
     record.features = sorted(features)
-    snp_common(record, selection, label, name, quiet)
+    snp_common(record, selection, label, name, quiet, _self=_self)
 
 cmd.extend('snp_uniprot', snp_uniprot)
 cmd.extend('snp_ncbi', snp_ncbi)
