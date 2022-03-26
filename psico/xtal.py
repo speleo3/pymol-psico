@@ -40,7 +40,7 @@ DESCRIPTION
 
 USAGE
 
-    supercell a, b, c [, object [, color [, name [, withmates]]]]
+    supercell a, b, c [, object [, color [, name [, withmates [, prefix]]]]]
 
 ARGUMENTS
 
@@ -55,6 +55,8 @@ ARGUMENTS
 
     withmates = bool: also create symmetry mates in displayed cells
     {default: 1}
+    
+    prefix = string: prefix for names of symmetry mates {default: m}
 
 SEE ALSO
 
