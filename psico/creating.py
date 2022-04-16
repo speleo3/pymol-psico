@@ -177,9 +177,9 @@ SEE ALSO
     return _self.ramp_update(name, levels, quiet=quiet)
 
 
-def pdb2pqr(name, selection='all', ff='amber', debump=1, opt=1, assignonly=0,
+def pdb2pqr(name, selection='all', ff='AMBER', debump=1, opt=1, assignonly=0,
         ffout='', ph=None, neutraln=0, neutralc=0, state=-1, preserve=0,
-        exe='pdb2pqr', quiet=1, *, _self=cmd):
+        exe='pdb2pqr30', quiet=1, *, keep_chain=1, _self=cmd):
     '''
 DESCRIPTION
 
@@ -199,7 +199,7 @@ ARGUMENTS
 
     selection = string: atoms to include in the new object {default: all}
 
-    ff = string: forcefield {default: amber}
+    ff = string: forcefield {default: AMBER}
     '''
     import os, tempfile, subprocess, shutil
 
@@ -207,7 +207,9 @@ ARGUMENTS
     neutraln, neutralc = int(neutraln), int(neutralc)
     state, preserve, quiet = int(state), int(preserve), int(quiet)
 
-    args = [cmd.exp_path(exe), '--ff=' + ff, '--chain']
+    args = [cmd.exp_path(exe), '--ff=' + ff]
+    if int(keep_chain):
+        args.append('--keep-chain')
     if not debump:
         args.append('--nodebump')
     if not opt:
@@ -222,8 +224,6 @@ ARGUMENTS
         args.append('--neutraln')
     if neutralc:
         args.append('--neutralc')
-    if not quiet:
-        args.append('--verbose')
 
     tmpdir = tempfile.mkdtemp()
     infile = os.path.join(tmpdir, 'in.pdb')
@@ -504,7 +504,7 @@ cmd.auto_arg[1].update([
 ])
 cmd.auto_arg[2].update([
     ('sidechaincenters', [cmd.Shortcut(sidechaincentermethods), 'method', '']),
-    ('pdb2pqr', [cmd.Shortcut(['amber', 'charmm', 'parse', 'tyl06']), 'forcefield', '']),
+    ('pdb2pqr', [cmd.Shortcut(['AMBER', 'CHARMM', 'PARSE', 'TYL06']), 'forcefield', '']),
 ])
 
 # vi: ts=4:sw=4:smarttab:expandtab
