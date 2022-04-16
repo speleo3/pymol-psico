@@ -215,7 +215,7 @@ class MatrixRecord(Record):
         self.rows = dict()
         self.cols = dict()
     def extend(self, row):
-        self.index.append(row)
+        self.index.append(list(row))
     def _get(self, aai, aaj):
         i = self.rows[aai]
         j = self.cols[aaj]
