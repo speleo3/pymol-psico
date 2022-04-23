@@ -514,6 +514,35 @@ DESCRIPTION
     _self.save(filename, selection, *args, **kwargs)
     if v: _self.set('pdb_use_ter_records')
 
+
+def get_grostr(selection="all", state=-1, *, _self=cmd):
+    """
+DESCRIPTION
+
+    Save a Gromacs .gro file.
+    """
+    from chempy import cpv
+    buffer = ["Created with PSICO", None]
+    total = [0]
+    _self.iterate_state(
+        state,
+        selection, "total[0] += 1;"
+        "buffer.append(f'{resv:5}{resn:5}{name:>5}{total[0]:5}{x/10:8.3f}{y/10:8.3f}{z/10:8.3f}')",
+        space={
+            "buffer": buffer,
+            "total": total
+        })
+    buffer[1] = f"{total[0]:5}"
+
+    sym = cmd.get_symmetry(f"first ({selection})")
+    a, b, c = sym[:3] if sym else cpv.sub(
+        *reversed(_self.get_extent(selection)))
+
+    buffer.append(f"{(a)/10:10.5f} {(b)/10:9.5f} {(c)/10:9.5f}")
+    buffer.append("")
+    return "\n".join(buffer)
+
+
 ## pymol command stuff
 
 try:
@@ -522,6 +551,7 @@ try:
         _savefunctions.setdefault(_ext, save_mdtraj)
     for _ext in ['trj', 'crd']:
         _savefunctions.setdefault(_ext, save_traj)
+    _savefunctions.setdefault("gro", get_grostr)
 except ImportError:
     pass
 

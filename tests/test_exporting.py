@@ -57,6 +57,22 @@ def test_save_pdb_without_ter(tmp_path):
     assert content.count("ATOM") == 26
 
 
+def test_get_grostr():
+    cmd.reinitialize()
+    orig = (DATA_PATH / 'ala-cys-asp.gro').read_text()
+    cmd.load_raw(orig, "gro", "m1")
+    grostr = psico.exporting.get_grostr()
+    # ignore first line (title)
+    assert orig.splitlines()[1:] == grostr.splitlines()[1:]
+
+
+def test_get_grostr__dims_from_extent():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    grostr = psico.exporting.get_grostr()
+    assert grostr.splitlines()[-1] == "   0.26170   0.23123   0.29780"
+
+
 # def get_pdb_sss(selection='(all)', state=-1, quiet=1):
 # def get_pdb_seqres(selection='all', quiet=1):
 # def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0, seqres=0, quiet=1):
