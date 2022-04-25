@@ -59,8 +59,9 @@ def test_save_pdb_without_ter(tmp_path):
 
 def test_get_grostr():
     cmd.reinitialize()
-    orig = (DATA_PATH / 'ala-cys-asp.gro').read_text()
-    cmd.load_raw(orig, "gro", "m1")
+    filename = DATA_PATH / 'ala-cys-asp.gro'
+    orig = filename.read_text()
+    cmd.load(filename, "m1")
     grostr = psico.exporting.get_grostr()
     # ignore first line (title)
     assert orig.splitlines()[1:] == grostr.splitlines()[1:]
