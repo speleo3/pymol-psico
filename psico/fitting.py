@@ -11,6 +11,10 @@ from pymol import cmd, CmdException
 
 from .mcsalign import mcsalign
 
+ALL_STATES = 0
+CURRENT_STATE = -1
+
+
 def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1,
         *, _self=cmd, **kwargs):
     '''
@@ -1294,6 +1298,34 @@ ARGUMENTS
     _self.rebuild(selection)
 
 
+@cmd.extend
+def intra_center(selection: str = "polymer",
+                 state: int = CURRENT_STATE,
+                 *,
+                 _self=cmd):
+    """
+DESCRIPTION
+
+    Center frames on a selection. Like intra_fit, but without rotation.
+
+ARGUMENTS
+
+    selection = str: atom selection to center {default: polymer}
+
+    state = int: reference state {default: current state}
+    """
+    objects = _self.get_object_list(selection)
+    center = _self.get_coords(selection, state).mean(0)
+
+    for state in range(1, _self.count_states(selection) + 1):
+        offset = center - _self.get_coords(selection, state).mean(0)
+        offset = offset.tolist()
+
+        for obj in objects:
+            _self.translate(offset, 'none', state,
+                            camera=0, object=obj, object_mode=1)
+
+
 # all those have kwargs: mobile, target, mobile_state, target_state
 align_methods = ['align', 'super', 'cealign', 'tmalign', 'theseus',
         'prosmart', 'xfit', 'mcsalign']
@@ -1334,6 +1366,7 @@ cmd.auto_arg[0].update([
     ('promix', _auto_arg0_align),
     ('intra_promix', _auto_arg0_align),
     ('intra_boxfit', _auto_arg1_align),
+    ('intra_center', _auto_arg1_align),
 ])
 cmd.auto_arg[1].update([
     ('alignwithanymethod', _auto_arg1_align),

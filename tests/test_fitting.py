@@ -22,6 +22,14 @@ def test_intra_xfit():
     assert b_list == approx(b_list_ref, abs=1e-3)
 
 
+def test_intra_center():
+    cmd.reinitialize()
+    cmd.load(FILENAME_MULTISTATE)
+    psico.fitting.intra_center("resi 80")
+    assert cmd.intra_rms_cur("*") == approx(
+        [-1.0, 1.425962, 8.287644, 7.676795])
+
+
 # def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1, **kwargs):
 # def tmalign(mobile, target, mobile_state=1, target_state=1, args='',
 # def dyndom_parse_info(filename, selection='(all)', quiet=0):
