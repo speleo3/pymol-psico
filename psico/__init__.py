@@ -21,6 +21,7 @@ except:
 
 __all__ = [
     'aaindex',
+    'aggrescanning',
     'conservation',
     'creating',
     'editing',
