@@ -415,6 +415,25 @@ def iterate_state_to_list(state: int,
     return outlist
 
 
+def iterate_to_sele(selection: str,
+                    expression: str,
+                    *,
+                    space=None,
+                    _self=cmd) -> str:
+    """
+    API-only function to get a selection expression for "iterate" results which
+    evaluate to True.
+    """
+    space = dict(space or ())
+    space["ids"] = []
+
+    _self.iterate(selection,
+                  f"ids.append((model,index)) if ({expression}) else None",
+                  space=space)
+
+    return " ".join(f"{model}`{index}" for (model, index) in space["ids"])
+
+
 def csp(sele1, sele2='', quiet=1, var="formal_charge", _self=cmd):
     """
 DESCRIPTION

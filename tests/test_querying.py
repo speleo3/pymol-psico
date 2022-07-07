@@ -21,6 +21,13 @@ def test_iterate_state_to_list():
     assert r[3] == approx([0.54543632, -0.97489464, 1.49894345])
 
 
+def test_iterate_to_sele():
+    cmd.reinitialize()
+    cmd.fab("AGAG", "m1")
+    sele = psico.querying.iterate_to_sele("m1", "resn == 'GLY'")
+    assert cmd.count_atoms(sele) == cmd.count_atoms("resn GLY")
+
+
 def test_csp__pymol2():
     from pymol2 import PyMOL
     with PyMOL() as p1, PyMOL() as p2:
