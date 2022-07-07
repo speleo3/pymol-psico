@@ -11,7 +11,7 @@ devitate from the paper.
 License: BSD-2-Clause
 """
 
-from pymol import cmd
+from pymol import cmd, CmdException
 
 # Amino-acid aggregation-propensity value (a3v)
 # N. Sánchez de Groot et al.
@@ -263,5 +263,83 @@ ARGUMENTS
                    maximum=maximum,
                    quiet=quiet)
 
+
+@cmd.extend
+def aggrescan3d(selection: str = "polymer",
+                palette: str = "white forest",
+                minimum: float = 0,
+                maximum: float = 2,
+                *,
+                missing: float = 0.0,
+                color_missing: str = "yellow",
+                state: int = -1,
+                var: str = 'b',
+                quiet: int = 1,
+                exe: str = "aggrescan",
+                _self=cmd):
+    """
+DESCRIPTION
+
+    Aggrescan3d (structure based).
+    """
+    quiet = int(quiet)
+
+    import os, tempfile, shutil, subprocess, csv
+    from psico.querying import iterate_to_sele
+
+    ph_arg = ["--ph", "6.0"]
+
+    # sanity check
+    for chain in _self.get_chains(selection):
+        if len(chain) > 1:
+            raise CmdException(f"Chain ID longer than 1: {chain!r}")
+
+    # temporary directory
+    tempdir = tempfile.mkdtemp()
+    if not quiet:
+        print(' Tempdir:', tempdir)
+
+    # filenames
+    pdbfile = os.path.join(tempdir, 'my-input.pdb')
+
+    try:
+        _self.save(pdbfile, selection, state=state)
+
+        subprocess.check_call(
+            [exe, "--protein", pdbfile, "--work_dir", tempdir] + ph_arg)
+
+        with open(f"{tempdir}/A3D.csv") as handle:
+            scores = {(row['chain'], str(row['residue'])): float(row["score"])
+                      for row in csv.DictReader(handle)}
+    finally:
+        shutil.rmtree(tempdir)
+
+    if not quiet:
+        sum_scores = sum(scores.values())
+        sum_scores_pos = sum(s for s in scores.values() if s > 0)
+
+        print(" Aggrescan3D"
+              f" sum(all): {sum_scores:.2f}"
+              f" sum(positive): {sum_scores_pos:.2f}")
+
+    _self.alter(selection,
+                f"{var} = scores.get((chain, resi), {missing!r})",
+                space={"scores": scores})
+
+    _self.spectrum(var, palette, selection, minimum=minimum, maximum=maximum)
+
+    sele_missing = iterate_to_sele(selection,
+                                   "(chain, resi) not in scores",
+                                   space={"scores": scores})
+    if sele_missing:
+        _self.color(color_missing, sele_missing)
+
+
+# tab-completion of arguments
+
+cmd.auto_arg[0].update([
+    ('aggrescan1d', cmd.auto_arg[1]['select']),
+    ('aggrescan3d', cmd.auto_arg[1]['select']),
+])
 
 # vi:expandtab:smarttab
