@@ -36,7 +36,7 @@ DESCRIPTION
     except ValueError as e:
         print(' Error:', e)
 
-def get_model_color(model):
+def get_model_color(model, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -119,7 +119,7 @@ ARGUMENTS
             rms2 = rms(model, ref2, state, state2)
             x_list.append(rms1)
             y_list.append(rms2)
-            colors.append(get_model_color(model))
+            colors.append(get_model_color(model, _self=_self))
             text_list.append('%s(%d)' % (model, state))
 
     for name in tmp_names_all:
@@ -279,7 +279,7 @@ EXAMPLE
         for (x,y), (model,state) in zip(pca_12, labels):
             x_list.append(x)
             y_list.append(y)
-            colors.append(get_model_color(model))
+            colors.append(get_model_color(model, _self=_self))
             if maxlabels < 0 or len(pca_12) <= maxlabels:
                 text_list.append('%s(%d)' % (model, state))
             else:
@@ -356,7 +356,7 @@ EXAMPLE
             space['_values'] = x_values = []
             _self.iterate(selection, '_values.append(' + expr_x + ')', space=space)
 
-        color = get_model_color(selection)
+        color = get_model_color(selection, _self=_self)
 
         if scatter:
             plt.scatter(x_values, y_values, c=color)
