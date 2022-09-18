@@ -50,11 +50,8 @@ def validate_apbs_exe(exe):
     if exe:
         exe = cmd.exp_path(exe)
     else:
-        try:
-            import freemol.apbs
-            exe = freemol.apbs.get_exe_path()
-        except:
-            pass
+        import shutil
+        exe = shutil.which("apbs")
         if not exe:
             exe = cmd.exp_path('$SCHRODINGER/utilities/apbs')
             if not os.path.exists(exe):

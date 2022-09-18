@@ -64,7 +64,7 @@ ARGUMENTS
 
 SEE ALSO
 
-    cmd.movie.produce, http://www.freemol.org
+    cmd.movie.produce
     '''
     import os, subprocess, tempfile
 
