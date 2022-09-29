@@ -137,6 +137,44 @@ ARGUMENTS
 
     _showfigure(fig, filename, quiet)
 
+
+@cmd.extend
+def area_plot(selection='all', filename=None, *, quiet=1, _self=cmd):
+    '''
+DESCRIPTION
+
+    Surface area plot.
+
+    Uses `get_area`, so the same settings and flags apply! In particular, the
+    `dot_solvent` setting controls whether SAS or SES is computed, and the
+    "ignore" flag controls which atoms are considered solvent.
+
+ARGUMENTS
+
+    selection = string: atom selection {default: all}
+    '''
+    from . import matplotlib_fix
+    from matplotlib.pyplot import figure
+
+    quiet = int(quiet)
+    models = _self.get_object_list(selection)
+    x_list = list(range(1, _self.count_states(selection) + 1))
+
+    fig = figure()
+    plt = fig.add_subplot(111, xlabel='State', ylabel='Surface Area')
+
+    for model in models:
+        y_list = [
+            _self.get_area(f"({selection}) & %{model}", state=state)
+            for state in range(1,
+                               _self.count_states(model) + 1)
+        ]
+        color = get_model_color(model, _self=_self)
+        plt.plot(x_list, y_list, color=color, label=model)
+
+    _showfigure(fig, filename, quiet)
+
+
 def pca_plot(aln_object, ref='all', state=0, maxlabels=20, size=20, invert='',
         which=(0,1), alpha=0.75, filename=None, quiet=1, load_b=0, *, _self=cmd):
     '''
@@ -379,6 +417,7 @@ cmd.auto_arg[0].update([
     ('pca_plot', _auto_arg_aln_objects),
     ('rms_plot', cmd.auto_arg[0]['align']),
     ('iterate_plot', cmd.auto_arg[0]['iterate']),
+    ('area_plot', cmd.auto_arg[0]['get_area']),
 ])
 cmd.auto_arg[1].update([
     ('pca_plot', cmd.auto_arg[0]['disable']),
