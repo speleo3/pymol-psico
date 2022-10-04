@@ -220,6 +220,7 @@ ARGUMENTS
         args.append('--ffout=' + ffout)
     if ph is not None:
         args.append('--with-ph=%f' % float(ph))
+        args.append('--titration-state-method=propka')
     if neutraln:
         args.append('--neutraln')
     if neutralc:
