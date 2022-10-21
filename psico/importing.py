@@ -844,6 +844,59 @@ DESCRIPTION
         os.remove(outfile)
 
 
+@cmd.extend
+def loadall_traj(
+    pattern: str,
+    object: str = '',
+    state: int = 1,
+    *,
+    sort: bool = 1,
+    quiet: bool = 1,
+    _self=cmd,
+    **kwargs,
+):
+    '''
+DESCRIPTION
+
+    Load all trajectory files matching given globbing pattern
+
+USAGE
+
+    loadall_traj pattern [, object [, state ]]
+
+ARGUMENTS
+
+    pattern = str: File globbing pattern
+
+    object = str: Object name {default: <auto>}
+
+    state = int: First state to populate {default: 1}
+
+    sort = 0/1: Sort the globbed file names {default: 1}
+
+EXAMPLE
+
+    loadall_traj *.dcd
+    '''
+    import glob
+
+    filenames = glob.glob(_self.exp_path(pattern))
+
+    if int(sort):
+        filenames = sorted(filenames)
+
+    state = {"current": -1, "append": 0}.get(state, state)
+
+    for filename in filenames:
+        if not quiet:
+            print(' Loading', filename)
+
+        _self.load_traj(filename, object=object, state=state, **kwargs)
+
+        # append the remaining files
+        state = 0
+
+
 # commands
 if 'loadall' not in cmd.keyword:
     cmd.extend('loadall', loadall)
