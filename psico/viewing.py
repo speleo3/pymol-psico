@@ -298,6 +298,51 @@ DESCRIPTION
     _self.set("specular_intensity", 0.0)
 
 
+@cmd.extend
+def grid_labels(expression: str = "model",
+                selection: str = "enabled",
+                *,
+                subsele: str = "all",
+                _self=cmd):
+    """
+DESCRIPTION
+
+    Create screen stabilized labels per grid cell
+    """
+    if expression == "title":
+        expression = "cmd.get_title(model, -1)"
+
+    obj2group = {
+        obj: group
+        for group in cmd.get_names_of_type("object:group")
+        for obj in cmd.get_object_list(group)
+    }
+
+    slots_done = set()
+    names_done = set()
+    done = lambda set_, name: (name in set_) or set_.add(name) and False
+
+    tmpsele = _self.get_unused_name("_tmpsele")
+
+    for i, model in enumerate(_self.get_object_list(selection), 1):
+        name = obj2group.get(model, model)
+        if done(names_done, name):
+            continue
+
+        slot = _self.get_setting_int("grid_slot", name)
+        if done(slots_done, i if slot == -1 else slot):
+            continue
+
+        _self.select(tmpsele, f"first (%{model} and ({subsele}))")
+        try:
+            _self.label(tmpsele, expression)
+            _self.set("label_screen_point", (-1, 1, 0), tmpsele)
+            _self.set("label_position", (1, -1, 0), tmpsele)
+            _self.set("label_relative_mode", 1, tmpsele)
+        finally:
+            _self.delete(tmpsele)
+
+
 # commands
 cmd.alias('z', 'zoom visible')
 cmd.alias('x', 'nice')
