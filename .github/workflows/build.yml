@@ -19,6 +19,7 @@ jobs:
         python3-pyparsing
         python3-pytest
         python3-scipy
+        apbs
         dssp
 
     - name: Install pip dependencies

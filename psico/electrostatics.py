@@ -190,7 +190,7 @@ SEE ALSO
             print(' Notice: not deleting %s' % (tempdir))
 
 def apbs_surface(selection='all', maximum=None, minimum=None, map_name=None,
-        ramp_name=None, grid=0.5, quiet=1, *, _self=cmd):
+        ramp_name=None, grid=0.5, quiet=1, *, group_name=None, _self=cmd):
     '''
 DESCRIPTION
 
@@ -222,6 +222,8 @@ SEE ALSO
         ramp_name = _self.get_unused_name('ramp')
     if map_name is None:
         map_name = _self.get_unused_name('map')
+    if group_name is None:
+        group_name = _self.get_unused_name('apbs')
 
     map_new_apbs(map_name, selection, float(grid), quiet=quiet)
 
@@ -237,6 +239,9 @@ SEE ALSO
     object_names = _self.get_object_list('(' + selection + ')')
     for name in object_names:
         _self.set('surface_color', ramp_name, name)
+
+    _self.group(group_name, " ".join(object_names))
+    _self.group(group_name, " ".join([map_name, ramp_name]))
 
     _self.show('surface', selection)
     _self.set('surface_solvent', 0)
