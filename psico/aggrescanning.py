@@ -270,6 +270,7 @@ def aggrescan3d(selection: str = "polymer",
                 minimum: float = 0,
                 maximum: float = 2,
                 *,
+                ph: float = 7.0,
                 missing: float = 0.0,
                 color_missing: str = "yellow",
                 state: int = -1,
@@ -287,7 +288,7 @@ DESCRIPTION
     import os, tempfile, shutil, subprocess, csv
     from psico.querying import iterate_to_sele
 
-    ph_arg = ["--ph", "6.0"]
+    ph_arg = ["--ph", str(ph)]
 
     # sanity check
     for chain in _self.get_chains(selection):
