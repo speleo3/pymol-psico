@@ -11,7 +11,7 @@ PyMOL> psico.helping.write_html_ref('psico-commands.html')
 License: BSD-2-Clause
 '''
 
-__version__ = '4.0'
+__version__ = '4.1'
 
 try:
     from pymol import cmd
