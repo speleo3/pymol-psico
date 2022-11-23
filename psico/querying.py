@@ -587,6 +587,21 @@ EXAMPLE
     return (min_distance, sele_1, sele_2)
 
 
+@cmd.extend
+def get_segis(selection="all", *, quiet=1, _self=cmd) -> set:
+    """
+DESCRIPTION
+
+    Get the set of segment identifiers.
+    """
+    segis = set(iterate_to_list(selection, "segi", _self=_self))
+
+    if not int(quiet):
+        print(f" get_segis: {segis}")
+
+    return segis
+
+
 if 'centerofmass' not in cmd.keyword:
     cmd.extend('centerofmass', centerofmass)
 cmd.extend('gyradius', gyradius)
@@ -601,6 +616,7 @@ cmd.auto_arg[0].update([
     ('centerofmass', cmd.auto_arg[0]['zoom']),
     ('gyradius', cmd.auto_arg[0]['zoom']),
     ('get_sasa', cmd.auto_arg[0]['zoom']),
+    ('get_segis', cmd.auto_arg[0]['zoom']),
     ('get_sasa_ball', cmd.auto_arg[0]['zoom']),
     ('get_sasa_mmtk', cmd.auto_arg[0]['zoom']),
     ('get_raw_distances', [

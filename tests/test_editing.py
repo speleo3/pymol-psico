@@ -1,4 +1,5 @@
 import psico.editing
+import psico.querying
 import os
 import pytest
 from pymol import cmd
@@ -19,6 +20,19 @@ def test_split_chains():
     assert cmd.get_chains('m3_B') == ['B']
     psico.editing.split_chains('m3', 'foo_')
     assert cmd.get_chains('foo_0001') == ['A']
+
+
+def test_split_segis():
+    cmd.reinitialize()
+    cmd.fab('ACD', 'm1', segi='A')
+    cmd.fab('EFG', 'm2', segi='B')
+    cmd.create('m3', 'm1 m2')
+    assert psico.querying.get_segis('m3') == {'A', 'B'}
+    psico.editing.split_segis('m3')
+    assert psico.querying.get_segis('m3_A') == {'A'}
+    assert psico.querying.get_segis('m3_B') == {'B'}
+    psico.editing.split_segis('m3', 'foo_')
+    assert cmd.count_atoms('foo_0001 & guide') == 3
 
 
 def test_split_chains__pymol2():

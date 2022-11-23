@@ -70,6 +70,29 @@ SEE ALSO
             _self.create(name, '(%s) and model %s and chain %s' % (selection, model, chain))
         _self.disable(model)
 
+
+@cmd.extend
+def split_segis(selection='all', prefix=None, *, _self=cmd):
+    '''
+DESCRIPTION
+
+    Create a single object for each segi in selection
+
+SEE ALSO
+
+    split_chains
+    '''
+    from . import querying
+    count = 0
+    for model in _self.get_object_list(selection):
+        sele = f"({selection}) & model {model}"
+        for segi in set(querying.iterate_to_list(sele, "segi", _self=_self)):
+            count += 1
+            name = f'{prefix}{count:04d}' if prefix else f'{model}_{segi}'
+            _self.create(name, f'({sele}) & segi "{segi}"')
+        _self.disable(model)
+
+
 def rmsf2b(selection='all', linearscale=1.0, var='b', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -598,6 +621,7 @@ cmd.extend('update_identifiers', update_identifiers)
 cmd.auto_arg[0].update({
     'split_chains'   : cmd.auto_arg[0]['zoom'],
     'split_molecules': cmd.auto_arg[0]['zoom'],
+    'split_segis'    : cmd.auto_arg[0]['zoom'],
     'rmsf2b'         : cmd.auto_arg[0]['zoom'],
     'mse2met'        : cmd.auto_arg[0]['zoom'],
     'polyala'        : cmd.auto_arg[0]['zoom'],
