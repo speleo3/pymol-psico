@@ -286,8 +286,8 @@ SEE ALSO
     dss, stride
     '''
     from subprocess import Popen, PIPE
+    import subprocess, re
     import tempfile, os
-    from .exporting import save_pdb_without_ter
 
     state, quiet = int(state), int(quiet)
 
@@ -295,6 +295,19 @@ SEE ALSO
         _assert_package_import()
         from . import which
         exe = which('dsspcmbi', 'dssp', 'dssp-2', 'mkdssp')
+
+    args = [exe]
+
+    try:
+        version_stdout = subprocess.check_output([exe, "--version"])
+        version = int(re.findall(br"version (\d+)", version_stdout)[0])
+    except Exception as ex:
+        print(f" dssp-Warning: {ex}")
+        version = 0
+
+    if version >= 4:
+        args += ["--output-format", "dssp"]
+
     ss_map = {
         'B': 'S', # residue in isolated beta-bridge
         'E': 'S', # extended strand, participates in beta ladder
@@ -308,10 +321,10 @@ SEE ALSO
     tmpfilepdb = tempfile.mktemp('.pdb')
     ss_dict = dict()
     for model in _self.get_object_list(selection):
-        save_pdb_without_ter(tmpfilepdb,
+        cmd.multisave(tmpfilepdb,
                 '%s and (%s)' % (model, selection), state, _self=_self)
         try:
-            process = Popen([exe, tmpfilepdb], stdout=PIPE,
+            process = Popen(args + [tmpfilepdb], stdout=PIPE,
                     universal_newlines=True)
         except OSError:
             raise CmdException('Cannot execute exe=' + exe)
