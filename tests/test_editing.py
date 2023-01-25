@@ -143,6 +143,7 @@ def test_remove_alt():
 def test_dssp():
     cmd.reinitialize()
     cmd.load(FILENAME_MULTISTATE)
+    cmd.set_symmetry("*", 1, 1, 1, 90, 90, 90, "P 1")
     psico.editing.dssp(raw='resn')
     my_values = []
     cmd.iterate('guide', 'my_values.append((ss, resn))', space=locals())
