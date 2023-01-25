@@ -9,6 +9,7 @@ License: BSD-2-Clause
 '''
 
 import functools
+import Bio
 from Bio.SeqIO import _FormatToIterator
 from pymol import CmdException
 
@@ -58,12 +59,11 @@ DESCRIPTION
     Does a Needleman-Wunsch Alignment of sequence s1 and s2 and
     returns a Bio.Align.MultipleSeqAlignment object.
     '''
-    try:
-        # requires biopython >= 1.72
-        aligner = _get_aligner_BLOSUM62()
-    except ImportError as ex:
-        print(f" needle_alignment-Warning: {ex}")
+    biopython_version = tuple(map(int, Bio.__version__.split(".")[:2]))
+    if biopython_version < (1, 77):
         return needle_alignment_Bio_pairwise2(s1, s2)
+
+    aligner = _get_aligner_BLOSUM62()
     alns = aligner.align(s1, s2)
     return _msa_from_pairwise(alns[0])
 
