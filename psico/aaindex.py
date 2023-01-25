@@ -304,7 +304,7 @@ DESCRIPTION
 
 SEE ALSO
 
-    aaindex2b
+    aaindex2b, hydropathy2b_exposed
     '''
     r = aaindex2b('KYTJ820101', selection, var, quiet, _self=_self)
 
@@ -312,6 +312,31 @@ SEE ALSO
         _self.spectrum(var, 'white forest', selection)
 
     return r
+
+
+@cmd.extend
+def hydropathy2b_exposed(  #
+        selection="polymer",
+        state: int = -1,
+        *,
+        key="KYTJ820101",
+        palette="white forest",
+        quiet=1,
+        _self=cmd):
+    """
+DESCRIPTION
+
+    Multiply residue hydrophathy (b) with residue exposure (q) and color with a
+    gradient.
+
+SEE ALSO
+
+    get_sasa_relative, hydropathy2b
+    """
+    _self.get_sasa_relative(selection, state, vis=0, var="q", quiet=quiet)
+    aaindex2b(key, selection, var="b", quiet=quiet, _self=_self)
+    _self.spectrum("b*q", palette, selection, minimum=0)
+
 
 # commands and tab-completion of arguments
 
@@ -325,6 +350,7 @@ cmd.extend('hydropathy2b', hydropathy2b)
 cmd.auto_arg[0].update([
     ('aaindex2b', [ _aaindexkey_sc, 'aaindexkey', ', ' ]),
     ('hydropathy2b', cmd.auto_arg[1]['select']),
+    ('hydropathy2b_exposed', cmd.auto_arg[1]['select']),
 ])
 cmd.auto_arg[1].update([
     ('aaindex2b', cmd.auto_arg[1]['select']),
