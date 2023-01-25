@@ -8,6 +8,7 @@ Only load on demand to prevent unnecessary "Bio" import (biopython).
 License: BSD-2-Clause
 '''
 
+import functools
 from Bio.SeqIO import _FormatToIterator
 from pymol import CmdException
 
@@ -15,12 +16,61 @@ def _assert_package_import():
     if not __name__.endswith('.seqalign'):
         raise CmdException("Must do 'import psico.seqalign' instead of 'run ...'")
 
+
+DEFAULT_GAPOPEN_EMBOSS = 10
+DEFAULT_GAPEXTEND_EMBOSS = 0.5
+
+DEFAULT_GAPOPEN_BLASTP = 11
+DEFAULT_GAPEXTEND_BLASTP = 1
+
+DEFAULT_GAPOPEN = DEFAULT_GAPOPEN_EMBOSS
+DEFAULT_GAPEXTEND = DEFAULT_GAPEXTEND_EMBOSS
+
+
+@functools.cache
+def _get_aligner_BLOSUM62() -> "Bio.Align.PairwiseAligner":
+    from Bio.Align import PairwiseAligner, substitution_matrices
+    blosum62 = substitution_matrices.load("BLOSUM62")
+    aligner = PairwiseAligner(internal_open_gap_score=-DEFAULT_GAPOPEN,
+                              extend_gap_score=-DEFAULT_GAPEXTEND,
+                              substitution_matrix=blosum62)
+    assert aligner.mode == "global"
+    return aligner
+
+
+def _msa_from_pairwise(
+    pairwise: "Bio.Align.PairwiseAlignment"
+) -> "Bio.Align.MultipleSeqAlignment":
+    from Bio.Align import MultipleSeqAlignment
+    from Bio.SeqRecord import SeqRecord
+    from Bio.Seq import Seq
+    seqs = pairwise.format().splitlines()[::2]
+    return MultipleSeqAlignment([
+        SeqRecord(Seq(seqs[0]), "s1"),
+        SeqRecord(Seq(seqs[1]), "s2"),
+    ])
+
+
 def needle_alignment(s1, s2):
     '''
 DESCRIPTION
 
     Does a Needleman-Wunsch Alignment of sequence s1 and s2 and
     returns a Bio.Align.MultipleSeqAlignment object.
+    '''
+    try:
+        # requires biopython >= 1.72
+        aligner = _get_aligner_BLOSUM62()
+    except ImportError as ex:
+        print(f" needle_alignment-Warning: {ex}")
+        return needle_alignment_Bio_pairwise2(s1, s2)
+    alns = aligner.align(s1, s2)
+    return _msa_from_pairwise(alns[0])
+
+
+def needle_alignment_Bio_pairwise2(s1, s2):
+    '''
+    Same as `needle_alignment` but uses deprecated Bio.pairwise2 module.
     '''
     from Bio import pairwise2
     from Bio.Align import MultipleSeqAlignment
@@ -47,6 +97,9 @@ DESCRIPTION
     ])
 
 def needle_alignment_emboss(s1, s2):
+    '''
+    Same as `needle_alignment` but uses EMBOSS' "needle" executable.
+    '''
     import subprocess
     from Bio.Emboss.Applications import NeedleCommandline
     from Bio import AlignIO
