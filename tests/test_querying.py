@@ -78,6 +78,14 @@ def test_extinction_coefficient():
     assert A_280 == approx(eps_ss_2 / 1343.5732)
 
 
+def test_isoelectric_point():
+    cmd.reinitialize()
+    cmd.fab("AWWYYYCCCC", "m1")
+    cmd.fab("DDDKKEEEHHHIIKL", "m2")
+    pi = psico.querying.isoelectric_point()
+    assert pi == approx(5.31, abs=1e-2)
+
+
 def test_get_segis():
     cmd.reinitialize()
     cmd.pseudoatom("m1", segi="seg1")

@@ -588,6 +588,49 @@ EXAMPLE
 
 
 @cmd.extend
+def isoelectric_point(selection: str = "polymer",
+                      *,
+                      ph: float = 7,
+                      quiet: bool = 1,
+                      _self=cmd):
+    """
+DESCRIPTION
+
+    Compute isoelectric point and charge at given pH.
+    """
+    import io
+    from Bio import SeqIO
+    from Bio.SeqUtils.IsoelectricPoint import IsoelectricPoint
+
+    ph, quiet = float(ph), int(quiet)
+    label = ""
+
+    fasta = _self.get_fastastr(selection)
+    if not fasta:
+        if not quiet:
+            print(" empty selection")
+        return
+
+    records = list(SeqIO.parse(io.StringIO(fasta), "fasta"))
+
+    if len(records) > 1 and not quiet:
+        label = " combined:"
+        for rec in records:
+            protein = IsoelectricPoint(rec.seq)
+            print(f" {rec.id}: pI={protein.pi():.2f}"
+                  f" charge={protein.charge_at_pH(ph):.2f}")
+
+    seq = "".join(str(rec.seq) for rec in records)
+    protein = IsoelectricPoint(seq)
+    pi = protein.pi()
+
+    if not quiet:
+        print(f"{label} pI={pi:.2f} charge={protein.charge_at_pH(ph):.2f}")
+
+    return pi
+
+
+@cmd.extend
 def get_segis(selection="all", *, quiet=1, _self=cmd) -> set:
     """
 DESCRIPTION
