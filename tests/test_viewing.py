@@ -1,7 +1,10 @@
 import psico.viewing
+import psico.moe
 from psico.querying import iterate_to_list
 from pathlib import Path
 from pymol import cmd
+
+DATA_PATH = Path(__file__).resolve().parent / 'data'
 
 
 def test_grid_labels():
@@ -27,3 +30,12 @@ def test_grid_labels():
     psico.viewing.grid_labels("'abc'", "gly")
     labels = iterate_to_list("all", "label")
     assert labels == ["", "", "", "", "", "abc", "", "", ""]
+
+
+def test_show_ptm():
+    cmd.reinitialize()
+    psico.moe.load_moe(DATA_PATH / "4ins-frag.moe", "m1")
+    cmd.hide()
+    psico.viewing.show_ptm()
+    assert cmd.count_atoms("rep spheres") == 4
+    assert cmd.count_atoms("rep sticks") == 24

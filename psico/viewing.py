@@ -36,6 +36,29 @@ USAGE
         _self.show_as('spheres', '(%s) and inorganic' % (selection))
         _self.show_as('nonbonded', '(%s) and solvent' % (selection))
 
+
+@cmd.extend
+def show_ptm(selection="*", *, rep="sticks", cys=True, _self=cmd):
+    """
+DESCRIPTION
+
+    Show post-translational modifications.
+    """
+    seleexpr = (f"({selection}) and "
+                "(not (hydro and bound_to elem C)) and "
+                "(byres ("
+                "(bound_to not polymer) or "
+                "(polymer and bound_to hetatm) or "
+                "(name SG and bound_to name SG)"
+                "))")
+    _self.show(rep, seleexpr)
+
+    if int(cys):
+        seleexpr = f"({selection}) and name SG and bound_to name SG"
+        _self.show("spheres", seleexpr)
+        _self.color("yellow", seleexpr)
+
+
 def get_color_family(color):
     '''
 DESCRIPTION
@@ -354,6 +377,7 @@ cmd.extend('spectrum_states', spectrum_states)
 cmd.extend('goodsell_lighting', goodsell_lighting)
 
 # tab-completion of arguments
+cmd.auto_arg[0]['show_ptm'] = cmd.auto_arg[2]['spectrum']
 cmd.auto_arg[0]['spectrumany'] = [ expression_sc  , 'expression'      , ', ' ]
 cmd.auto_arg[1]['spectrumany'] = [ cmd.auto_arg[0]['color'][0], 'color', ' ' ]
 cmd.auto_arg[2]['spectrumany'] = cmd.auto_arg[2]['spectrum']
