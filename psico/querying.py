@@ -523,7 +523,7 @@ def shortest_distance(sele_a: str,
                       _self=cmd):
     '''
 DESCRIPTION
-    Finds the shortest distance between two selections. If the selections
+    Finds the shortest pairwise distance between two selections.
 
 ARGUMENTS
 
