@@ -607,7 +607,8 @@ ARGUMENTS
 
     min_distance = sqrt(min_distance_sq)
     if not quiet:
-        print("Shortest distance:", min_distance)
+        print(
+            f"Shortest distance: {min_distance} Å between {sele_a} and {sele_b}")
     return (min_distance, sele_a, sele_b)
 
 
