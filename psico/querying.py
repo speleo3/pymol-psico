@@ -490,34 +490,12 @@ DESCRIPTION
     return (eps, A_280)
 
 
-if 'centerofmass' not in cmd.keyword:
-    cmd.extend('centerofmass', centerofmass)
-cmd.extend('gyradius', gyradius)
-cmd.extend('get_sasa', get_sasa)
-cmd.extend('get_sasa_ball', get_sasa_ball)
-cmd.extend('get_sasa_mmtk', get_sasa_mmtk)
-cmd.extend('get_raw_distances', get_raw_distances)
-cmd.extend('csp', csp)
-cmd.extend('extinction_coefficient', extinction_coefficient)
-
-cmd.auto_arg[0].update([
-    ('centerofmass', cmd.auto_arg[0]['zoom']),
-    ('gyradius', cmd.auto_arg[0]['zoom']),
-    ('get_sasa', cmd.auto_arg[0]['zoom']),
-    ('get_sasa_ball', cmd.auto_arg[0]['zoom']),
-    ('get_sasa_mmtk', cmd.auto_arg[0]['zoom']),
-    ('get_raw_distances', [
-        lambda: cmd.Shortcut(cmd.get_names_of_type('object:measurement')),
-        'distance object', '']),
-    ('csp', cmd.auto_arg[0]['zoom']),
-])
-
-
-def shortest_distance(sele_a: str,
-                      sele_b: str,
-                      sele_a_state: int = CURRENT_STATE,
-                      sele_b_state: int = CURRENT_STATE,
-                      obj_name: str = "shortest",
+@cmd.extendaa(cmd.auto_arg[1]['distance'], cmd.auto_arg[1]['distance'])
+def shortest_distance(selection1: str,
+                      selection2: str,
+                      state1: int = CURRENT_STATE,
+                      state2: int = CURRENT_STATE,
+                      name: str = "shortest",
                       *,
                       quiet: int = 1,
                       _self=cmd):
@@ -540,76 +518,95 @@ ARGUMENTS
     quiet = 0 or 1: print results to the terminal {default: 1}
     '''
     from math import sqrt
+    from chempy import cpv
 
-    sele_a_atoms = []
-    sele_b_atoms = []
+    sele_1_atoms = []
+    sele_2_atoms = []
 
     class ShortestDistanceAtom:
 
         def __init__(self, model: str, segi: str, chain: str, resn: str,
-                     resi: int, name: str, coord) -> None:
+                     resi: int, name: str, index: int, coord, state: int) -> None:
             self.model = model
             self.segi = segi
             self.chain = chain
             self.resn = resn
             self.resi = resi
             self.name = name
+            self.index = index
             self.coord = coord
+            self.state = state
 
         def asSelection(self) -> str:
             return f"/{self.model}/{self.segi}/{self.chain}/{self.resn}`{self.resi}/{self.name}"
 
         def __eq__(self, other) -> bool:
             if isinstance(other, ShortestDistanceAtom):
-                return self.asSelection() == other.asSelection()
+                return (self.model, self.index, self.state) == \
+                       (other.model, other.index, other.state)
             return False
 
-    def _squared_distance(atom_a, atom_b):
-        return sum((atom_a.coord[i] - atom_b.coord[i]) ** 2 for i in range(3))
-
     _self.iterate_state(
-        sele_a_state, sele_a,
-        "sele_a_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, (x, y, z)))",
+        state1, selection1,
+        "sele_1_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state))",
         space={'ShortestDistanceAtom': ShortestDistanceAtom,
-               'sele_a_atoms': sele_a_atoms}
+               'sele_1_atoms': sele_1_atoms}
     )
     _self.iterate_state(
-        sele_b_state, sele_b,
-        "sele_b_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, (x, y, z)))",
+        state2, selection2,
+        "sele_2_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state))",
         space={'ShortestDistanceAtom': ShortestDistanceAtom,
-               'sele_b_atoms': sele_b_atoms}
+               'sele_2_atoms': sele_2_atoms}
     )
 
     # Calculate the shortest distance
     min_distance_sq = None
     closest_pair = None
-    tmp_sele = _self.get_unused_name("temp_sele")
-    for sele_a_atom in sele_a_atoms:
-        for sele_b_atom in sele_b_atoms:
+    for sele_a_atom in sele_1_atoms:
+        for sele_b_atom in sele_2_atoms:
             if sele_a_atom == sele_b_atom:
                 continue
-            dist_sq = _squared_distance(sele_a_atom, sele_b_atom)
+            dist_sq = cpv.distance_sq(sele_a_atom.coord, sele_b_atom.coord)
             if min_distance_sq is None or dist_sq < min_distance_sq:
                 min_distance_sq = dist_sq
                 closest_pair = (sele_a_atom, sele_b_atom)
-
-    # Remove the temporary distance object
-    _self.delete(tmp_sele)
 
     if closest_pair is None:
         raise ValueError("No atoms found in selections")
 
     # Show the shortest distance as a dashed line
-    sele_a = closest_pair[0].asSelection()
-    sele_b = closest_pair[1].asSelection()
-    obj_name = _self.get_unused_name(obj_name)
-    _self.distance(obj_name, sele_a, sele_b, quiet=quiet)
+    sele_1 = closest_pair[0].asSelection()
+    sele_2 = closest_pair[1].asSelection()
+    name = _self.get_unused_name(name)
+    _self.distance(name, sele_1, sele_2, quiet=quiet)
 
     min_distance = sqrt(min_distance_sq)
     if not quiet:
         print(
-            f"Shortest distance: {min_distance} Å between {sele_a} and {sele_b}")
-    return (min_distance, sele_a, sele_b)
+            f"Shortest distance: {min_distance:.2f} Å between {sele_1} and {sele_2}")
+    return (min_distance, sele_1, sele_2)
 
+
+if 'centerofmass' not in cmd.keyword:
+    cmd.extend('centerofmass', centerofmass)
+cmd.extend('gyradius', gyradius)
+cmd.extend('get_sasa', get_sasa)
+cmd.extend('get_sasa_ball', get_sasa_ball)
+cmd.extend('get_sasa_mmtk', get_sasa_mmtk)
+cmd.extend('get_raw_distances', get_raw_distances)
+cmd.extend('csp', csp)
+cmd.extend('extinction_coefficient', extinction_coefficient)
+
+cmd.auto_arg[0].update([
+    ('centerofmass', cmd.auto_arg[0]['zoom']),
+    ('gyradius', cmd.auto_arg[0]['zoom']),
+    ('get_sasa', cmd.auto_arg[0]['zoom']),
+    ('get_sasa_ball', cmd.auto_arg[0]['zoom']),
+    ('get_sasa_mmtk', cmd.auto_arg[0]['zoom']),
+    ('get_raw_distances', [
+        lambda: cmd.Shortcut(cmd.get_names_of_type('object:measurement')),
+        'distance object', '']),
+    ('csp', cmd.auto_arg[0]['zoom']),
+])
 
 # vi: ts=4:sw=4:smarttab:expandtab
