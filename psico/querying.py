@@ -7,6 +7,8 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 from pymol import selector
+from pymol.constants import CURRENT_STATE
+
 
 def centerofmass(selection='(all)', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -509,5 +511,104 @@ cmd.auto_arg[0].update([
         'distance object', '']),
     ('csp', cmd.auto_arg[0]['zoom']),
 ])
+
+
+def shortest_distance(sele_a: str,
+                      sele_b: str,
+                      sele_a_state: int = CURRENT_STATE,
+                      sele_b_state: int = CURRENT_STATE,
+                      obj_name: str = "shortest",
+                      *,
+                      quiet: int = 1,
+                      _self=cmd):
+    '''
+DESCRIPTION
+    Finds the shortest distance between two selections. If the selections
+
+ARGUMENTS
+
+    sele_a = string: first atom selection
+
+    sele_b = string: second atom selection
+
+    sele_a_state = state of sele a {default: current state}
+
+    sele_b_state = state of sele b {default: current state}
+
+    obj_name = string: name of the object to create {default: shortest}
+
+    quiet = 0 or 1: print results to the terminal {default: 1}
+    '''
+    from math import sqrt
+
+    sele_a_atoms = []
+    sele_b_atoms = []
+
+    class ShortestDistanceAtom:
+
+        def __init__(self, model: str, segi: str, chain: str, resn: str,
+                     resi: int, name: str, coord) -> None:
+            self.model = model
+            self.segi = segi
+            self.chain = chain
+            self.resn = resn
+            self.resi = resi
+            self.name = name
+            self.coord = coord
+
+        def asSelection(self) -> str:
+            return f"/{self.model}/{self.segi}/{self.chain}/{self.resn}`{self.resi}/{self.name}"
+
+        def __eq__(self, other) -> bool:
+            if isinstance(other, ShortestDistanceAtom):
+                return self.asSelection() == other.asSelection()
+            return False
+
+    def _squared_distance(atom_a, atom_b):
+        return sum((atom_a.coord[i] - atom_b.coord[i]) ** 2 for i in range(3))
+
+    _self.iterate_state(
+        sele_a_state, sele_a,
+        "sele_a_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, (x, y, z)))",
+        space={'ShortestDistanceAtom': ShortestDistanceAtom,
+               'sele_a_atoms': sele_a_atoms}
+    )
+    _self.iterate_state(
+        sele_b_state, sele_b,
+        "sele_b_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, (x, y, z)))",
+        space={'ShortestDistanceAtom': ShortestDistanceAtom,
+               'sele_b_atoms': sele_b_atoms}
+    )
+
+    # Calculate the shortest distance
+    min_distance_sq = None
+    closest_pair = None
+    tmp_sele = _self.get_unused_name("temp_sele")
+    for sele_a_atom in sele_a_atoms:
+        for sele_b_atom in sele_b_atoms:
+            if sele_a_atom == sele_b_atom:
+                continue
+            dist_sq = _squared_distance(sele_a_atom, sele_b_atom)
+            if min_distance_sq is None or dist_sq < min_distance_sq:
+                min_distance_sq = dist_sq
+                closest_pair = (sele_a_atom, sele_b_atom)
+
+    # Remove the temporary distance object
+    _self.delete(tmp_sele)
+
+    if closest_pair is None:
+        raise ValueError("No atoms found in selections")
+
+    # Show the shortest distance as a dashed line
+    sele_a = closest_pair[0].asSelection()
+    sele_b = closest_pair[1].asSelection()
+    obj_name = _self.get_unused_name(obj_name)
+    _self.distance(obj_name, sele_a, sele_b, quiet=quiet)
+
+    min_distance = sqrt(min_distance_sq)
+    if not quiet:
+        print("Shortest distance:", min_distance)
+    return (min_distance, sele_a, sele_b)
+
 
 # vi: ts=4:sw=4:smarttab:expandtab
