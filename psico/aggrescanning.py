@@ -221,7 +221,7 @@ ARGUMENTS
         }.get(key, 5)
 
     ids_key = "(model, segi, chain), resi, oneletter"
-    ids_all = iterate_to_list(f"({selection}) & guide", ids_key)
+    ids_all = iterate_to_list(f"({selection}) & guide", ids_key, _self=_self)
     data = {}
 
     def gen_chain_ranges():
