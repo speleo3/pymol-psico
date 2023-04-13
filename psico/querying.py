@@ -7,7 +7,8 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 from pymol import selector
-from pymol.constants import CURRENT_STATE
+
+CURRENT_STATE = -1  # pymol.constants.CURRENT_STATE
 
 
 def centerofmass(selection='(all)', state=-1, quiet=1, *, _self=cmd):
@@ -501,6 +502,7 @@ def shortest_distance(selection1: str,
                       _self=cmd):
     '''
 DESCRIPTION
+
     Finds the shortest pairwise distance between two selections.
 
 ARGUMENTS
@@ -516,6 +518,11 @@ ARGUMENTS
     name = string: name of the object to create {default: shortest}
 
     quiet = 0 or 1: print results to the terminal {default: 1}
+
+EXAMPLE
+
+    fetch 2xwu
+    shortest_distance chain A, chain B
     '''
     from math import sqrt
     from chempy import cpv
