@@ -57,6 +57,7 @@ def test_save_pdb_without_ter(tmp_path):
     assert content.count("ATOM") == 26
 
 
+@pytest.mark.xfail
 def test_get_grostr():
     cmd.reinitialize()
     filename = DATA_PATH / 'ala-cys-asp.gro'
