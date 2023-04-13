@@ -10,6 +10,14 @@ def test_iterate_to_list():
     assert r == ["N", "CA", "C", "O"]
 
 
+def test_iterate_to_list__space():
+    cmd.reinitialize()
+    cmd.pseudoatom()
+    space = {"myspacevar": 123}
+    r = psico.querying.iterate_to_list("all", "myspacevar", space=space)
+    assert r == [123]
+
+
 def test_iterate_state_to_list():
     cmd.reinitialize()
     cmd.fragment("gly")

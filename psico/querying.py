@@ -392,13 +392,13 @@ DESCRIPTION
     return _self.get_coords(selection, 0).reshape((nstates, -1, 3))
 
 
-def iterate_to_list(selection, expression, _self=cmd):
+def iterate_to_list(selection, expression, *, space=None, _self=cmd):
     """
     API-only function to capture "iterate" results in a list.
     """
     outlist = []
     _self.iterate(selection, "outlist.append(({}))".format(expression),
-            space={"outlist": outlist})
+            space=dict(space or (), outlist=outlist))
     return outlist
 
 
@@ -406,6 +406,7 @@ def iterate_state_to_list(state: int,
                           selection: str,
                           expression: str,
                           *,
+                          space=None,
                           _self=cmd) -> list:
     """
     API-only function to capture "iterate_state" results in a list.
@@ -414,7 +415,7 @@ def iterate_state_to_list(state: int,
     _self.iterate_state(state,
                         selection,
                         f"outlist.append(({expression}))",
-                        space={"outlist": outlist})
+                        space=dict(space or (), outlist=outlist))
     return outlist
 
 
@@ -527,9 +528,6 @@ EXAMPLE
     from math import sqrt
     from chempy import cpv
 
-    sele_1_atoms = []
-    sele_2_atoms = []
-
     class ShortestDistanceAtom:
 
         def __init__(self, model: str, segi: str, chain: str, resn: str,
@@ -553,18 +551,13 @@ EXAMPLE
                        (other.model, other.index, other.state)
             return False
 
-    _self.iterate_state(
-        state1, selection1,
-        "sele_1_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state))",
-        space={'ShortestDistanceAtom': ShortestDistanceAtom,
-               'sele_1_atoms': sele_1_atoms}
-    )
-    _self.iterate_state(
-        state2, selection2,
-        "sele_2_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state))",
-        space={'ShortestDistanceAtom': ShortestDistanceAtom,
-               'sele_2_atoms': sele_2_atoms}
-    )
+    def get_atoms(state: int, sele: str):
+        return iterate_state_to_list(state, sele,
+            "ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state)",
+            space={'ShortestDistanceAtom': ShortestDistanceAtom}, _self=_self)
+
+    sele_1_atoms = get_atoms(state1, selection1)
+    sele_2_atoms = get_atoms(state2, selection2)
 
     # Calculate the shortest distance
     min_distance_sq = None
