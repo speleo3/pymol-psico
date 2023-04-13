@@ -505,15 +505,15 @@ DESCRIPTION
 
 ARGUMENTS
 
-    sele_a = string: first atom selection
+    selection1 = string: first atom selection
 
-    sele_b = string: second atom selection
+    selection2 = string: second atom selection
 
-    sele_a_state = state of sele a {default: current state}
+    state1 = state of selection1 {default: current state}
 
-    sele_b_state = state of sele b {default: current state}
+    state2 = state of selection2 {default: current state}
 
-    obj_name = string: name of the object to create {default: shortest}
+    name = string: name of the object to create {default: shortest}
 
     quiet = 0 or 1: print results to the terminal {default: 1}
     '''
