@@ -7,6 +7,8 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 from pymol import selector
+from pymol.constants import CURRENT_STATE
+
 
 def centerofmass(selection='(all)', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -486,6 +488,103 @@ DESCRIPTION
               f"{eps}/(M*cm), {A_280:.4f} g/L")
 
     return (eps, A_280)
+
+
+@cmd.extendaa(cmd.auto_arg[1]['distance'], cmd.auto_arg[1]['distance'])
+def shortest_distance(selection1: str,
+                      selection2: str,
+                      state1: int = CURRENT_STATE,
+                      state2: int = CURRENT_STATE,
+                      name: str = "shortest",
+                      *,
+                      quiet: int = 1,
+                      _self=cmd):
+    '''
+DESCRIPTION
+    Finds the shortest pairwise distance between two selections.
+
+ARGUMENTS
+
+    selection1 = string: first atom selection
+
+    selection2 = string: second atom selection
+
+    state1 = state of selection1 {default: current state}
+
+    state2 = state of selection2 {default: current state}
+
+    name = string: name of the object to create {default: shortest}
+
+    quiet = 0 or 1: print results to the terminal {default: 1}
+    '''
+    from math import sqrt
+    from chempy import cpv
+
+    sele_1_atoms = []
+    sele_2_atoms = []
+
+    class ShortestDistanceAtom:
+
+        def __init__(self, model: str, segi: str, chain: str, resn: str,
+                     resi: int, name: str, index: int, coord, state: int) -> None:
+            self.model = model
+            self.segi = segi
+            self.chain = chain
+            self.resn = resn
+            self.resi = resi
+            self.name = name
+            self.index = index
+            self.coord = coord
+            self.state = state
+
+        def asSelection(self) -> str:
+            return f"/{self.model}/{self.segi}/{self.chain}/{self.resn}`{self.resi}/{self.name}"
+
+        def __eq__(self, other) -> bool:
+            if isinstance(other, ShortestDistanceAtom):
+                return (self.model, self.index, self.state) == \
+                       (other.model, other.index, other.state)
+            return False
+
+    _self.iterate_state(
+        state1, selection1,
+        "sele_1_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state))",
+        space={'ShortestDistanceAtom': ShortestDistanceAtom,
+               'sele_1_atoms': sele_1_atoms}
+    )
+    _self.iterate_state(
+        state2, selection2,
+        "sele_2_atoms.append(ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state))",
+        space={'ShortestDistanceAtom': ShortestDistanceAtom,
+               'sele_2_atoms': sele_2_atoms}
+    )
+
+    # Calculate the shortest distance
+    min_distance_sq = None
+    closest_pair = None
+    for sele_a_atom in sele_1_atoms:
+        for sele_b_atom in sele_2_atoms:
+            if sele_a_atom == sele_b_atom:
+                continue
+            dist_sq = cpv.distance_sq(sele_a_atom.coord, sele_b_atom.coord)
+            if min_distance_sq is None or dist_sq < min_distance_sq:
+                min_distance_sq = dist_sq
+                closest_pair = (sele_a_atom, sele_b_atom)
+
+    if closest_pair is None:
+        raise ValueError("No atoms found in selections")
+
+    # Show the shortest distance as a dashed line
+    sele_1 = closest_pair[0].asSelection()
+    sele_2 = closest_pair[1].asSelection()
+    name = _self.get_unused_name(name)
+    _self.distance(name, sele_1, sele_2, quiet=quiet)
+
+    min_distance = sqrt(min_distance_sq)
+    if not quiet:
+        print(
+            f"Shortest distance: {min_distance:.2f} Å between {sele_1} and {sele_2}")
+    return (min_distance, sele_1, sele_2)
 
 
 if 'centerofmass' not in cmd.keyword:

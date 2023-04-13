@@ -82,3 +82,12 @@ def test_extinction_coefficient():
 #def get_object_state(name):
 #def get_selection_state(selection):
 #def get_ensemble_coords(selection):
+
+def test_shortest_distance():
+    cmd.reinitialize()
+    cmd.fragment(name="ala", origin=0)
+    cmd.fragment(name="his", origin=0)
+    dist, ala_atom, his_atom = psico.querying.shortest_distance("ala", "his")
+    assert dist == approx(7.4, rel=1e-2)
+    assert ala_atom == "/ala///ALA`2/2HB"
+    assert his_atom == "/his///HIS`2/O"
