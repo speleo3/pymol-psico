@@ -20,7 +20,7 @@ psico.helping.write_html_ref('psico-commands.html')
 Option 1: Install from source. In your activated (conda or venv) environment, run:
 
 ```sh
-python setup.py install
+pip install .
 ```
 
 Option 2: Use the conda package manager. In your activated conda environment, run:

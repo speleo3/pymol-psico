@@ -1,0 +1,45 @@
+[project]
+name = "psico"
+description = "Pymol ScrIpts COllection"
+authors = [
+    {name = "Thomas Holder"},
+    {name = "Steffen Schmidt"},
+]
+license = {text = "BSD-2-Clause"}
+requires-python = ">=3.7"
+dependencies = [
+    "pymol",
+]
+dynamic = ["version"]
+
+[project.urls]
+repository = "https://github.com/speleo3/pymol-psico"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+extra = [
+    "biopython",
+    "csb",
+    "epam-indigo",
+    # "openbabel",
+    "prody",
+    "rdkit",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "psico.__version__"}
+
+[tool.yapf]
+based_on_style = "pep8"
+allow_split_before_dict_value = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "exe: test requires third-party executable",
+    "web: test requires internet access",
+]
+
+# vi:sw=4
