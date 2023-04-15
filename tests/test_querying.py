@@ -78,6 +78,13 @@ def test_extinction_coefficient():
     assert A_280 == approx(eps_ss_2 / 1343.5732)
 
 
+def test_get_segis():
+    cmd.reinitialize()
+    cmd.pseudoatom("m1", segi="seg1")
+    cmd.pseudoatom("m2", segi="seg2")
+    assert psico.querying.get_segis() == {"seg1", "seg2"}
+
+
 #def centerofmass(selection='(all)', state=-1, quiet=1):
 #def gyradius(selection='(all)', state=-1, quiet=1):
 #def get_alignment_coords(name, active_only=0, state=-1, quiet=0):
