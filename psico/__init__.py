@@ -13,11 +13,18 @@ License: BSD-2-Clause
 
 __version__ = '4.1'
 
+from psico.versioning import make_version_int_tuple
+
 try:
     from pymol import cmd
-    pymol_version = cmd.get_version()[1]
-except:
-    pymol_version = 1.6
+    pymol_version_str, pymol_version = cmd.get_version()[:2]
+except Exception as ex:
+    print(ex)
+    pymol_version_tuple = (2, 0)
+    pymol_version = pymol_version_tuple[0] + pymol_version_tuple[1] * 0.1
+    pymol_version_str = "%d.%d" % pymol_version_tuple
+else:
+    pymol_version_tuple = make_version_int_tuple(pymol_version_str)
 
 __all__ = [
     'aaindex',

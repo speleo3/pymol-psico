@@ -333,6 +333,11 @@ SEE ALSO
 
     get_sasa_relative, hydropathy2b
     """
+    _assert_package_import()
+    from . import pymol_version_tuple
+    if pymol_version_tuple < (2, 4) and int(state) < 1:
+        state = max(1, _self.get_state())
+
     _self.get_sasa_relative(selection, state, vis=0, var="q", quiet=quiet)
     aaindex2b(key, selection, var="b", quiet=quiet, _self=_self)
     _self.spectrum("b*q", palette, selection, minimum=0)
