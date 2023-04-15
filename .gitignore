@@ -2,3 +2,13 @@
 *.pyo
 *.swp
 *.egg-info
+
+/build
+/dist
+
+# created by apbs in the current directory
+io.mc
+
+# editors
+/.idea
+/.vscode
