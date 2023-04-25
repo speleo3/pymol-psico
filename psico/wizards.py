@@ -17,7 +17,7 @@ class Sspick(Wizard):
 
     def __init__(self, _self=cmd):
 
-        _self.unpick();
+        _self.unpick()
         Wizard.__init__(self, _self)
 
         self.mouse_selection_mode = _self.get_setting_int('mouse_selection_mode')
@@ -63,7 +63,7 @@ class Sspick(Wizard):
         from .selecting import select_sspick
         if self.name not in self.cmd.get_names('selections', enabled_only=1):
             self.name = self.cmd.get_unused_name('ss')
-        select_sspick(name, self.name, self.selection_mode, _self=_self)
+        select_sspick(name, self.name, self.selection_mode, _self=self.cmd)
         self.cmd.enable(self.name)
         self.cmd.refresh_wizard()
 

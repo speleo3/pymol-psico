@@ -287,7 +287,6 @@ EXAMPLE
         elif line.startswith('                   AND CHAINS:'):
             chains += tuple(chain.strip() for chain in line[30:].split(','))
         elif line.startswith('  BIOMT'):
-            row = int(line[7])
             num = int(line[8:12])
             vec = line[12:].split()
             vec = list(map(float, vec))
@@ -401,7 +400,7 @@ ARGUMENTS
     cmd.set('auto_zoom', 0)
 
     w = 0.06 # cylinder width
-    l = 0.75 # cylinder length
+    l = 0.75 # cylinder length # noqa: E741
     h = 0.25 # cone height
     d = w * 1.618 # cone base diameter
     obj = []

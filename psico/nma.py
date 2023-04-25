@@ -257,7 +257,6 @@ DESCRIPTION
     Based on:
     http://dirac.cnrs-orleans.fr/MMTK/using-mmtk/mmtk-example-scripts/normal-modes/
     '''
-    import MMTK
 
     selection = selector.process(selection)
     cutoff = float(cutoff)
@@ -270,7 +269,6 @@ DESCRIPTION
     from MMTK import InfiniteUniverse
     from MMTK.PDB import PDBConfiguration
     from MMTK.Proteins import Protein
-    from MMTK.NormalModes import NormalModes
 
     from MMTK.ForceFields import DeformationForceField, CalphaForceField
     from MMTK.FourierBasis import FourierBasis, estimateCutoff

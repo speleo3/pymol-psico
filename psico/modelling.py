@@ -484,7 +484,7 @@ ARGUMENTS
     nmodels, hetatm, quiet = int(nmodels), int(hetatm), int(quiet)
 
     if int(hydro):
-        automodel = allhmodel
+        automodel = allhmodel  # noqa: F811 Redefinition of unused
 
     tempdir = tempfile.mkdtemp()
     pdbfile = os.path.join(tempdir, 'template.pdb')

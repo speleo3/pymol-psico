@@ -70,7 +70,7 @@ ARGUMENTS
     cur = 0/1: if 1, use rms_cur instead of rms (no fitting) {default: 0}
     '''
     from .fitting import MatchMaker
-    from . import matplotlib_fix
+    from . import matplotlib_fix  # noqa: F401
     from matplotlib.pyplot import figure
 
     state1, state2, cur, quiet = int(state1), int(state2), int(cur), int(quiet)
@@ -153,7 +153,7 @@ ARGUMENTS
 
     selection = string: atom selection {default: all}
     '''
-    from . import matplotlib_fix
+    from . import matplotlib_fix  # noqa: F401
     from matplotlib.pyplot import figure
 
     quiet = int(quiet)
@@ -225,7 +225,7 @@ EXAMPLE
     '''
     from numpy import array, dot
     from numpy.linalg import svd, LinAlgError
-    from . import matplotlib_fix
+    from . import matplotlib_fix  # noqa: F401
     from matplotlib.pyplot import figure
 
     state, quiet = int(state), int(quiet)
@@ -365,7 +365,7 @@ EXAMPLE
     # C-alpha b-factors
     iterate_plot name CA, b, resv
     '''
-    from . import matplotlib_fix
+    from . import matplotlib_fix  # noqa: F401
     from matplotlib.pyplot import figure
 
     scatter, quiet = int(scatter), int(quiet)

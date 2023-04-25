@@ -28,7 +28,7 @@ Triangulation using qdelaunay. (http://www.qhull.org)
     process.stdin.close()
     # output
     out_it = iter(process.stdout)
-    n_regions = next(out_it)
+    next(out_it)  # n_regions
     for line in out_it:
         a = line.split()
         assert len(a) == n + 1, 'Wrong number of vertices in output'

@@ -350,7 +350,7 @@ SEE ALSO
         yield False
     frame = 1
     coord_it = crd_coord_iter()
-    while next(coord_it) == True:
+    while next(coord_it) is True:
         coordset = [[next(coord_it), next(coord_it), next(coord_it)]
                 for _ in range(natom)]
         if frame >= start:
@@ -360,7 +360,7 @@ SEE ALSO
             break
         frame += 1
 
-def load_3d(filename, object=''):
+def load_3d(filename, object='', *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -745,7 +745,7 @@ DESCRIPTION
     pdb = ['']
     stream = open(filename)
     for model in range(1, 9999):
-        title = stream.readline()
+        stream.readline()  # title
         natoms = stream.readline().strip()
         if natoms == '':
             break

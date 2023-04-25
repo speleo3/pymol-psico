@@ -22,6 +22,9 @@ jobs:
         apbs
         dssp
 
+    - name: Install pip dependencies
+      run: sudo python3 -m pip install -q ruff
+
     - name: Install stride
       run: |
         wget -nv https://anaconda.org/kimlab/stride/1.6.4/download/linux-64/stride-1.6.4-1.tar.bz2
@@ -37,3 +40,6 @@ jobs:
 
     - name: Test
       run: python3 -m pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
+
+    - name: Lint
+      run: ruff check psico

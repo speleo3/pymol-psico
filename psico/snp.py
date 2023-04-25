@@ -12,7 +12,7 @@ License: BSD-2-Clause
 if not __name__.endswith('.snp'):
     raise Exception("Must do 'import psico.snp' instead of 'run ...'")
 
-from pymol import cmd, CmdException
+from pymol import cmd
 
 # Email for Entrez connections
 emailaddress = "pymol@psico.snp"

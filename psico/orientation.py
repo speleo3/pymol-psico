@@ -427,12 +427,12 @@ SEE ALSO
 
         # rotation angle depending on direction
         m = direction.argmax()
-        i,j,k,l = [
+        i, j, k, l_ = [
             [2,1,1,2],
             [0,2,0,2],
             [1,0,0,1]][m]
         cosa = (R33.trace() - 1.0) / 2.0
-        sina = (R33[i, j] + (cosa - 1.0) * direction[k] * direction[l]) / direction[m]
+        sina = (R33[i, j] + (cosa - 1.0) * direction[k] * direction[l_]) / direction[m]
 
         angle = math.atan2(sina, cosa)
         angle = abs(math.degrees(angle))
@@ -453,7 +453,6 @@ SEE ALSO
         if visualize:
             center1 = numpy.array(center1, float)
             center2 = numpy.array(center2, float)
-            center = (center1 + center2) / 2.0
 
             if gyradius is not None:
                 rg = numpy.array(gyradius(selection1, _self=_self), float)

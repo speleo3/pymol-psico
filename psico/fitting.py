@@ -9,7 +9,7 @@ if not __name__.endswith('.fitting'):
 
 from pymol import cmd, CmdException
 
-from .mcsalign import mcsalign
+from .mcsalign import mcsalign  # noqa: F401
 
 ALL_STATES = 0
 CURRENT_STATE = -1
@@ -1008,7 +1008,7 @@ SEE ALSO
     '''
     from numpy import asarray, identity, log, dot, zeros
     from csb.bio.utils import wfit, fit
-    from .querying import get_ensemble_coords, get_object_name
+    from .querying import get_ensemble_coords
 
     cycles, quiet = int(cycles), int(quiet)
 
@@ -1127,7 +1127,7 @@ REFERENCE
     Hirsch M, Habeck M. - Bioinformatics. 2008 Oct 1;24(19):2184-92
     '''
     from numpy import asarray
-    from csb.statistics.mixtures import SegmentMixture as Mixture
+    from csb.statistics.mixtures import SegmentMixture as Mixture  # noqa: F401 imported but unused
     from .querying import get_object_name
 
     K, guide, quiet = int(K), int(guide), int(quiet)
@@ -1274,7 +1274,7 @@ ARGUMENTS
     center = list-of-3-floats: Target position in fractional space
     {default: [0.5, 0.5, 0.5]}
     """
-    from numpy import dot, asfarray
+    from numpy import dot
     from .xtal import cellbasis
 
     if isinstance(center, str):

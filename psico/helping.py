@@ -77,9 +77,6 @@ SEE ALSO
     import re
  
     count=0
-    docre = re.compile(regexp, re.MULTILINE | re.IGNORECASE)
-    cmdre = re.compile(regexp, re.IGNORECASE)
- 
     matches_with_help = []
     matches_without_help = []
  
@@ -90,7 +87,7 @@ SEE ALSO
  
         doc = cmd.keyword[cc][0].__doc__
  
-        if doc == None:
+        if doc is None:
             if re.search(regexp, cc, re.IGNORECASE):
                 count += 1
                 matches_without_help.append(cc)
@@ -102,7 +99,7 @@ SEE ALSO
                 maxcclen = len(cc)
  
             docmatches = re.match(r"""^\s+DESCRIPTION\s+(.{0,80})\S*""", doc, re.IGNORECASE)
-            if docmatches == None:
+            if docmatches is None:
                 desc = '>>>>>>>> Ooopsie, no DESCRIPTION found for this command!!! <<<<<<'
             else:
                 desc = docmatches.group(1)

@@ -200,7 +200,6 @@ SEE ALSO
 
     stub2ala, get_sasa, get_sasa_ball
     '''
-    import MMTK
     from MMTK.PDB import PDBConfiguration
     from MMTK.Proteins import Protein
     from MMTK.MolecularSurface import surfaceAndVolume

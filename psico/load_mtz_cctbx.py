@@ -50,7 +50,7 @@ try:
 except NameError:
     this_file = __file__
 
-import pymol
+import pymol  # noqa: E402
 
 def load_mtz_cctbx(filename, prefix='', amplitudes='', phases='', quiet=1,
         _self=pymol.cmd):

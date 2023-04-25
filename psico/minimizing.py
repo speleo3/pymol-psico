@@ -91,7 +91,7 @@ ARGUMENTS
 
     try:
         # OB 3.x
-        from openbabel import openbabel as ob
+        from openbabel import openbabel as ob  # noqa: F811 Redefinition of unused
     except ImportError:
         # OB 2.x
         pass

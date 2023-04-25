@@ -453,7 +453,6 @@ DESCRIPTION
     API only. Returns pixel units given a string representation of units in
     another system. Default unit is millimeter.
     '''
-    import re
     uuconv = {'in':dpi, 'mm':dpi/25.4, 'cm':dpi/2.54}
     unit = 'mm'
     if isinstance(string, str) and string[-2:].isalpha():
