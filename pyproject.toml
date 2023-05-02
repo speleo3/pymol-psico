@@ -17,6 +17,7 @@ repository = "https://github.com/speleo3/pymol-psico"
 
 [project.optional-dependencies]
 dev = [
+    "pre-commit",
     "pytest",
     "ruff",
 ]

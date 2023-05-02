@@ -1,0 +1,15 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.4.0"
+    hooks:
+    -   id: check-added-large-files
+        args: ["--maxkb=250"]
+    -   id: check-case-conflict
+    -   id: check-json
+    -   id: check-merge-conflict
+    -   id: check-toml
+    -   id: check-yaml
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  rev: "v0.0.264"
+  hooks:
+    - id: ruff
