@@ -94,7 +94,7 @@ class AAindex(dict):
 
         if not os.path.exists(filename):
             import urllib.request as urllib
-            url = 'ftp://ftp.genome.jp/pub/db/community/aaindex/' + os.path.basename(filename)
+            url = 'https://www.genome.jp/ftp/db/community/aaindex/' + os.path.basename(filename)
             if not quiet:
                 print('Downloading "%s"' % (url))
             filename = urllib.urlretrieve(url, filename)[0]
