@@ -161,7 +161,7 @@ def test_dssp():
     psico.editing.dssp(raw='resn')
     my_values = []
     cmd.iterate('guide', 'my_values.append((ss, resn))', space=locals())
-    assert my_values == [\
+    assert my_values == [
         ('L', ' '), ('L', 'T'), ('H', 'H'), ('H', 'H'), ('H', 'H'),
         ('H', 'H'), ('H', 'H'), ('H', 'H'), ('L', 'T'), ('L', 'T'),
         ('L', ' '), ('L', ' '), ('L', 'T'), ('H', 'H'), ('H', 'H'),
@@ -178,7 +178,7 @@ def test_stride():
     psico.editing.stride(raw='resn')
     my_values = []
     cmd.iterate('guide', 'my_values.append((ss, resn))', space=locals())
-    assert my_values == [\
+    assert my_values == [
         ('L', 'C'), ('H', 'H'), ('H', 'H'), ('H', 'H'), ('H', 'H'),
         ('H', 'H'), ('H', 'H'), ('H', 'H'), ('H', 'H'), ('L', 'C'),
         ('L', 'C'), ('L', 'C'), ('H', 'H'), ('H', 'H'), ('H', 'H'),
@@ -195,7 +195,7 @@ def test_sst():
     psico.editing.sst(raw='resn')
     my_values = []
     cmd.iterate('guide', 'my_values.append((ss, resn))', space=locals())
-    assert my_values == [\
+    assert my_values == [
         ('L', 'C'), ('H', 'H'), ('H', 'H'), ('H', 'H'), ('H', 'H'),
         ('H', 'H'), ('H', 'G'), ('H', 'G'), ('H', 'G'), ('L', 'C'),
         ('L', 'C'), ('H', 'I'), ('H', 'I'), ('H', 'I'), ('H', 'I'),

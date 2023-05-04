@@ -8,6 +8,7 @@ License: BSD-2-Clause
 
 from pymol import cmd
 
+
 def morpheasy(source, target, source_state=0, target_state=0, name=None,
         refinement=5, quiet=1, *, _self=cmd):
     '''
@@ -41,14 +42,16 @@ EXAMPLE
     refinement = int(refinement)
     quiet = int(quiet)
 
-    if source_state < 1: source_state = get_selection_state(source, _self=_self)
-    if target_state < 1: target_state = get_selection_state(target, _self=_self)
+    if source_state < 1:
+        source_state = get_selection_state(source, _self=_self)
+    if target_state < 1:
+        target_state = get_selection_state(target, _self=_self)
 
     # temporary objects
     # IMPORTANT: cmd.get_raw_alignment does not work with underscore object names!
     alnobj = _self.get_unused_name('_aln')
-    so_obj = _self.get_unused_name('source') # see above
-    ta_obj = _self.get_unused_name('target') # see above
+    so_obj = _self.get_unused_name('source')  # see above
+    ta_obj = _self.get_unused_name('target')  # see above
     so_sel = _self.get_unused_name('_source_sel')
     ta_sel = _self.get_unused_name('_target_sel')
     _self.create(so_obj, source, source_state, 1)
@@ -63,7 +66,7 @@ EXAMPLE
     _self.select(so_sel, '%s and %s' % (so_obj, alnobj))
     _self.select(ta_sel, '%s and %s' % (ta_obj, alnobj))
     alnmap = dict(_self.get_raw_alignment(alnobj))
-    alnmap.update(dict((v,k) for (k,v) in alnmap.items()))
+    alnmap.update(dict((v, k) for (k, v) in alnmap.items()))
 
     # copy source atom identifiers to temporary target
     idmap = dict()
@@ -93,6 +96,7 @@ EXAMPLE
 
     return name
 
+
 def morpheasy_linear(source, target, source_state=0, target_state=0, name=None,
         steps=30, match='align', quiet=1, *, _self=cmd):
     '''
@@ -117,8 +121,10 @@ SEE ALSO
     target_state = int(target_state)
     steps, quiet = int(steps), int(quiet)
 
-    if source_state < 1: source_state = get_selection_state(source, _self=_self)
-    if target_state < 1: target_state = get_selection_state(target, _self=_self)
+    if source_state < 1:
+        source_state = get_selection_state(source, _self=_self)
+    if target_state < 1:
+        target_state = get_selection_state(target, _self=_self)
 
     mm = MatchMaker(source, target, match, _self=_self)
 
@@ -130,11 +136,12 @@ SEE ALSO
         name = _self.get_unused_name('morph')
     _self.create(name, mm.mobile, source_state, 1)
 
-    for state in range(2, steps+1):
-        c = csource + cdiff * float(state-1) / (steps-1)
+    for state in range(2, steps + 1):
+        c = csource + cdiff * float(state - 1) / (steps - 1)
         _self.load_coordset(c.tolist(), name, state)
 
     return name
+
 
 cmd.extend('morpheasy', morpheasy)
 cmd.extend('morpheasy_linear', morpheasy_linear)

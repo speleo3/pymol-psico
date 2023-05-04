@@ -11,6 +11,7 @@ if not __name__.endswith('.plotting'):
 
 from pymol import cmd, CmdException
 
+
 def _showfigure(fig, filename, quiet):
     '''
 DESCRIPTION
@@ -36,6 +37,7 @@ DESCRIPTION
     except ValueError as e:
         print(' Error:', e)
 
+
 def get_model_color(model, *, _self=cmd):
     '''
 DESCRIPTION
@@ -44,6 +46,7 @@ DESCRIPTION
     '''
     from .querying import get_color
     return get_color(model, 0, 2, _self=_self)
+
 
 def rms_plot(selection='guide', ref1=None, ref2=None, state1=1, state2=-1,
         match='align', cur=0, maxlabels=20, size=20, alpha=0.75,
@@ -109,12 +112,13 @@ ARGUMENTS
     text_list = []
 
     _rms = _self.rms_cur if cur else _self.rms
+
     def rms(model, ref, state, ref_state):
         mobile, target = sele_pairs[model, ref]
         return _rms(mobile, target, state, ref_state, matchmaker=4)
 
     for model in models:
-        for state in range(1, _self.count_states(model)+1):
+        for state in range(1, _self.count_states(model) + 1):
             rms1 = rms(model, ref1, state, state1)
             rms2 = rms(model, ref2, state, state2)
             x_list.append(rms1)
@@ -128,7 +132,7 @@ ARGUMENTS
     fig = figure()
     plt = fig.add_subplot(111, xlabel='RMSD to %s (state %d)' % (ref1, state1),
             ylabel='RMSD to %s (state %d)' % (ref2, state2),
-            xlim=(0, 1+max(x_list)), ylim=(0, 1+max(y_list)))
+            xlim=(0, 1 + max(x_list)), ylim=(0, 1 + max(y_list)))
     plt.scatter(x_list, y_list, float(size), colors, linewidths=0, alpha=float(alpha))
 
     if maxlabels < 0 or len(text_list) <= maxlabels:
@@ -176,7 +180,7 @@ ARGUMENTS
 
 
 def pca_plot(aln_object, ref='all', state=0, maxlabels=20, size=20, invert='',
-        which=(0,1), alpha=0.75, filename=None, quiet=1, load_b=0, *, _self=cmd):
+        which=(0, 1), alpha=0.75, filename=None, quiet=1, load_b=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -243,7 +247,7 @@ EXAMPLE
         extra_fit(selection, cycles=0, transform=0, object=aln_object, _self=_self)
 
     if state == 0:
-        states = list(range(1, _self.count_states()+1))
+        states = list(range(1, _self.count_states() + 1))
     elif state < 0:
         states = [_self.get_state()]
     else:
@@ -280,8 +284,10 @@ EXAMPLE
                     c.append([])
                 c[-1].extend(idx2xyz[idx])
 
-    c_iter = lambda models: ((c,model,i+1) for model in models
-            for (i,c) in enumerate(coords[model]))
+    def c_iter(models):
+        return ((c, model, i + 1) for model in models
+                for (i, c) in enumerate(coords[model]))
+
     X = array([i[0] for i in c_iter(references)])
     Y = array([i[0] for i in c_iter(others)])
     center = X.mean(0)
@@ -313,8 +319,8 @@ EXAMPLE
     text_list = []
 
     def plot_pc_2d(X, labels):
-        pca_12 = dot(X, V.T)[:,which]
-        for (x,y), (model,state) in zip(pca_12, labels):
+        pca_12 = dot(X, V.T)[:, which]
+        for (x, y), (model, state) in zip(pca_12, labels):
             x_list.append(x)
             y_list.append(y)
             colors.append(get_model_color(model, _self=_self))
@@ -334,7 +340,7 @@ EXAMPLE
         y_list = [-y for y in y_list]
 
     fig = figure()
-    plt = fig.add_subplot(111, xlabel='PC %d' % (which[0]+1), ylabel='PC %d' % (which[1]+1))
+    plt = fig.add_subplot(111, xlabel='PC %d' % (which[0] + 1), ylabel='PC %d' % (which[1] + 1))
     plt.scatter(x_list, y_list, float(size), colors, linewidths=0, alpha=float(alpha))
 
     for (x, y, text) in zip(x_list, y_list, text_list):
@@ -342,6 +348,7 @@ EXAMPLE
             plt.text(x, y, text, horizontalalignment='left')
 
     _showfigure(fig, filename, quiet)
+
 
 def iterate_plot(selection, expr_y, expr_x=None, scatter=0, filename=None,
         space=None, quiet=1, *, _self=cmd):
@@ -355,7 +362,7 @@ ARGUMENTS
     selection = string: atom selection
 
     expr_y = string: python expression for y values
-    
+
     expr_x = string: python expression for x values {default: None}
 
     scatter = 0/1: make line plot or scatter plot {default: 0, line plot}
@@ -402,6 +409,7 @@ EXAMPLE
             plt.plot(x_values, y_values, c=color)
 
     _showfigure(fig, filename, quiet)
+
 
 # pymol commands
 cmd.extend('rms_plot', rms_plot)

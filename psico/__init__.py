@@ -6,7 +6,7 @@ PyMOL> psico.helping.write_html_ref('psico-commands.html')
 
 (c) 2010-2012 Thomas Holder <speleo3@users.sourceforge.net>
               Steffen Schmidt <steffen.schmidt@tuebingen.mpg.de>
-              Max Planck Institute for Developmental Biology 
+              Max Planck Institute for Developmental Biology
 
 License: BSD-2-Clause
 '''
@@ -66,6 +66,7 @@ def make_global():
     if sys.modules.get('psico') != sys.modules[__name__]:
         sys.modules['psico'] = sys.modules[__name__]
 
+
 def init(save=0, fetch=0, pymolapi=0):
     '''
 DESCRIPTION
@@ -108,9 +109,12 @@ ARGUMENTS
         init_cmd(pymolapi == 2)
 
 # PyMOL Plugin hook
+
+
 def __init_plugin__(self=None):
     init(1, 0, 0)
     make_global()
+
 
 def init_cmd(force=0):
     '''
@@ -126,9 +130,10 @@ def init_cmd(force=0):
             if force or not hasattr(cmd, function.__name__):
                 setattr(cmd, function.__name__, function)
 
+
 # See also http://pymolwiki.org/index.php/Aa_codes
 one_letter = {
-    'PAQ': 'Y', 'AGM': 'R', 'ILE': 'I', 'PR3': 'C', 'GLN': 'Q',    'DVA': 'V',
+    'PAQ': 'Y', 'AGM': 'R', 'ILE': 'I', 'PR3': 'C', 'GLN': 'Q', 'DVA': 'V',
     'CCS': 'C', 'ACL': 'R', 'GLX': 'Z', 'GLY': 'G', 'GLZ': 'G', 'DTH': 'T',
     'OAS': 'S', 'C6C': 'C', 'NEM': 'H', 'DLY': 'K', 'MIS': 'S', 'SMC': 'C',
     'GLU': 'E', 'NEP': 'H', 'BCS': 'C', 'ASQ': 'D', 'ASP': 'D', 'SCY': 'C',
@@ -170,6 +175,7 @@ matplotlib_fix_prefs = {
     'force_show': False,
     'tkagg_overload': True,
 }
+
 
 def which(*names, **kw):
     '''

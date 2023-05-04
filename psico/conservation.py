@@ -9,12 +9,13 @@ if not __name__.endswith('.conservation'):
 
 from pymol import cmd, CmdException
 
+
 def consurfdb(code, chain='A', selection=None, palette='red_white_blue', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
     Color by evolutionary conservation. Writes scores to b-factor.
- 
+
     Fetches pre-calculated conservation profile from ConSurf-DB.
     http://consurfdb.tau.ac.il/
 
@@ -54,6 +55,7 @@ SEE ALSO
         selection = '%s and chain %s' % (code, chain)
 
     load_consurf(handle, selection, palette, quiet, _self=_self)
+
 
 def load_consurf(filename, selection, palette='red_white_blue', quiet=1, *, _self=cmd):
     '''
@@ -115,6 +117,7 @@ SEE ALSO
     if palette:
         _self.color('yellow', selection + ' and b<-9')
         _self.spectrum('b', palette, selection + ' and b>-9.5')
+
 
 cmd.extend('consurfdb', consurfdb)
 cmd.extend('load_consurf', load_consurf)

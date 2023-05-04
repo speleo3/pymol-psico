@@ -6,7 +6,8 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, CmdException
- 
+
+
 def grepset(regexp='', *, _self=cmd):
     '''
 DESCRIPTION
@@ -22,13 +23,13 @@ DESCRIPTION
 USAGE
 
     grepset [regexp]
- 
+
 EXAMPLE
 
     grepset line
     grepset ray
     grepset (^line|color$)
- 
+
 SEE ALSO
 
     apropos
@@ -42,7 +43,7 @@ SEE ALSO
         setting = pymol.setting._get_name(a)
         if regexp.search(setting):
             count += 1
-            matches.append( (setting, _self.get_setting_text(a, '', -1)) )
+            matches.append((setting, _self.get_setting_text(a, '', -1)))
     # max length of the setting names that matched
     maxlen = max([len(s[0]) for s in matches] + [0])
     fmt = "%%-%ds : %%s" % (maxlen,)
@@ -50,71 +51,71 @@ SEE ALSO
         print(fmt % setting)
     print('%d settings matched' % (count,))
 
- 
+
 def apropos(regexp=''):
     '''
 DESCRIPTION
 
-    "apropos" searches through the documentation of all currently 
+    "apropos" searches through the documentation of all currently
     defined commands and lists those commands for which the keyword
     is either contained in the documentation or matches the command
     name itself.
 
     If an appropriate "DESCRIPTION" section is provided in the documentation
     of the command, the first 80 characters are listed as a summary.
-    
+
     Author: Ezequiel Panepucci
     http://pymolwiki.org/index.php/Apropos
 
 USAGE
 
     apropos [keyword or regexp]
- 
+
 SEE ALSO
 
     grepset
     '''
     import re
- 
-    count=0
+
+    count = 0
     matches_with_help = []
     matches_without_help = []
- 
-    maxcclen=0
+
+    maxcclen = 0
     for cc in cmd.keyword:
         if cc == regexp:
-            print('\n###EXACT MATCH FOR: %s ==> try \'help %s\' at the prompt.' % (cc,cc))
- 
+            print('\n###EXACT MATCH FOR: %s ==> try \'help %s\' at the prompt.' % (cc, cc))
+
         doc = cmd.keyword[cc][0].__doc__
- 
+
         if doc is None:
             if re.search(regexp, cc, re.IGNORECASE):
                 count += 1
                 matches_without_help.append(cc)
             continue
- 
+
         if re.search(regexp, doc, re.MULTILINE | re.IGNORECASE):
             count += 1
             if len(cc) > maxcclen:
                 maxcclen = len(cc)
- 
+
             docmatches = re.match(r"""^\s+DESCRIPTION\s+(.{0,80})\S*""", doc, re.IGNORECASE)
             if docmatches is None:
                 desc = '>>>>>>>> Ooopsie, no DESCRIPTION found for this command!!! <<<<<<'
             else:
                 desc = docmatches.group(1)
-            matches_with_help.append( (cc, desc ) )
- 
- 
+            matches_with_help.append((cc, desc))
+
     if len(matches_without_help) > 0:
         print('\n###The following commands are NOT documented.\n')
         for cc in matches_without_help:
             print('%*s' % (maxcclen, cc))
- 
+
     if len(matches_with_help) > 0:
         print('\n###The following commands are documented.  \'help command\' \n')
-        for cc,desc in matches_with_help:
-            print('%*s : %s' % (maxcclen, cc,desc))
+        for cc, desc in matches_with_help:
+            print('%*s : %s' % (maxcclen, cc, desc))
+
 
 def api_info(name):
     '''
@@ -138,6 +139,7 @@ ARGUMENTS
         print(' API: cmd.' + func.__name__)
     print(' FILE: ' + str(sys.modules[func.__module__].__file__))
     return func
+
 
 def write_html_ref(filename, prefix='psico', format='html'):
     '''
@@ -179,7 +181,7 @@ SEE ALSO
     f.write("body {font-family:sans-serif}")
     f.write("p.api {font:small monospace;color:#999}")
     f.write("</style></head><body><h1>pymol psico reference</h1><ul>")
-    for (a,_) in ref:
+    for (a, _) in ref:
         f.write("<li><a href='#%s'>%s</a>" % (a, a))
     f.write("</ul>")
     for (a, func) in ref:
@@ -189,6 +191,7 @@ SEE ALSO
         f.write("<p class='api'>api: %s.%s</p>" % (func.__module__, func.__name__))
     f.write("</body></html>")
     f.close()
+
 
 def write_txt_ref(filename, prefix='psico'):
     '''
@@ -202,10 +205,11 @@ SEE ALSO
     '''
     write_html_ref(filename, prefix, 'txt_short')
 
+
 cmd.extend('grepset', grepset)
 cmd.extend('apropos', apropos)
 cmd.extend('api_info', api_info)
 
-cmd.auto_arg[0]['api_info'] = [ cmd.kwhash, 'command', '' ]
+cmd.auto_arg[0]['api_info'] = [cmd.kwhash, 'command', '']
 
 # vi:expandtab:smarttab

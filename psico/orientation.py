@@ -11,6 +11,7 @@ from chempy import cpv
 
 STATE = -1
 
+
 def _vec_sum(vec_list):
     # this is the same as
     # return numpy.array(vec_list).sum(0).tolist()
@@ -18,6 +19,7 @@ def _vec_sum(vec_list):
     for x in vec_list:
         vec = cpv.add(vec, x)
     return vec
+
 
 def _common_orientation(selection, center, vec, visualize=1, scale=1.0,
         quiet=1, *, _self=cmd):
@@ -27,7 +29,8 @@ def _common_orientation(selection, center, vec, visualize=1, scale=1.0,
     if not quiet:
         print(' Center: (%.2f, %.2f, %.2f) Direction: (%.2f, %.2f, %.2f)' % tuple(center + vec))
 
-def visualize_orientation(direction, center=[0.0]*3, scale=1.0,
+
+def visualize_orientation(direction, center=[0.0] * 3, scale=1.0,
         symmetric=False, color='green', color2='red', *, _self=cmd):
     '''
 DESCRIPTION
@@ -64,7 +67,7 @@ DESCRIPTION
         ])
         obj.extend(color2_list)
 
-    coneend = cpv.add(end, cpv.scale(direction, 4.0*radius/cpv.length(direction)))
+    coneend = cpv.add(end, cpv.scale(direction, 4.0 * radius / cpv.length(direction)))
     obj.append(cgo.CONE)
     obj.extend(end)
     obj.extend(coneend)
@@ -74,9 +77,10 @@ DESCRIPTION
     ])
     obj.extend(color_list * 2)
     obj.extend([
-        1.0, 1.0, # Caps
+        1.0, 1.0,  # Caps
     ])
     _self.load_cgo(obj, _self.get_unused_name('oriVec'), zoom=0)
+
 
 def cafit_orientation(selection, state=STATE, visualize=1, guide=1, quiet=1, *, _self=cmd):
     '''
@@ -110,7 +114,7 @@ SEE ALSO
     x = numpy.array(coords)
 
     center = x.mean(0).tolist()
-    U,s,Vh = numpy.linalg.svd(x - center)
+    U, s, Vh = numpy.linalg.svd(x - center)
 
     vec = cpv.normalize(Vh[0])
     if cpv.dot_product(vec, x[-1] - x[0]) < 0:
@@ -118,6 +122,7 @@ SEE ALSO
 
     _common_orientation(selection, center, vec, visualize, s[0], quiet, _self=_self)
     return center, vec
+
 
 def loop_orientation(selection, state=STATE, visualize=1, quiet=1, *, _self=cmd):
     '''
@@ -156,10 +161,11 @@ SEE ALSO
         raise CmdException('count == 0')
 
     vec = cpv.normalize(vec)
-    center = cpv.scale(center, 1./count)
+    center = cpv.scale(center, 1. / count)
 
-    _common_orientation(selection, center, vec, visualize, 2.0*len(coords), quiet, _self=_self)
+    _common_orientation(selection, center, vec, visualize, 2.0 * len(coords), quiet, _self=_self)
     return center, vec
+
 
 def helix_orientation(selection, state=STATE, visualize=1, cutoff=3.5, quiet=1, *, _self=cmd):
     '''
@@ -216,12 +222,13 @@ SEE ALSO
     if len(vec_list) == 0:
         raise CmdException('count == 0')
 
-    center = cpv.scale(_vec_sum(atoms['O'].values()), 1./len(atoms['O']))
+    center = cpv.scale(_vec_sum(atoms['O'].values()), 1. / len(atoms['O']))
     vec = _vec_sum(vec_list)
     vec = cpv.normalize(vec)
 
-    _common_orientation(selection, center, vec, visualize, 1.5*len(vec_list), quiet, _self=_self)
+    _common_orientation(selection, center, vec, visualize, 1.5 * len(vec_list), quiet, _self=_self)
     return center, vec
+
 
 def plane_orientation(selection, state=STATE, visualize=1, guide=0, quiet=1, *, _self=cmd):
     '''
@@ -247,7 +254,7 @@ DESCRIPTION
         raise CmdException('not enough guide atoms in selection')
 
     x = numpy.array(coords)
-    U,s,Vh = numpy.linalg.svd(x - x.mean(0))
+    U, s, Vh = numpy.linalg.svd(x - x.mean(0))
 
     # normal vector of plane is 3rd principle component
     vec = cpv.normalize(Vh[2])
@@ -263,9 +270,9 @@ DESCRIPTION
 
         dir1 = cpv.normalize(Vh[0])
         dir2 = cpv.normalize(Vh[1])
-        sx = [max(i/4.0, 2.0) for i in s]
+        sx = [max(i / 4.0, 2.0) for i in s]
 
-        obj = [ cgo.BEGIN, cgo.TRIANGLES, cgo.COLOR, 0.5, 0.5, 0.5 ]
+        obj = [cgo.BEGIN, cgo.TRIANGLES, cgo.COLOR, 0.5, 0.5, 0.5]
         for vertex in [
                 cpv.scale(dir1, sx[0]),
                 cpv.scale(dir2, sx[1]),
@@ -273,13 +280,14 @@ DESCRIPTION
                 cpv.scale(dir1, -sx[0]),
                 cpv.scale(dir2, -sx[1]),
                 cpv.scale(dir2, sx[1]),
-                ]:
+        ]:
             obj.append(cgo.VERTEX)
             obj.extend(cpv.add(center, vertex))
         obj.append(cgo.END)
         _self.load_cgo(obj, _self.get_unused_name('planeFit'))
 
     return center, vec
+
 
 def angle_between_helices(selection1, selection2, method='helix',
         state1=STATE, state2=STATE, visualize=1, quiet=1, *, _self=cmd):
@@ -345,13 +353,14 @@ SEE ALSO
                 cpv.add(center, cpv.scale(dir2, 5.0))]:
             _self.pseudoatom(tmp, pos=list(pos), state=1)
         name = _self.get_unused_name('angle')
-        _self.angle(name, *[(tmp, i) for i in [2,1,3]])
+        _self.angle(name, *[(tmp, i) for i in [2, 1, 3]])
         _self.delete(tmp)
 
         _self.zoom('(%s) or (%s)' % (selection1, selection2), 2,
                 state1 if state1 == state2 else 0)
 
     return angle
+
 
 def angle_between_domains(selection1, selection2, method='align',
         state1=STATE, state2=STATE, visualize=1, quiet=1, *, _self=cmd):
@@ -402,7 +411,7 @@ SEE ALSO
             raise CmdException('no such method: ' + str(method))
 
     mobile_tmp = _self.get_unused_name('_')
-    _self.create(mobile_tmp, selection1, state1, 1,  zoom=0)
+    _self.create(mobile_tmp, selection1, state1, 1, zoom=0)
     try:
         method(mobile=mobile_tmp, target=selection2, mobile_state=1,
                 target_state=state2, quiet=quiet)
@@ -417,7 +426,7 @@ SEE ALSO
         # Based on transformations.rotation_from_matrix
         # Copyright (c) 2006-2012, Christoph Gohlke
 
-        R33 = [mat[i:i+3] for i in [0,4,8]]
+        R33 = [mat[i:i + 3] for i in [0, 4, 8]]
         R33 = numpy.array(R33, float)
 
         # direction: unit eigenvector of R33 corresponding to eigenvalue of 1
@@ -428,9 +437,9 @@ SEE ALSO
         # rotation angle depending on direction
         m = direction.argmax()
         i, j, k, l_ = [
-            [2,1,1,2],
-            [0,2,0,2],
-            [1,0,0,1]][m]
+            [2, 1, 1, 2],
+            [0, 2, 0, 2],
+            [1, 0, 0, 1]][m]
         cosa = (R33.trace() - 1.0) / 2.0
         sina = (R33[i, j] + (cosa - 1.0) * direction[k] * direction[l_]) / direction[m]
 
@@ -469,8 +478,8 @@ SEE ALSO
 
             # measurement object for angle and displacement
             name = _self.get_unused_name('measurement')
-            _self.distance(name, *['%s`%d' % (mobile_tmp, i) for i in [1,2]])
-            _self.angle(name, *['%s`%d' % (mobile_tmp, i) for i in [3,1,4]])
+            _self.distance(name, *['%s`%d' % (mobile_tmp, i) for i in [1, 2]])
+            _self.angle(name, *['%s`%d' % (mobile_tmp, i) for i in [3, 1, 4]])
 
             # CGO arrow for axis of rotation
             visualize_orientation(direction, center1, rg, color='blue', _self=_self)
@@ -480,6 +489,7 @@ SEE ALSO
     return angle
 
 # methods for auto-completion
+
 
 methods = [
     helix_orientation,
@@ -502,14 +512,14 @@ for func in [angle_between_helices, angle_between_domains]:
     cmd.auto_arg[1][func.__name__] = cmd.auto_arg[0]['align']
 
 cmd.auto_arg[2].update([
-    ('angle_between_helices', [ methods_sc, 'method', '' ]),
+    ('angle_between_helices', [methods_sc, 'method', '']),
 ])
 
 try:
     # make this import optional to support running this script standalone
     from .fitting import align_methods_sc
     cmd.auto_arg[2].update([
-        ('angle_between_domains', [ align_methods_sc, 'alignment method', '' ]),
+        ('angle_between_domains', [align_methods_sc, 'alignment method', '']),
     ])
 except (ValueError, ImportError):
     pass

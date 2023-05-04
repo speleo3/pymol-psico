@@ -6,6 +6,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+
 def save_xyzr(filename, selection='all', state=1, _colorsout=None, *, _self=cmd):
     '''
 DESCRIPTION
@@ -31,6 +32,7 @@ DESCRIPTION
     finally:
         handle.close()
 
+
 def load_msms_surface(filename, name='', _colors=None, *, _self=cmd):
     '''
 DESCRIPTION
@@ -55,7 +57,7 @@ DESCRIPTION
             break
 
     # read vertices
-    vertices = [None] # make 1-indexable
+    vertices = [None]  # make 1-indexable
     for line in line_iter:
         data = line.split()
         vertex = [float(x) for x in data[0:3]]
@@ -92,6 +94,7 @@ DESCRIPTION
 
     _self.load_cgo(cgobuf, name)
 
+
 def _get_solvent_radius(selection, state, *, _self=cmd):
     '''Get object-state level solvent_radius'''
     radius = [None]
@@ -110,6 +113,7 @@ def _get_solvent_radius(selection, state, *, _self=cmd):
         print('Using global solvent_radius')
 
     return _self.get('solvent_radius')
+
 
 def msms_surface(selection='polymer', state=1, density=3, name='',
         atomcolors=0, exe='msms', preserve=0, quiet=1, *, _self=cmd):
@@ -164,7 +168,7 @@ EXAMPLE
             '-of', tmp_of,
             '-no_area',
             '-probe_radius', _get_solvent_radius(selection, state, _self=_self),
-            ], cwd=tmpdir)
+        ], cwd=tmpdir)
 
         load_msms_surface(tmp_of, name, colors, _self=_self)
 
@@ -175,6 +179,7 @@ EXAMPLE
             shutil.rmtree(tmpdir)
         elif not int(quiet):
             print(' Notice: not deleting ' + tmpdir)
+
 
 def atmtypenumbers(filename='atmtypenumbers', selection='all', united=1,
         quiet=1, *, _self=cmd):
@@ -208,9 +213,12 @@ EXAMPLE
     types = {}
     patterns = []
 
-    _true_func = lambda s: True
+    def _true_func(s):
+        return True
+
     def _get_match_func(p):
-        if p == '*': return _true_func
+        if p == '*':
+            return _true_func
         return re.compile(p.replace('_', ' ') + '$').match
 
     try:
@@ -251,6 +259,7 @@ EXAMPLE
     _self.alter(selection, 'vdw = callback(resn, name, vdw)',
             space={'callback': callback})
     _self.rebuild(selection)
+
 
 cmd.extend('save_xyzr', save_xyzr)
 cmd.extend('load_msms_surface', load_msms_surface)

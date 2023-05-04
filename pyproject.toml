@@ -37,11 +37,27 @@ version = {attr = "psico.__version__"}
 based_on_style = "pep8"
 allow_split_before_dict_value = false
 
+[tool.autopep8]
+select = [
+    "E101", # indentation contains mixed spaces and tabs
+    "E203", # Whitespace before ",", ";", or ":"
+    "E22",  # Fix extraneous whitespace around keywords
+    "E231", # Missing whitespace after ",", ";", or ":"
+    "E241", # Multiple spaces after ','
+    "E261", # At least two spaces before inline comment
+    "E301", # Add missing blank line
+    "E302", # Expected 2 blank lines
+    "E305", # Expected 2 blank lines after end of function or class
+    "E502", # Remove extraneous escape of newline
+    "E701", # multiple statements on one line (colon)
+    "W",
+    "W291", # trailing whitespace (does not work)
+]
+
 [tool.ruff]
 ignore = [
     "E401",     # Multiple imports on one line
     "E501",     # Line too long
-    "E701",     # Multiple statements on one line (colon)
     "E731",     # lambda-assignment
     "E722",     # FIXME Do not use bare `except`
 ]

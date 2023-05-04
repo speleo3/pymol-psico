@@ -17,6 +17,7 @@ from pymol import cmd
 # Email for Entrez connections
 emailaddress = "pymol@psico.snp"
 
+
 def snp_common(record, selection, label, name, quiet, *, _self=cmd):
     '''
     Common part of snp_uniprot and snp_ncbi.
@@ -55,14 +56,14 @@ def snp_common(record, selection, label, name, quiet, *, _self=cmd):
             if feature[0] != 'VARIANT' or feature[1] != feature[2]:
                 continue
             i = feature[1]
-            if (i-1) not in map1:
+            if (i - 1) not in map1:
                 if not quiet:
                     print('not mapped', feature)
                 continue
-            resi = res_list[map1[i-1]][1]
+            resi = res_list[map1[i - 1]][1]
             snpi.add(resi)
             if not quiet:
-                print('%s`%d' % res_list[map1[i-1]], feature[2:4])
+                print('%s`%d' % res_list[map1[i - 1]], feature[2:4])
             if label:
                 labels.setdefault((chain, resi), []).append(feature[3].split(' (')[0])
         if len(snpi) > 0:
@@ -79,6 +80,7 @@ def snp_common(record, selection, label, name, quiet, *, _self=cmd):
     if name == '':
         name = _self.get_unused_name('nsSNPs')
     _self.select(name, '(%s) and (%s)' % (selection, ' or '.join(snpi_str)))
+
 
 def snp_uniprot(uniprotname, selection='(all)', label=1, name='', quiet=0, *, _self=cmd):
     '''
@@ -116,6 +118,7 @@ SEE ALSO
     handle = ExPASy.get_sprot_raw(uniprotname)
     record = SwissProt.read(handle)
     snp_common(record, selection, label, name, quiet, _self=_self)
+
 
 def snp_ncbi(query, selection='(all)', label=1, name='', quiet=0, *, _self=cmd):
     '''
@@ -200,7 +203,7 @@ SEE ALSO
         for node in rs.xpath(addr % ('missense'), namespaces=ns):
             pos = node.get('aaPosition')
             assert pos == refPos
-            features.add(('VARIANT', intPos, intPos, '%s -> %s (in dbSNP:rs%s)' % \
+            features.add(('VARIANT', intPos, intPos, '%s -> %s (in dbSNP:rs%s)' %
                     (refRes, node.get('residue'), rsId)))
 
     # make SwissProt like record
@@ -210,13 +213,14 @@ SEE ALSO
     record.features = sorted(features)
     snp_common(record, selection, label, name, quiet, _self=_self)
 
+
 cmd.extend('snp_uniprot', snp_uniprot)
 cmd.extend('snp_ncbi', snp_ncbi)
 
 # tab-completion of arguments
 cmd.auto_arg[1].update({
-    'snp_uniprot'    : cmd.auto_arg[0]['zoom'],
-    'snp_ncbi'       : cmd.auto_arg[0]['zoom'],
+    'snp_uniprot': cmd.auto_arg[0]['zoom'],
+    'snp_ncbi': cmd.auto_arg[0]['zoom'],
 })
 
 # vi:expandtab

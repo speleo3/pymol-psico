@@ -11,6 +11,9 @@ import sys
 
 from pymol import cmd
 
+_auto_arg0_zoom = cmd.auto_arg[0]['zoom']
+
+
 def fasta(selection='(all)', gapped=1, wrap=70, filename='', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -78,6 +81,7 @@ SEE ALSO
             print(' Wrote sequence to "%s"' % filename)
         out.close()
 
+
 def pir(selection='(all)', wrap=70, *, _self=cmd):
     '''
 DESCRIPTION
@@ -102,14 +106,19 @@ SEE ALSO
             seq.append(one_letter.get(atom.resn, 'X'))
         seq.append('*')
         print('>P1;%s' % (obj))
-        print('structure:%s:%s:%s:%s:%s::::' % (obj,
-                model.atom[0].resi,model.atom[0].chain,
-                model.atom[-1].resi,model.atom[-1].chain))
+        print('structure:%s:%s:%s:%s:%s::::' % (
+            obj,
+            model.atom[0].resi,
+            model.atom[0].chain,
+            model.atom[-1].resi,
+            model.atom[-1].chain,
+        ))
         if wrap < 1:
             print(''.join(seq))
             continue
         for i in range(0, len(seq), wrap):
-            print(''.join(seq[i:i+wrap]))
+            print(''.join(seq[i:i + wrap]))
+
 
 def save_colored_fasta(filename, selection='(all)', gapped=1, quiet=1, *, _self=cmd):
     '''
@@ -123,12 +132,13 @@ DESCRIPTION
     selection = '(%s) and polymer and guide' % (selection)
     html = []
     stored = Scratch_Storage()
+
     def callback(resv, resn, color):
         if stored.resv is None:
             stored.resv = resv - (resv % 70)
         if gapped:
-            while stored.resv+1 < resv:
-                callback(stored.resv+1, '-', 25)
+            while stored.resv + 1 < resv:
+                callback(stored.resv + 1, '-', 25)
         stored.resv += 1
         if stored.resv % 70 == 1:
             html.append(('</font>\n<br>%4d <font>' % (resv)).replace(' ', '&nbsp;'))
@@ -154,16 +164,17 @@ DESCRIPTION
     print('</body></html>', file=handle)
     handle.close()
 
+
 cmd.extend('fasta', fasta)
 cmd.extend('pir', pir)
 cmd.extend('save_colored_fasta', save_colored_fasta)
 
 cmd.auto_arg[0].update({
-    'fasta'          : cmd.auto_arg[0]['zoom'],
-    'pir'            : cmd.auto_arg[0]['zoom'],
+    'fasta': _auto_arg0_zoom,
+    'pir': _auto_arg0_zoom,
 })
 cmd.auto_arg[1].update([
-    ('save_colored_fasta', cmd.auto_arg[0]['zoom']),
+    ('save_colored_fasta', _auto_arg0_zoom),
 ])
 
 # vi: ts=4:sw=4:smarttab:expandtab

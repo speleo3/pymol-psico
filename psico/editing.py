@@ -8,9 +8,13 @@ import sys
 
 from pymol import cmd, CmdException
 
+_auto_arg0_zoom = cmd.auto_arg[0]['zoom']
+
+
 def _assert_package_import():
     if not __name__.endswith('.editing'):
         raise CmdException("Must do 'import psico.editing' instead of 'run ...'")
+
 
 def split(operator, selection, prefix='entity', *, _self=cmd):
     '''
@@ -32,6 +36,7 @@ DESCRIPTION
     _self.delete(tmp)
     return r
 
+
 def split_molecules(selection='(all)', prefix='mol_', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -47,6 +52,7 @@ SEE ALSO
     r = split('bm.', '(%s) and not solvent' % selection, prefix, _self=_self)
     if not quiet:
         print(' Found %d non-solvent molecules' % r)
+
 
 def split_chains(selection='(all)', prefix=None, *, _self=cmd):
     '''
@@ -119,13 +125,14 @@ SEE ALSO
     n_states, n_atoms, _ = coords.shape
     if n_atoms == 0 or n_states < 2:
         raise CmdException('not enough atoms or states')
-    u_sq = coords.var(0).sum(1) # var over states, sum over x,y,z
+    u_sq = coords.var(0).sum(1)  # var over states, sum over x,y,z
     b_array = sqrt(u_sq) * linearscale if linearscale > 0.0 \
             else 8 * pi**2 * u_sq
     _self.alter(selection, var + ' = next(b_iter)', space={'b_iter': iter(b_array), 'next': next})
     if not int(quiet):
         print(' Average RMSF: %.2f' % (sqrt(u_sq).mean()))
     return b_array
+
 
 def set_sequence(sequence, selection='all', start=1, *, _self=cmd):
     '''
@@ -147,8 +154,9 @@ ARGUMENTS
     sequence = re.sub(r'\s+', '', sequence)
     start = int(start)
     for i, aa in enumerate(sequence):
-        _self.alter('(%s) and resi %d' % (selection, i+start),
+        _self.alter('(%s) and resi %d' % (selection, i + start),
                 'resn=' + repr(three_letter.get(aa.upper(), 'UNK')))
+
 
 def alphatoall(selection='polymer', properties='b', operator='byca', quiet=1, *, _self=cmd):
     '''
@@ -174,6 +182,7 @@ ARGUMENTS
     if not int(quiet):
         print(' Modified %d residues' % (len(space['props'])))
 
+
 def mse2met(selection='all', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -187,6 +196,7 @@ DESCRIPTION
     if not quiet:
         print('Altered %d MSE residues to MET' % (x))
     _self.sort()
+
 
 def polyala(selection='all', quiet=1, *, _self=cmd):
     '''
@@ -202,6 +212,7 @@ SEE ALSO
     _self.remove('polymer and (%s) and not name C+N+O+CA+CB+OXT' % (selection))
     _self.alter('polymer and (%s) and not resn GLY' % (selection), 'resn = "ALA"')
     _self.sort()
+
 
 def stub2ala(selection='all', quiet=1, *, _self=cmd):
     '''
@@ -242,6 +253,7 @@ SEE ALSO
             _self.alter(key_str, 'resn = %s' % (repr(lookslike_resn)))
     _self.sort()
 
+
 def remove_alt(selection='all', keep='A', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -262,6 +274,7 @@ ARGUMENTS
     _self.alter(selection, '(alt,q)=("",1.0)')
     _self.sort()
 
+
 def _common_ss_alter(selection, ss_dict, ss_map, raw='', *, _self=cmd):
     '''
 DESCRIPTION
@@ -276,6 +289,7 @@ DESCRIPTION
                 space={'ss_dict': ss_dict})
     _self.cartoon('auto', selection)
     _self.rebuild(selection, 'cartoon')
+
 
 def dssp(selection='(all)', exe='', raw='', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -332,14 +346,14 @@ SEE ALSO
         args += ["--output-format", "dssp"]
 
     ss_map = {
-        'B': 'S', # residue in isolated beta-bridge
-        'E': 'S', # extended strand, participates in beta ladder
-        'T': 'L', # hydrogen bonded turn
-        'G': 'H', # 3-helix (3/10 helix)
-        'H': 'H', # alpha helix
-        'I': 'H', # 5 helix (pi helix)
-        'S': 'L', # bend
-        ' ': 'L', # loop or irregular
+        'B': 'S',  # residue in isolated beta-bridge
+        'E': 'S',  # extended strand, participates in beta ladder
+        'T': 'L',  # hydrogen bonded turn
+        'G': 'H',  # 3-helix (3/10 helix)
+        'H': 'H',  # alpha helix
+        'I': 'H',  # 5 helix (pi helix)
+        'S': 'L',  # bend
+        ' ': 'L',  # loop or irregular
     }
     tmpfilepdb = tempfile.mktemp('.pdb')
     ss_dict = dict()
@@ -358,9 +372,10 @@ SEE ALSO
             resi = line[5:11].strip()
             chain = line[11].strip()
             ss = line[16]
-            ss_dict[model,chain,resi] = ss
+            ss_dict[model, chain, resi] = ss
     os.remove(tmpfilepdb)
     _common_ss_alter(selection, ss_dict, ss_map, raw, _self=_self)
+
 
 def stride(selection='(all)', exe='stride', raw='', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -402,9 +417,10 @@ SEE ALSO
             chain = line[9].strip('-')
             resi = line[11:16].strip()
             ss = line[24]
-            ss_dict[model,chain,resi] = ss
+            ss_dict[model, chain, resi] = ss
     os.remove(tmpfilepdb)
     _common_ss_alter(selection, ss_dict, ss_map, raw, _self=_self)
+
 
 def dss_promotif(selection='all', exe='', raw='', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -459,7 +475,7 @@ SEE ALSO
                     chain = line[6].strip('-')
                     resi = line[7:12].strip()
                     ss = line[23]
-                    ss_dict[model,chain,resi] = ss
+                    ss_dict[model, chain, resi] = ss
 
             os.remove(tmpfilesst)
     except OSError:
@@ -467,6 +483,7 @@ SEE ALSO
     finally:
         shutil.rmtree(tmpdir)
     _common_ss_alter(selection, ss_dict, ss_map, raw, _self=_self)
+
 
 def sst(selection='(all)', raw='', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -525,8 +542,8 @@ SEE ALSO
 
         try:
             request = urllib2.Request(
-                    data=body, url=
-                    'https://lcb.infotech.monash.edu/sstweb2/formaction.php')
+                data=body,
+                url='https://lcb.infotech.monash.edu/sstweb2/formaction.php')
             request.add_header('User-agent', 'PyMOL ' + cmd.get_version()[0] + ' ' +
                     sys.platform)
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
@@ -554,9 +571,10 @@ SEE ALSO
             chain = line[2].strip()
             resi = line[3:9].strip()
             ss = line[21]
-            ss_dict[model,chain,resi] = ss
+            ss_dict[model, chain, resi] = ss
 
     _common_ss_alter(selection, ss_dict, ss_map, raw, _self=_self)
+
 
 def set_phipsi(selection, phi=None, psi=None, state=1, quiet=1, *, _self=cmd):
     '''
@@ -577,6 +595,7 @@ SEE ALSO
             _self.set_dihedral(x[0], x[1], x[2], x[3], phi, state, quiet)
         if psi is not None:
             _self.set_dihedral(x[1], x[2], x[3], x[4], psi, state, quiet)
+
 
 def update_identifiers(target, source, identifiers='segi chain resi',
         match='align', quiet=1, *, _self=cmd):
@@ -619,22 +638,22 @@ cmd.extend('update_identifiers', update_identifiers)
 
 # tab-completion of arguments
 cmd.auto_arg[0].update({
-    'split_chains'   : cmd.auto_arg[0]['zoom'],
-    'split_molecules': cmd.auto_arg[0]['zoom'],
-    'split_segis'    : cmd.auto_arg[0]['zoom'],
-    'rmsf2b'         : cmd.auto_arg[0]['zoom'],
-    'mse2met'        : cmd.auto_arg[0]['zoom'],
-    'polyala'        : cmd.auto_arg[0]['zoom'],
-    'stub2ala'       : cmd.auto_arg[0]['zoom'],
-    'remove_alt'     : cmd.auto_arg[0]['zoom'],
-    'dssp'           : cmd.auto_arg[0]['zoom'],
-    'stride'         : cmd.auto_arg[0]['zoom'],
-    'dss_promotif'   : cmd.auto_arg[0]['zoom'],
-    'sst'            : cmd.auto_arg[0]['zoom'],
-    'set_phipsi'     : cmd.auto_arg[0]['zoom'],
+    'split_chains': _auto_arg0_zoom,
+    'split_molecules': _auto_arg0_zoom,
+    'split_segis': _auto_arg0_zoom,
+    'rmsf2b': _auto_arg0_zoom,
+    'mse2met': _auto_arg0_zoom,
+    'polyala': _auto_arg0_zoom,
+    'stub2ala': _auto_arg0_zoom,
+    'remove_alt': _auto_arg0_zoom,
+    'dssp': _auto_arg0_zoom,
+    'stride': _auto_arg0_zoom,
+    'dss_promotif': _auto_arg0_zoom,
+    'sst': _auto_arg0_zoom,
+    'set_phipsi': _auto_arg0_zoom,
 })
 cmd.auto_arg[1].update({
-    'set_sequence'   : cmd.auto_arg[0]['zoom'],
+    'set_sequence': _auto_arg0_zoom,
 })
 
 # vi: expandtab:smarttab

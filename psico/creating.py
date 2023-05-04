@@ -6,9 +6,13 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+_auto_arg0_zoom = cmd.auto_arg[0]['zoom']
+
+
 def _assert_package_import():
     if not __name__.endswith('.creating'):
         raise CmdException("Must do 'import psico.creating' instead of 'run ...'")
+
 
 def join_states(name, selection='all', discrete=-1, zoom=0, quiet=1, *, _self=cmd):
     '''
@@ -19,7 +23,7 @@ DESCRIPTION
 ARGUMENTS
 
     name = string: name of object to create or modify
- 
+
     selection = string: atoms to include in the new object
 
     discrete = -2: match atoms by sequence alignment
@@ -38,18 +42,19 @@ ARGUMENTS
     for i in range(len(models)):
         if discrete == -1 and i > 0:
             _self.remove('(%s) and not (alt A+ and (%s) in (%s))' % (name, name, models[i]))
-            _self.create(name, '(%s) in (%s)' % (models[i], name), 1, i+1, 0, 0, quiet)
+            _self.create(name, '(%s) in (%s)' % (models[i], name), 1, i + 1, 0, 0, quiet)
         elif discrete == -2 and i > 0:
             _self.align(models[i], name, cycles=0, transform=0, object=aln_obj)
             wait_for(aln_obj, _self=_self)
             _self.remove('(%s) and not (%s)' % (name, aln_obj))
-            _self.create(name, name, 1, i+1, 0, 0, quiet)
-            _self.update(name, '(%s) and (%s)' % (models[i], aln_obj), i+1, 1, 0, quiet)
+            _self.create(name, name, 1, i + 1, 0, 0, quiet)
+            _self.update(name, '(%s) and (%s)' % (models[i], aln_obj), i + 1, 1, 0, quiet)
             _self.delete(aln_obj)
         else:
-            _self.create(name, models[i], 1, i+1, discrete == 1, 0, quiet)
+            _self.create(name, models[i], 1, i + 1, discrete == 1, 0, quiet)
     if int(zoom):
         _self.zoom(name, state=0)
+
 
 sidechaincenteratoms = {
     'GLY': ('CA',),
@@ -76,6 +81,7 @@ sidechaincenteratoms = {
 }
 
 sidechaincentermethods = ['bahar1996', 'centroid']
+
 
 def sidechaincenters(object='scc', selection='all', method='bahar1996', name='PS1', *, _self=cmd):
     '''
@@ -139,7 +145,7 @@ SEE ALSO
         center = cpv.get_null()
         for at in centeratoms:
             center = cpv.add(center, at.coord)
-        center = cpv.scale(center, 1./len(centeratoms))
+        center = cpv.scale(center, 1. / len(centeratoms))
         atom = Atom()
         atom.coord = center
         atom.index = model.nAtom + 1
@@ -161,6 +167,7 @@ SEE ALSO
         _self.delete(object)
     _self.load_model(model, object)
     return model
+
 
 def ramp_levels(name, levels, quiet=1, *, _self=cmd):
     '''
@@ -260,6 +267,7 @@ ARGUMENTS
     if not quiet:
         print(' pdb2pqr: done')
 
+
 def corina(name, selection, exe='corina', state=-1, preserve=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -312,6 +320,7 @@ DESCRIPTION
 
     if not quiet:
         print(' corina: done')
+
 
 def prepwizard(name, selection='all', options='', state=-1,
         preserve=0, exe='$SCHRODINGER/utilities/prepwizard', quiet=1,
@@ -388,6 +397,7 @@ ARGUMENTS
 
     if not quiet:
         print(' prepwizard: done')
+
 
 def fiber(seq, num=4, name='', rna=0, single=0, repeats=0,
         preserve=0, exe='$X3DNA/bin/fiber', quiet=1, *, _self=cmd):
@@ -484,6 +494,7 @@ EXAMPLES
         elif not quiet:
             print(' Notice: not deleting', tmpdir)
 
+
 if 'join_states' not in cmd.keyword:
     cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
@@ -497,11 +508,11 @@ cmd.auto_arg[0].update([
     ('ramp_levels', [lambda: cmd.Shortcut(cmd.get_names_of_type('object:')), 'ramp object', '']),
 ])
 cmd.auto_arg[1].update([
-    ('join_states'          , cmd.auto_arg[0]['zoom']),
-    ('sidechaincenters'     , cmd.auto_arg[0]['zoom']),
-    ('pdb2pqr'              , cmd.auto_arg[0]['zoom']),
-    ('corina'               , cmd.auto_arg[0]['zoom']),
-    ('prepwizard'           , cmd.auto_arg[0]['zoom']),
+    ('join_states', _auto_arg0_zoom),
+    ('sidechaincenters', _auto_arg0_zoom),
+    ('pdb2pqr', _auto_arg0_zoom),
+    ('corina', _auto_arg0_zoom),
+    ('prepwizard', _auto_arg0_zoom),
 ])
 cmd.auto_arg[2].update([
     ('sidechaincenters', [cmd.Shortcut(sidechaincentermethods), 'method', '']),

@@ -40,6 +40,7 @@ ARGUMENTS
         methods = methods.split()
     async_, quiet = int(kwargs.pop('async', async_)), int(quiet)
     mobile_obj = _self.get_object_list('first (' + mobile + ')')[0]
+
     def myalign(method):
         newmobile = _self.get_unused_name(mobile_obj + '_' + method)
         _self.create(newmobile, mobile_obj)
@@ -58,6 +59,7 @@ ARGUMENTS
             t.start()
         else:
             myalign(method)
+
 
 def tmalign(mobile, target, mobile_state=1, target_state=1, args='',
         exe='TMalign', ter=0, transform=1, object=None, quiet=0, *, _self=cmd):
@@ -149,20 +151,20 @@ ARGUMENTS
                 r = float(match.group(1))
         if not quiet:
             print(line.rstrip())
-        
+
     if not quiet:
-        for i in range(0, len(alignment[0])-1, 78):
+        for i in range(0, len(alignment[0]) - 1, 78):
             for line in alignment:
-                print(line[i:i+78])
+                print(line[i:i + 78])
             print('')
 
-    assert len(matrix) == 3*4
-    matrix.extend([0,0,0,1])
+    assert len(matrix) == 3 * 4
+    matrix.extend([0, 0, 0, 1])
 
     if int(transform):
         for model in _self.get_object_list(mobile):
             _self.transform_object(model, matrix, state=0, homogenous=1)
-    
+
     # alignment object
     if object is not None:
         mobile_idx, target_idx = [], []
@@ -190,6 +192,7 @@ ARGUMENTS
             print('Found in output TM-score = %.4f' % (r))
 
     return r
+
 
 def dyndom_parse_info(filename, selection='(all)', quiet=0, *, _self=cmd):
     import re
@@ -234,6 +237,7 @@ def dyndom_parse_info(filename, selection='(all)', quiet=0, *, _self=cmd):
         _self.select(name, '(%s) and (resi %s)' % (selection, '+'.join(bending)), 0)
         _self.color('green', name)
     return fixed_name
+
 
 def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='', transform=1,
         quiet=1, mobile_state=1, target_state=1, match='align', preserve=0,
@@ -291,7 +295,7 @@ USAGE
         save_pdb_without_ter(filename2, mm.target, state=target_state, _self=_self)
 
         f = open(commandfile, 'w')
-        f.write('title=out\nfilename1=%s\nchain1id=%s\nfilename2=%s\nchain2id=%s\n' \
+        f.write('title=out\nfilename1=%s\nchain1id=%s\nfilename2=%s\nchain2id=%s\n'
                 'window=%d\ndomain=%d\nratio=%.4f\n' % (filename1, chain1id,
                     filename2, chain2id, window, domain, ratio))
         f.close()
@@ -320,6 +324,7 @@ USAGE
     if transform and fixed_name is not None:
         _self.align(fixed_name, target)
 
+
 def gdt_ts(mobile, target, cutoffs='1 2 4 8', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -343,6 +348,7 @@ DESCRIPTION
         print(' GDT_TS: Total Score = %.2f' % (ts))
     return ts
 
+
 def get_rmsd_func():
     '''
 DESCRIPTION
@@ -354,6 +360,7 @@ DESCRIPTION
         # this is much faster than cpv.fit
         from numpy import dot, sqrt, array
         from numpy.linalg import svd
+
         def rmsd(X, Y):
             X = X - X.mean(0)
             Y = Y - Y.mean(0)
@@ -364,10 +371,12 @@ DESCRIPTION
         rmsd.array = array
     except ImportError:
         from chempy import cpv
+
         def rmsd(X, Y):
             return cpv.fit(X, Y)[-1]
         rmsd.array = lambda x: x
     return rmsd
+
 
 class MatchMaker(object):
     '''
@@ -396,6 +405,7 @@ RESULT
     Properties "mobile" and "target" hold the matched subselections as
     selection strings.
     '''
+
     def __init__(self, mobile, target, match, *, autodelete=True, _self=cmd):
         self._self = _self
         self.autodelete = autodelete
@@ -493,6 +503,7 @@ RESULT
         for name in self.temporary:
             self._self.delete(name)
 
+
 def local_rms(mobile, target, window=20, mobile_state=1, target_state=1,
         match='align', load_b=1, visualize=1, quiet=1, *, _self=cmd):
     '''
@@ -552,18 +563,18 @@ EXAMPLE
     seq_start = model_mobile.atom[0].resi_number
     seq_end = model_mobile.atom[-1].resi_number
 
-    resv2i = dict((a.resi_number,i) for (i,a) in enumerate(model_mobile.atom))
+    resv2i = dict((a.resi_number, i) for (i, a) in enumerate(model_mobile.atom))
     resv2b = dict()
 
     X_mobile = array(model_mobile.get_coord_list())
     X_target = array(model_target.get_coord_list())
 
     for resv in range(seq_start, seq_end + 1):
-        for resv_from in range(resv-w2, resv+1):
+        for resv_from in range(resv - w2, resv + 1):
             i_from = resv2i.get(resv_from)
             if i_from is not None:
                 break
-        for resv_to in range(resv+w2, resv-1, -1):
+        for resv_to in range(resv + w2, resv - 1, -1):
             i_to = resv2i.get(resv_to)
             if i_to is not None:
                 break
@@ -572,8 +583,8 @@ EXAMPLE
         if i_to - i_from < w4:
             continue
 
-        x = X_mobile[i_from:i_to+1]
-        y = X_target[i_from:i_to+1]
+        x = X_mobile[i_from:i_to + 1]
+        y = X_target[i_from:i_to + 1]
         resv2b[resv] = rmsd(x, y)
 
         if not quiet:
@@ -590,6 +601,7 @@ EXAMPLE
         _self.cartoon('putty', mobile)
 
     return resv2b
+
 
 def extra_fit(selection='(all)', reference=None, method='align', zoom=1,
         quiet=0, _self=cmd, **kwargs):
@@ -616,7 +628,7 @@ SEE ALSO
     '''
     zoom, quiet = int(zoom), int(quiet)
     sele_name = _self.get_unused_name('_')
-    _self.select(sele_name, selection) # for speed
+    _self.select(sele_name, selection)  # for speed
     models = _self.get_object_list(sele_name)
     if reference is None:
         reference = models[0]
@@ -648,6 +660,7 @@ SEE ALSO
     if zoom:
         _self.zoom(sele_name)
     _self.delete(sele_name)
+
 
 def _run_theseus(args, tempdir, preserve, quiet):
     '''
@@ -681,7 +694,9 @@ DESCRIPTION
             if not os.path.exists(filename):
                 raise CmdException('no theseus_transf2.txt or '
                         'theseus_transf.txt output file')
-            t_type = lambda t: float(t) * -1.
+
+            def t_type(t):
+                return float(t) * -1.
 
         handle = open(filename)
         for line in handle:
@@ -701,6 +716,7 @@ DESCRIPTION
             print(' Not deleting temporary directory:', tempdir)
 
     return translations, rotations
+
 
 def theseus(mobile, target, match='align', cov=0, cycles=200,
         mobile_state=1, target_state=1, exe='theseus', preserve=0, quiet=1,
@@ -748,8 +764,8 @@ SEE ALSO
             mobile_filename, target_filename]
 
     translations, rotations = _run_theseus(args, tempdir, preserve, quiet)
-    matrices = [R[0:3] + [i*t[0]] + R[3:6] + [i*t[1]] + R[6:9] + [i*t[2], 0,0,0, 1]
-            for (R, t, i) in zip(rotations, translations, [-1,1])]
+    matrices = [R[0:3] + [i * t[0]] + R[3:6] + [i * t[1]] + R[6:9] + [i * t[2], 0, 0, 0, 1]
+            for (R, t, i) in zip(rotations, translations, [-1, 1])]
 
     obj_list = _self.get_object_list(mobile)
     for obj in obj_list:
@@ -758,6 +774,7 @@ SEE ALSO
 
     if not quiet:
         print(' theseus: done')
+
 
 def intra_theseus(selection, state=1, cov=0, cycles=200,
         exe='theseus', preserve=0, quiet=1, *, _self=cmd):
@@ -799,25 +816,26 @@ SEE ALSO
     rotations = []
 
     translations, rotations = _run_theseus(args, tempdir, preserve, quiet)
-    matrices = [R[0:3] + [-t[0]] + R[3:6] + [-t[1]] + R[6:9] + [-t[2], 0,0,0, 1]
+    matrices = [R[0:3] + [-t[0]] + R[3:6] + [-t[1]] + R[6:9] + [-t[2], 0, 0, 0, 1]
             for (R, t) in zip(rotations, translations)]
 
     # intra fit states
     obj_list = _self.get_object_list(selection)
     for i, m in enumerate(matrices):
         for obj in obj_list:
-            _self.transform_object(obj, m, i+1, transpose=1)
+            _self.transform_object(obj, m, i + 1, transpose=1)
 
     # fit back to given state
     if 0 < state <= len(matrices):
-        m = list(matrices[state-1])
-        for i in [3,7,11]:
+        m = list(matrices[state - 1])
+        for i in [3, 7, 11]:
             m[i] *= -1
         for obj in obj_list:
             _self.transform_object(obj, m, 0)
 
     if not quiet:
         print(' intra_theseus: %d states aligned' % (len(matrices)))
+
 
 def prosmart(mobile, target, mobile_state=1, target_state=1,
         exe='prosmart', transform=1, object=None, quiet=0, *, _self=cmd):
@@ -842,7 +860,9 @@ DESCRIPTION
     exe = cmd.exp_path(exe)
     args = [exe, '-p1', mobile_filename, '-p2', target_filename, '-a']
 
-    xglob = lambda x: glob.glob(os.path.join(tempdir, 'ProSMART_Output/Output_Files', x))
+    def xglob(x):
+        return glob.glob(
+            os.path.join(tempdir, 'ProSMART_Output/Output_Files', x))
 
     try:
         subprocess.check_call(args, cwd=tempdir)
@@ -859,7 +879,7 @@ DESCRIPTION
 
         if int(transform):
             matrix = [v for m in matrix for v in m]
-            assert len(matrix) == 4*4
+            assert len(matrix) == 4 * 4
             for model in _self.get_object_list(mobile):
                 _self.transform_object(model, matrix, state=0)
 
@@ -877,19 +897,23 @@ DESCRIPTION
     if not quiet:
         print(' prosmart: done')
 
+
 def _bfit_get_prior(distribution, em=0):
     from csb.statistics import scalemixture as sm
 
     if distribution == 'student':
         prior = sm.GammaPrior()
-        if em: prior.estimator = sm.GammaPosteriorMAP()
+        if em:
+            prior.estimator = sm.GammaPosteriorMAP()
     elif distribution == 'k':
         prior = sm.InvGammaPrior()
-        if em: prior.estimator = sm.InvGammaPosteriorMAP()
+        if em:
+            prior.estimator = sm.InvGammaPosteriorMAP()
     else:
         raise AttributeError('distribution')
 
     return prior
+
 
 def xfit(mobile, target, mobile_state=-1, target_state=-1, load_b=0,
         cycles=10, match='align', guide=1, seed=0, quiet=1,
@@ -907,7 +931,7 @@ DESCRIPTION
 ARGUMENTS
 
     mobile = string: atom selection
- 
+
     target = string: atom selection
 
     mobile_state = int: object state of mobile selection {default: current}
@@ -928,8 +952,10 @@ SEE ALSO
     mobile_state, target_state = int(mobile_state), int(target_state)
     mobile_obj = querying.get_object_name(mobile, 1, _self=_self)
 
-    if mobile_state < 1: mobile_state = querying.get_object_state(mobile_obj, _self=_self)
-    if target_state < 1: target_state = querying.get_selection_state(target, _self=_self)
+    if mobile_state < 1:
+        mobile_state = querying.get_object_state(mobile_obj, _self=_self)
+    if target_state < 1:
+        target_state = querying.get_selection_state(target, _self=_self)
 
     if int(guide):
         mobile = '(%s) and guide' % (mobile)
@@ -968,8 +994,8 @@ SEE ALSO
             R, t = wfit(X, Y, scales)
 
     m = identity(4)
-    m[0:3,0:3] = R
-    m[0:3,3] = t
+    m[0:3, 0:3] = R
+    m[0:3, 3] = t
     _self.transform_object(mobile_obj, list(m.flat))
 
     if int(load_b):
@@ -978,6 +1004,7 @@ SEE ALSO
 
     if not quiet:
         print(' xfit: %d atoms aligned' % (len(X)))
+
 
 def intra_xfit(selection, load_b=0, cycles=20, guide=1, seed=0, quiet=1,
         bfit=0, distribution='student', _self=cmd):
@@ -1077,8 +1104,8 @@ SEE ALSO
 
     m = identity(4)
     back = identity(4)
-    back[0:3,0:3] = R[0]
-    back[0:3,3] = t[0]
+    back[0:3, 0:3] = R[0]
+    back[0:3, 3] = t[0]
 
     transformation_i = 0
     for mobile_obj, n_states in zip(mobile_objs, n_states_objs):
@@ -1099,6 +1126,7 @@ SEE ALSO
 
     if not quiet:
         print(' intra_xfit: %d atoms in %d states aligned' % (len(X[0]), n_models))
+
 
 def promix(mobile, target, K=0, prefix=None, mobile_state=-1, target_state=-1,
         match='align', guide=1, quiet=1, async_=-1, _self=cmd, **kwargs):
@@ -1163,6 +1191,7 @@ REFERENCE
         t.setDaemon(1)
         t.start()
 
+
 def intra_promix(selection, K=0, prefix=None, conformers=0, guide=1,
         quiet=1, async_=-1, _self=cmd, **kwargs):
     '''
@@ -1220,6 +1249,7 @@ REFERENCE
         t.setDaemon(1)
         t.start()
 
+
 def _promix(conformers=0, prefix=None,
         obj=NotImplemented, selection=NotImplemented,
         X=NotImplemented, K=NotImplemented, Mixture=NotImplemented,
@@ -1241,21 +1271,21 @@ def _promix(conformers=0, prefix=None,
 
     if conformers:
         states_list = [0] * mixture.K
-        for (i,k) in enumerate(membership):
+        for (i, k) in enumerate(membership):
             states_list[k] += 1
-            name = '%s_%d' % (prefix, k+1)
-            _self.create(name, obj, i+1, states_list[k])
+            name = '%s_%d' % (prefix, k + 1)
+            _self.create(name, obj, i + 1, states_list[k])
     else:
         _self.color('gray', selection)
         for k in range(mixture.K):
-            name = '%s_%d' % (prefix, k+1)
+            name = '%s_%d' % (prefix, k + 1)
             id_list_k = [i for (i, m) in zip(id_list, membership) if m == k]
             _self.select_list(name, obj, id_list_k)
             _self.disable(name)
             _self.color(k + 2, name)
 
     for k, (sigma, w) in enumerate(zip(mixture.sigma, mixture.w)):
-        print(' %s_%d: sigma = %6.3f, w = %.3f' % (prefix, k+1, sigma, w))
+        print(' %s_%d: sigma = %6.3f, w = %.3f' % (prefix, k + 1, sigma, w))
 
     print(' BIC: %.2f' % (mixture.BIC))
     print(' Log Likelihood: %.2f' % (mixture.log_likelihood))
@@ -1291,7 +1321,7 @@ ARGUMENTS
             if not sym:
                 raise CmdException("no symmetry")
 
-            basis = cellbasis(sym[3:6], sym[0:3])[:3,:3]
+            basis = cellbasis(sym[3:6], sym[0:3])[:3, :3]
             cset = _self.get_coordset(obj, state, copy=0)
             cset += dot(basis, center) - selecenter
 
@@ -1381,7 +1411,7 @@ cmd.auto_arg[1].update([
     ('promix', _auto_arg0_align),
 ])
 cmd.auto_arg[2].update([
-    ('extra_fit', [ align_methods_sc, 'alignment method', '' ]),
+    ('extra_fit', [align_methods_sc, 'alignment method', '']),
 ])
 
 # vi: ts=4:sw=4:smarttab:expandtab

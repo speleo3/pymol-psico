@@ -12,7 +12,7 @@ save_traj_params = [
 ]
 
 try:
-    import mdtraj
+    import mdtraj  # noqa: F401
 except ImportError:
     print("Skipping mdtraj tests")
 else:

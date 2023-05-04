@@ -7,9 +7,11 @@ License: BSD-2-Clause
 from pymol import cmd, CmdException
 from pymol.movie import produce_mode_dict, produce_mode_sc
 
+
 def _assert_package_import():
     if not __name__.endswith('.moving'):
         raise CmdException("Must do 'import psico.moving' instead of 'run ...'")
+
 
 def frames2states(selection, specification, *, _self=cmd):
     '''
@@ -31,6 +33,7 @@ EXAMPLE
         _self.frame(int(frame))
         for name in names:
             _self.mview('store', object=name, state=int(state))
+
 
 def save_movie_mpeg1(filename, mode='', first=0, last=0, preserve=0,
         fps=25, twopass=1, vbitrate=16000, quiet=1, exe='mencoder',
@@ -123,6 +126,7 @@ SEE ALSO
     if not quiet:
         print(' save_movie: Done')
 
+
 def matrix_to_ttt(names, reverse=0, state=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -140,12 +144,13 @@ DESCRIPTION
             state = querying.get_object_state(object, _self=_self)
         matrix = _self.get_object_matrix(object, state)
         for i in range(_self.count_states(object)):
-            _self.matrix_reset(object, i+1)
+            _self.matrix_reset(object, i + 1)
         if reverse:
             _self.reset(object)
             _self.transform_object(object, matrix, homogenous=1)
         else:
             _self.set_object_ttt(object, matrix)
+
 
 def get_keyframes(quiet=1, *, _self=cmd):
     '''
@@ -157,10 +162,11 @@ DESCRIPTION
     viewelem_list = s["movie"][6]
     if not viewelem_list:
         return []
-    r = [i for (i,v) in enumerate(viewelem_list, 1) if v[12] == 2]
+    r = [i for (i, v) in enumerate(viewelem_list, 1) if v[12] == 2]
     if not int(quiet):
         print(r)
     return r
+
 
 def get_closest_keyframe(*, _self=cmd):
     '''
@@ -171,6 +177,7 @@ def get_closest_keyframe(*, _self=cmd):
         return None
     current = _self.get_frame()
     return min(keyframes, key=lambda i: abs(i - current))
+
 
 def closest_keyframe(quiet=1, *, _self=cmd):
     '''
@@ -184,6 +191,7 @@ DESCRIPTION
     if not int(quiet):
         print(' Closest Keyframe: ' + str(r))
     return r
+
 
 def next_keyframe(quiet=1, *, _self=cmd):
     '''
@@ -203,6 +211,7 @@ DESCRIPTION
         print(' Next Keyframe: ' + str(r))
     return r
 
+
 def prev_keyframe(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -221,6 +230,7 @@ DESCRIPTION
         print(' Previous Keyframe: ' + str(r))
     return r
 
+
 def get_mdo_commands(quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -235,6 +245,7 @@ DESCRIPTION
                 print('mdo {}: {}'.format(frame, command.strip(';')))
     return commands
 
+
 def dump_mviews(*, _self=cmd):
     '''
 DESCRIPTION
@@ -245,6 +256,7 @@ DESCRIPTION
         _self.frame(frame)
         print(_self.get_view(3).strip())
         print('mview store, {}'.format(frame))
+
 
 cmd.extend('frames2states', frames2states)
 cmd.extend('save_movie_mpeg1', save_movie_mpeg1)

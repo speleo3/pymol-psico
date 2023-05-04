@@ -42,6 +42,7 @@ end
 quit
 '''
 
+
 def validate_apbs_exe(exe):
     '''Get and validate apbs executable.
     Raise CmdException if not found or broken.'''
@@ -66,6 +67,7 @@ def validate_apbs_exe(exe):
         raise CmdException("Cannot execute: " + exe)
 
     return exe
+
 
 def map_new_apbs(name, selection='all', grid=0.5, buffer=10.0, state=1,
         preserve=0, exe='', assign=-1, focus='', quiet=1, _template='',
@@ -132,8 +134,8 @@ SEE ALSO
     # grid dimensions
     extent = _self.get_extent(tmpname)
     extentfocus = _self.get_extent(focus) if focus else extent
-    fglen = [(emax-emin + 2*buffer) for (emin, emax) in zip(*extentfocus)]
-    cglen = [(emax-emin + 4*buffer) for (emin, emax) in zip(*extent)]
+    fglen = [(emax - emin + 2 * buffer) for (emin, emax) in zip(*extentfocus)]
+    cglen = [(emax - emin + 4 * buffer) for (emin, emax) in zip(*extent)]
 
     if not preserve:
         _self.delete(tmpname)
@@ -189,6 +191,7 @@ SEE ALSO
         elif not quiet:
             print(' Notice: not deleting %s' % (tempdir))
 
+
 def apbs_surface(selection='all', maximum=None, minimum=None, map_name=None,
         ramp_name=None, grid=0.5, quiet=1, *, group_name=None, _self=cmd):
     '''
@@ -230,7 +233,7 @@ SEE ALSO
     if maximum is not None:
         maximum = float(maximum)
         minimum = -maximum if minimum is None else float(minimum)
-        kwargs = {'range': [minimum, (minimum+maximum)*0.5, maximum]}
+        kwargs = {'range': [minimum, (minimum + maximum) * 0.5, maximum]}
     else:
         kwargs = {'selection': selection}
 
@@ -246,6 +249,7 @@ SEE ALSO
     _self.show('surface', selection)
     _self.set('surface_solvent', 0)
     _self.set('surface_ramp_above_mode', 1)
+
 
 def volume_esp(name, map, stops=[0.1, 1.0], neg='red', pos='blue',
         opacity=0.2, quiet=1, *, _self=cmd):
@@ -338,6 +342,7 @@ SEE ALSO
     _self.volume_color(name, c_ramp.getRamp())
     _self.recolor(name)
 
+
 def volume_fofc(name, map, stops=[2.5, 3.0, 4.0], neg='red', pos='green',
         opacity=0.4, quiet=1, *, _self=cmd):
     '''
@@ -350,6 +355,7 @@ SEE ALSO
     volume_esp
     '''
     return volume_esp(**locals())
+
 
 cmd.extend('map_new_apbs', map_new_apbs)
 cmd.extend('apbs_surface', apbs_surface)

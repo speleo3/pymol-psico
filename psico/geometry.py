@@ -6,6 +6,7 @@ License: BSD-2-Clause
 
 from pymol import cmd
 
+
 def qdelaunay(X, n=0, m=0, options='Qt', qdelaunay_exe='qdelaunay'):
     '''
 Triangulation using qdelaunay. (http://www.qhull.org)
@@ -15,8 +16,10 @@ Triangulation using qdelaunay. (http://www.qhull.org)
 @returns: iterator of regions
     '''
     import subprocess
-    if not n: n = len(X[0])
-    if not m: m = len(X)
+    if not n:
+        n = len(X[0])
+    if not m:
+        m = len(X)
     process = subprocess.Popen([qdelaunay_exe, 'i'] + options.split(),
             universal_newlines=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -33,6 +36,7 @@ Triangulation using qdelaunay. (http://www.qhull.org)
         a = line.split()
         assert len(a) == n + 1, 'Wrong number of vertices in output'
         yield list(map(int, a))
+
 
 def delaunay(selection='enabled', name=None, cutoff=10.0, as_cgo=0,
         qdelaunay_exe='qdelaunay', state=-1, quiet=1, *, _self=cmd):
@@ -63,10 +67,10 @@ SEE ALSO
     model = _self.get_model(selection, state)
     regions_iter = qdelaunay((a.coord for a in model.atom), 3, len(model.atom),
             qdelaunay_exe=qdelaunay_exe)
-    edges = set(tuple(sorted([region[i-1], region[i]]))
+    edges = set(tuple(sorted([region[i - 1], region[i]]))
             for region in regions_iter for i in range(len(region)))
 
-    edgelist=[]
+    edgelist = []
     r = []
 
     minco = 9999
@@ -80,14 +84,14 @@ SEE ALSO
         if cutoff > 0.0 and co > cutoff:
             continue
         if as_cgo:
-            minco=min(co,minco)
-            maxco=max(co,maxco)
+            minco = min(co, minco)
+            maxco = max(co, maxco)
             edgelist.append(a.coord + b.coord + [co])
         else:
             bnd = Bond()
             bnd.index = [ii, jj]
             model.add_bond(bnd)
-        r.append((a,b,co))
+        r.append((a, b, co))
 
     if not as_cgo:
         _self.load_model(model, name, 1)
@@ -95,16 +99,20 @@ SEE ALSO
 
     from pymol.cgo import CYLINDER
 
-    difco = maxco-minco
+    difco = maxco - minco
     obj = []
-    mm = lambda x: max(min(x, 1.0), 0.0)
+
+    def mm(x):
+        return max(min(x, 1.0), 0.0)
+
     for e in edgelist:
-        co = ((e[6]-minco)/difco)**(0.75)
-        color = [mm(1-2*co), mm(1-abs(2*co-1)), mm(2*co-1)]
+        co = ((e[6] - minco) / difco)**(0.75)
+        color = [mm(1 - 2 * co), mm(1 - abs(2 * co - 1)), mm(2 * co - 1)]
         obj.extend([CYLINDER] + e[0:6] + [0.05] + color + color)
 
     _self.load_cgo(obj, name)
     return r
+
 
 cmd.extend('delaunay', delaunay)
 

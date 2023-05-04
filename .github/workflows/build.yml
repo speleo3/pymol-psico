@@ -42,4 +42,4 @@ jobs:
       run: python3 -m pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
 
     - name: Lint
-      run: ruff check psico
+      run: ruff check psico tests

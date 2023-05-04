@@ -7,6 +7,7 @@ License: BSD-2-Clause
 import os
 import sys
 
+
 def mtz2ccp4maps(filename, prefix, amplitudes, phases):
     '''
     Creates a temporary directory and dumps all maps from the given MTZ file
@@ -37,6 +38,7 @@ def mtz2ccp4maps(filename, prefix, amplitudes, phases):
 
     return temp_dir
 
+
 if __name__ == '__main__':
     # Standalone script:
     # print the name of the temporary directory to standard output
@@ -51,6 +53,7 @@ except NameError:
     this_file = __file__
 
 import pymol  # noqa: E402
+
 
 def load_mtz_cctbx(filename, prefix='', amplitudes='', phases='', quiet=1,
         _self=pymol.cmd):
@@ -68,7 +71,7 @@ ARGUMENTS
     prefix = str: object name prefix for new map objects
 
     amplitudes = str: amplitudes column label (optional). If not given,
-    load all maps. If given, the 'phases' argument is required as well. 
+    load all maps. If given, the 'phases' argument is required as well.
 
     phases = str: phases column label (required if and only if
     amplitudes is given as well)
@@ -111,5 +114,6 @@ ARGUMENTS
         _self.set('normalize_ccp4_maps', normalize)
 
     shutil.rmtree(outdir)
+
 
 pymol.cmd.extend('load_mtz_cctbx', load_mtz_cctbx)

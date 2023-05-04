@@ -10,11 +10,15 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+
 def _assert_package_import():
     if not __name__.endswith('.aaindex'):
         raise CmdException("Must do 'import psico.aaindex' instead of 'run ...'")
 
+
 _aaindex1 = None
+
+
 def _get_aaindex1(*, _self=cmd):
     '''
     Get a global AAindex instance for "fetch_path/aaindex1"
@@ -23,6 +27,7 @@ def _get_aaindex1(*, _self=cmd):
     if _aaindex1 is None:
         _aaindex1 = AAindex(1, _self.get('fetch_path'), 0)
     return _aaindex1
+
 
 class AAindex(dict):
     '''
@@ -48,7 +53,8 @@ class AAindex(dict):
                 if os.path.exists(os.path.join(path, 'aaindex1')):
                     break
 
-        parse = lambda a,b: self.parse(os.path.join(path, a), b, quiet)
+        def parse(a, b):
+            return self.parse(os.path.join(path, a), b, quiet)
 
         if '1' in index:
             parse('aaindex1', Record)
@@ -129,7 +135,7 @@ class AAindex(dict):
             elif key == 'C ':
                 a = line[2:].split()
                 for i in range(0, len(a), 2):
-                    current.correlated[a[i]] = float(a[i+1])
+                    current.correlated[a[i]] = float(a[i + 1])
             elif key == 'I ':
                 a = line[1:].split()
                 if a[0] != 'A/L':
@@ -142,7 +148,7 @@ class AAindex(dict):
                         assert list(Record.aakeys[10:]) == [i[2] for i in a]
                     except:
                         print('Warning: wrong amino acid sequence for', current.key)
-            elif key =='M ':
+            elif key == 'M ':
                 a = line[2:].split()
                 if a[0] == 'rows':
                     if a[4] == 'rows':
@@ -164,15 +170,17 @@ class AAindex(dict):
                 print('Warning: line starts with "%s"' % (key))
 
             lastkey = key
-    
+
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, ' '.join(self))
+
 
 class Record(object):
     '''
     Amino acid index (AAindex) Record
     '''
     aakeys = 'ARNDCQEGHILKMFPSTWYV'
+
     def __init__(self):
         self.key = None
         self.desc = ''
@@ -183,43 +191,54 @@ class Record(object):
         self.correlated = dict()
         self.index = dict()
         self.comment = ''
+
     def extend(self, row):
         i = len(self.index)
         for x in row:
             self.index[self.aakeys[i]] = x
             i += 1
+
     def get(self, aai, aaj=None, d=None):
         assert aaj is None
         return self.index.get(aai, d)
+
     def __getitem__(self, aai):
         return self.get(aai)
+
     def median(self):
         x = sorted([_f for _f in list(self.index.values()) if _f])
         half = len(x) // 2
         if len(x) % 2 == 1:
             return x[half]
-        return (x[half-1] + x[half])/2.0
+        return (x[half - 1] + x[half]) / 2.0
+
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.key)
+
     def __str__(self):
         desc = self.desc.replace('\n', ' ').strip()
         return '%s(%s: %s)' % (self.__class__.__name__, self.key, desc)
+
 
 class MatrixRecord(Record):
     '''
     Matrix record for mutation matrices or pair-wise contact potentials
     '''
+
     def __init__(self):
         Record.__init__(self)
         self.index = []
         self.rows = dict()
         self.cols = dict()
+
     def extend(self, row):
         self.index.append(list(row))
+
     def _get(self, aai, aaj):
         i = self.rows[aai]
         j = self.cols[aaj]
         return self.index[i][j]
+
     def get(self, aai, aaj, d=None):
         try:
             return self._get(aai, aaj)
@@ -229,8 +248,10 @@ class MatrixRecord(Record):
             return self._get(aaj, aai)
         except:
             return d
+
     def __getitem__(self, aaij):
         return self.get(aaij[0], aaij[1])
+
     def median(self):
         x = []
         for y in self.index:
@@ -240,6 +261,7 @@ class MatrixRecord(Record):
         if len(x) % 2 == 1:
             return x[half]
         return (x[half - 1] + x[half]) / 2.0
+
 
 def aaindex2b(key, selection='all', var='b', quiet=1, *, _self=cmd):
     '''
@@ -296,6 +318,7 @@ SEE ALSO
 
     _self.alter(selection, var + '=lookup(resn)', space=locals())
 
+
 def hydropathy2b(selection='all', var='b', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -349,11 +372,12 @@ def _aaindexkey_sc():
     aaindex = _get_aaindex1()
     return cmd.Shortcut(aaindex.keys())
 
+
 cmd.extend('aaindex2b', aaindex2b)
 cmd.extend('hydropathy2b', hydropathy2b)
 
 cmd.auto_arg[0].update([
-    ('aaindex2b', [ _aaindexkey_sc, 'aaindexkey', ', ' ]),
+    ('aaindex2b', [_aaindexkey_sc, 'aaindexkey', ', ']),
     ('hydropathy2b', cmd.auto_arg[1]['select']),
     ('hydropathy2b_exposed', cmd.auto_arg[1]['select']),
 ])

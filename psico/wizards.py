@@ -10,6 +10,7 @@ import sys
 from pymol import cmd
 from pymol.wizard import Wizard
 
+
 class Sspick(Wizard):
     '''
     Secondary structure element picker
@@ -21,8 +22,8 @@ class Sspick(Wizard):
         Wizard.__init__(self, _self)
 
         self.mouse_selection_mode = _self.get_setting_int('mouse_selection_mode')
-        _self.set('mouse_selection_mode',0) # set selection mode to atomic
-        _self.deselect() # disable the active selection (if any)
+        _self.set('mouse_selection_mode', 0)  # set selection mode to atomic
+        _self.deselect()  # disable the active selection (if any)
 
         self.error = None
         self.selection_mode = 1 if self.mouse_selection_mode == 6 else 0
@@ -32,7 +33,7 @@ class Sspick(Wizard):
         ]
 
         smm = []
-        smm.append([ 2, 'Selection Mode', '' ])
+        smm.append([2, 'Selection Mode', ''])
         for i, label in enumerate(self.selection_modes):
             smm.append([1, label, 'cmd.get_wizard().set_mode(%d)' % i])
         self.menu['selection_mode'] = smm
@@ -48,7 +49,7 @@ class Sspick(Wizard):
             [1, 'SS Picker', ''],
             [3, self.selection_modes[self.selection_mode], 'selection_mode'],
             [2, 'Done', 'cmd.set_wizard()'],
-            ]
+        ]
 
     def cleanup(self):
         self.cmd.set('mouse_selection_mode', self.mouse_selection_mode)
@@ -59,7 +60,7 @@ class Sspick(Wizard):
             self.prompt.append(self.error)
         return self.prompt
 
-    def do_select(self, name): # map selects into picks
+    def do_select(self, name):  # map selects into picks
         from .selecting import select_sspick
         if self.name not in self.cmd.get_names('selections', enabled_only=1):
             self.name = self.cmd.get_unused_name('ss')
@@ -73,6 +74,7 @@ class Sspick(Wizard):
 
 # enabling wizards with the "wizard" command is a bit ugly...
 
+
 names = ['sspick']
 
 for name in names:
@@ -80,12 +82,14 @@ for name in names:
 
 # tab-completion for "wizard"
 
+
 def names_sc():
     import os, pymol.wizard
     names_glob = [name[:-3] for p in pymol.wizard.__path__
             for name in os.listdir(p) if name.endswith('.py')]
     return cmd.Shortcut(names_glob + names)
 
-cmd.auto_arg[0]['wizard'] = [ names_sc, 'wizard', '' ]
+
+cmd.auto_arg[0]['wizard'] = [names_sc, 'wizard', '']
 
 # vi:expandtab:smarttab:sw=4

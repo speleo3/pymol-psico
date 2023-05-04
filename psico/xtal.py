@@ -9,6 +9,7 @@ License: BSD-2-Clause
 from pymol import cmd, CmdException
 from chempy import cpv
 
+
 def cellbasis(angles, edges):
     '''
 DESCRIPTION
@@ -24,10 +25,11 @@ DESCRIPTION
     basis[0][1] = cos(rad[2])
     basis[1][1] = sin(rad[2])
     basis[0][2] = cos(rad[1])
-    basis[1][2] = (cos(rad[0]) - basis[0][1]*basis[0][2])/basis[1][1]
+    basis[1][2] = (cos(rad[0]) - basis[0][1] * basis[0][2]) / basis[1][1]
     basis[2][2] = sqrt(1 - basis[0][2]**2 - basis[1][2]**2)
     edges.append(1.0)
-    return basis * edges # numpy.array multiplication!
+    return basis * edges  # numpy.array multiplication!
+
 
 def supercell(a=1, b=1, c=1, object=None, color='green', name='supercell',
         withmates=1, prefix='m', *, _self=cmd):
@@ -55,7 +57,7 @@ ARGUMENTS
 
     withmates = bool: also create symmetry mates in displayed cells
     {default: 1}
-    
+
     prefix = string: prefix for names of symmetry mates {default: m}
 
 SEE ALSO
@@ -81,7 +83,7 @@ SEE ALSO
     for i in range(int(a)):
         for j in range(int(b)):
             for k in range(int(c)):
-                ts.append([i,j,k])
+                ts.append([i, j, k])
 
     obj = [
         cgo.BEGIN,
@@ -92,16 +94,16 @@ SEE ALSO
             for i in [a, b, c]) else '%d%d%d')
 
     for t in ts:
-        shift = basis[0:3,0:3] * t
-        shift = shift[:,0] + shift[:,1] + shift[:,2]
+        shift = basis[0:3, 0:3] * t
+        shift = shift[:, 0] + shift[:, 1] + shift[:, 2]
 
         for i in range(3):
-            vi = basis[0:3,i]
+            vi = basis[0:3, i]
             vj = [
-                numpy.array([0.,0.,0.]),
-                basis[0:3,(i+1)%3],
-                basis[0:3,(i+2)%3],
-                basis[0:3,(i+1)%3] + basis[0:3,(i+2)%3]
+                numpy.array([0., 0., 0.]),
+                basis[0:3, (i + 1) % 3],
+                basis[0:3, (i + 2) % 3],
+                basis[0:3, (i + 1) % 3] + basis[0:3, (i + 2) % 3]
             ]
             for j in range(4):
                 obj.append(cgo.VERTEX)
@@ -120,6 +122,7 @@ SEE ALSO
         _self.delete(name)
         _self.load_cgo(obj, name)
         _self.color(color, name)
+
 
 def symexpcell(prefix='mate', object=None, a=0, b=0, c=0, *, _self=cmd):
     '''
@@ -188,6 +191,7 @@ SEE ALSO
         if len(matrices) > 1:
             _self.color(i + 1, name)
 
+
 def pdbremarks(filename, *, _self=cmd):
     '''
 DESCRIPTION
@@ -210,6 +214,7 @@ DESCRIPTION
             lstring = line[11:]
             remarks.setdefault(num, []).append(lstring)
     return remarks
+
 
 def biomolecule(name=None, filename=None, prefix=None, number=1, suffix=None,
         quiet=0, *, _self=cmd):
@@ -296,13 +301,13 @@ EXAMPLE
         raise CmdException('no BIOMOLECULE number %d' % (number))
 
     if numpy is not None:
-        mat_source = numpy.reshape(_self.get_object_matrix(name), (4,4))
+        mat_source = numpy.reshape(_self.get_object_matrix(name), (4, 4))
         mat_source = numpy.matrix(mat_source)
 
     for chains, matrices in biomt[number].items():
         for num in matrices:
             mat = matrices[num][0:12]
-            mat.extend([0,0,0,1])
+            mat.extend([0, 0, 0, 1])
             copy = '%s_%s_%d' % (prefix, suffix, num)
             if not quiet:
                 print('creating %s' % (copy))
@@ -310,7 +315,7 @@ EXAMPLE
             _self.alter(copy, 'segi="%d"' % (num))
 
             if numpy is not None:
-                mat = mat_source * numpy.reshape(mat, (4,4)) * mat_source.I
+                mat = mat_source * numpy.reshape(mat, (4, 4)) * mat_source.I
                 mat = list(mat.flat)
 
             _self.transform_object(copy, mat)
@@ -347,9 +352,9 @@ class PutCenterCallback(object):
             vp = cmd.get_viewport()
             R_mc = [v[0:3], v[3:6], v[6:9]]
             off_c = [0.15 * v[11] * vp[0] / vp[1], 0.15 * v[11], 0.0]
-            if self.corner in [2,3]:
+            if self.corner in [2, 3]:
                 off_c[0] *= -1
-            if self.corner in [3,4]:
+            if self.corner in [3, 4]:
                 off_c[1] *= -1
             off_m = cpv.transform(R_mc, off_c)
             t = cpv.add(t, off_m)
@@ -358,13 +363,14 @@ class PutCenterCallback(object):
         m = [z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, t[0] / z, t[1] / z, t[2] / z, 1]
         cmd.set_object_ttt(self.name, m)
 
+
 def cell_axes(object=None, a_color='0xd95f02', b_color='0x1b9e77', c_color='0x7570b3', name='cell_axes'):
     '''
 DESCRIPTION
 
     Draw arrows corresponding to the crystallographic axes.
 
-    The default color palette is colorblind friendly but close to the familiar 
+    The default color palette is colorblind friendly but close to the familiar
     red, green, and blue for the a, b, and, c axes respectively.
     (See https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=3 for details)
 
@@ -396,43 +402,43 @@ ARGUMENTS
 
     basis = cellbasis(cell_angles, cell_edges)
 
-
     cmd.set('auto_zoom', 0)
 
-    w = 0.06 # cylinder width
-    l = 0.75 # cylinder length # noqa: E741
-    h = 0.25 # cone height
-    d = w * 1.618 # cone base diameter
+    w = 0.06  # cylinder width
+    l = 0.75  # cylinder length # noqa: E741
+    h = 0.25  # cone height
+    d = w * 1.618  # cone base diameter
     obj = []
-    
+
     import numpy as np
 
-    A,B,C = basis[:3,:3].T
+    A, B, C = basis[:3, :3].T
     r = A
     r = np.where(np.isclose(r, 0., atol=1e-5), 0., r)
-    r = r / np.linalg.norm(r) 
+    r = r / np.linalg.norm(r)
     rgb = cmd.get_color_tuple(a_color)
     obj.extend([
-        cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
-        cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
+        cgo.CYLINDER, 0.0, 0.0, 0.0, l * r[0], l * r[1], l * r[2], w, *rgb, *rgb,
+        cgo.CONE, l * r[0], l * r[1], l * r[2], (h + l) * r[0], (h + l) * r[1], (h + l) * r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
     ])
 
     def get_cgo_vector_list(r, color_name, eps=1e-5):
         rgb = cmd.get_color_tuple(color_name)
-        r = r / np.linalg.norm(r) 
-        r = np.where(np.isclose(r, 0.0, atol=eps), 0., r) #see https://github.com/schrodinger/pymol-open-source/issues/220
+        r = r / np.linalg.norm(r)
+        r = np.where(np.isclose(r, 0.0, atol=eps), 0., r)  # see https://github.com/schrodinger/pymol-open-source/issues/220
         cgo_list = [
-            cgo.CYLINDER, 0.0, 0.0, 0.0, l*r[0], l*r[1], l*r[2], w, *rgb, *rgb,
-            cgo.CONE, l*r[0], l*r[1], l*r[2], (h+l)*r[0], (h+l)*r[1], (h+l)*r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
+            cgo.CYLINDER, 0.0, 0.0, 0.0, l * r[0], l * r[1], l * r[2], w, *rgb, *rgb,
+            cgo.CONE, l * r[0], l * r[1], l * r[2], (h + l) * r[0], (h + l) * r[1], (h + l) * r[2], d, 0.0, *rgb, *rgb, 1.0, 1.0
         ]
         return cgo_list
-    
+
     obj = get_cgo_vector_list(A, a_color) + \
           get_cgo_vector_list(B, b_color) + \
-          get_cgo_vector_list(C, c_color) 
+          get_cgo_vector_list(C, c_color)
 
     PutCenterCallback(name, 1).load()
     cmd.load_cgo(obj, name)
+
 
 cmd.extend('cell_axes', cell_axes)
 cmd.extend('supercell', supercell)

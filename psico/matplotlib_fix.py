@@ -11,6 +11,7 @@ This is likely to be fragile against matplotlib upgrades.
 License: BSD-2-Clause
 '''
 
+
 def overload():
     import matplotlib
     from . import matplotlib_fix_prefs
@@ -55,6 +56,7 @@ def overload():
 
     new_figure_manager = backend_tkagg.new_figure_manager
     backend_tkagg.new_figure_manager = _new_figure_manager
+
 
 try:
     overload()

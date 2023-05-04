@@ -13,6 +13,7 @@ from io import FileIO as file
 from pymol import cmd, CmdException
 from pymol import selector
 
+
 def _assert_package_import():
     if not __name__.endswith('.exporting'):
         raise CmdException("Must do 'import psico.exporting' instead of 'run ...'")
@@ -120,14 +121,14 @@ ARGUMENTS
         try:
             boxdim = _self.get_symmetry(selection)[0:3]
         except:
-            boxdim = [0,0,0]
+            boxdim = [0, 0, 0]
     else:
         boxdim = None
 
     outfile = Outfile(filename, NSTATES, NATOMS, box=boxdim)
 
     # Write Trajectory Coordinates
-    for state in range(1, NSTATES+1):
+    for state in range(1, NSTATES + 1):
         xyz = _self.get_coords(selection, state)
         outfile.writeCoordSet(xyz)
 
@@ -137,10 +138,12 @@ ARGUMENTS
         fmt = 'Wrote trajectory in %s format with %d atoms and %d frames to file %s'
         print(fmt % (format, NATOMS, NSTATES, filename))
 
+
 class DCDOutfile(file):
     '''
 http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
     '''
+
     def __init__(self, filename, nstates, natoms, vendor='PyMOL', box=None):
         file.__init__(self, filename, 'wb')
         self.natoms = natoms
@@ -148,28 +151,30 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         charmm = int(nstates > 0)
 
         # Header
-        fmt='4s 9i d 9i'
-        header = [b'CORD', # 4s
-                nstates, 1, 1, 0, 0, 0, 0, 0, 0, # 9i
-                1.0, # d
-                0, 0, 0, 0, 0, 0, 0, 0, 0, # 9i
-                ]
+        fmt = '4s 9i d 9i'
+        header = [
+            b'CORD',  # 4s
+            nstates, 1, 1, 0, 0, 0, 0, 0, 0,  # 9i
+            1.0,  # d
+            0, 0, 0, 0, 0, 0, 0, 0, 0,  # 9i
+        ]
         if charmm:
             # DELTA is stored as a double with X-PLOR but as a float with CHARMm
             fmt = '4s 9i f 10i'
-            header.append(24) # dummy charmm version number
-        self.writeFortran(header,fmt)
-     
+            header.append(24)  # dummy charmm version number
+        self.writeFortran(header, fmt)
+
         # Title
         fmt = 'i80s80s'
-        title = [2, # 1i
-                b'* TITLE'.ljust(80), # 80s
-                (b'* Created by ' + vendor.encode()).ljust(80), # 80s
-                ]
-        self.writeFortran(title,fmt,length=160+4)
- 
+        title = [
+            2,  # 1i
+            b'* TITLE'.ljust(80),  # 80s
+            (b'* Created by ' + vendor.encode()).ljust(80),  # 80s
+        ]
+        self.writeFortran(title, fmt, length=160 + 4)
+
         # NATOM
-        self.writeFortran([natoms],'i')
+        self.writeFortran([natoms], 'i')
 
     def writeFortran(self, buffer, fmt, length=0):
         '''
@@ -192,6 +197,7 @@ http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
         for coor in xyz:
             assert len(coor) == self.natoms, 'Wrong number of atoms'
             self.writeFortran(coor, self.fmt)
+
 
 class CRDOutfile():
     '''
@@ -237,6 +243,7 @@ http://ambermd.org/formats.html#trajectory
                 f.write(self.fmt % c)
             f.write('\n')
 
+
 class RSTOutfile(CRDOutfile):
     '''
 http://ambermd.org/formats.html#restart
@@ -250,6 +257,7 @@ http://ambermd.org/formats.html#restart
         print('%5i%s' % (self.natoms, '  0.0000000e+00' * 5), file=self._file)
 
 ## pdb header stuff
+
 
 def get_pdb_sss(selection='(all)', state=-1, quiet=1, *, _self=cmd):
     '''
@@ -267,16 +275,17 @@ ARGUMENT
 
     state = int: object state {default: -1}
     '''
-    ss = {}         # storing the secondary structure elements by
-                    # {chain}{ss.type}[ start_atom_object,
-                    # end_atom_object ]
+    # storing the secondary structure elements by
+    # {chain}{ss.type}[start_atom_object, end_atom_object]
+    ss = {}
 
     # Get a list of CA atoms and read the secondary structure
     # annotation This loop assumes that the atoms are in consecutive
     # order i.e. sorted by chain & resi
     for at in _self.get_model('(' + selection + ') and n. CA and polymer',
                              state=state).atom:
-        if at.ss == '': continue 
+        if at.ss == '':
+            continue
 
         # Init ss dictionary if key / ss doesn't exist
         L = ss.setdefault(at.chain, {}).setdefault(at.ss, [])
@@ -297,18 +306,19 @@ ARGUMENT
             for i, (atstart, atstop) in enumerate(ss[chain][s]):
                 # see http://www.wwpdb.org/documentation/format23/sect5.html
                 if s == 'H':
-                    ssstr.append("HELIX  %3d %3d %3s %1s %4s%1s %3s %s %4d%s%2d%30s %5d\n"%(
-                        (i+1), (i+1),
+                    ssstr.append("HELIX  %3d %3d %3s %1s %4s%1s %3s %s %4d%s%2d%30s %5d\n" % (
+                        (i + 1), (i + 1),
                         atstart.resn, atstart.chain, atstart.resi_number, ' ',
-                        atstop.resn,  atstop.chain,  atstop.resi_number, ' ',
-                        1, ' ', (atstop.resi_number -  atstart.resi_number + 1)))
+                        atstop.resn, atstop.chain, atstop.resi_number, ' ',
+                        1, ' ', (atstop.resi_number - atstart.resi_number + 1)))
                 elif s == 'S':
-                    ssstr.append("SHEET  %3d %3d%2d %3s %1s%4d%1s %3s %1s%4d%1s%2d\n"%(
-                        (i+1), (i+1), 1, 
+                    ssstr.append("SHEET  %3d %3d%2d %3s %1s%4d%1s %3s %1s%4d%1s%2d\n" % (
+                        (i + 1), (i + 1), 1,
                         atstart.resn, atstart.chain, atstart.resi_number, '',
-                        atstop.resn,  atstop.chain,  atstop.resi_number, '',   
+                        atstop.resn, atstop.chain, atstop.resi_number, '',
                         0))
     return ''.join(ssstr)
+
 
 def get_pdb_seqres(selection='all', quiet=1, *, _self=cmd):
     '''
@@ -348,6 +358,7 @@ DESCRIPTION
 
     return buf
 
+
 def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0,
         seqres=0, quiet=1, *, _self=cmd):
     '''
@@ -385,8 +396,8 @@ SEE ALSO
 
     selection = selector.process(selection)
     state, quiet = int(state), int(quiet)
-    symm, ss     = int(symm), int(ss)
-    
+    symm, ss = int(symm), int(ss)
+
     filename = cmd.exp_path(filename)
     f = open(filename, 'w')
     print('REMARK 200 Generated with PyMOL and psico'.ljust(80), file=f)
@@ -421,7 +432,7 @@ SEE ALSO
         except:
             if not quiet:
                 print(' Info: No secondary structure information')
-    
+
     # Write coordinates of selection
     pdbstr = _self.get_pdbstr(selection, state)
 
@@ -429,7 +440,8 @@ SEE ALSO
     f.close()
 
     if not quiet:
-        print('Wrote PDB to \''+filename+'\'')
+        print('Wrote PDB to \'' + filename + '\'')
+
 
 def save(filename, selection='(all)', state=-1, format='',
         ref='', ref_state=-1, quiet=1, *args, _self=cmd, **kwargs):
@@ -444,7 +456,10 @@ ADDITIONAL NOTE
         return save(filename, selection, state, format, ref, ref_state, quiet,
                 *args, **kwargs, _self=_self)
     save_pdb(filename, selection, state, 1, 1, 0, quiet, _self=_self)
+
+
 save.__doc__ = cmd.save.__doc__ + save.__doc__
+
 
 def unittouu(string, dpi=90.0):
     '''
@@ -453,7 +468,7 @@ DESCRIPTION
     API only. Returns pixel units given a string representation of units in
     another system. Default unit is millimeter.
     '''
-    uuconv = {'in':dpi, 'mm':dpi/25.4, 'cm':dpi/2.54}
+    uuconv = {'in': dpi, 'mm': dpi / 25.4, 'cm': dpi / 2.54}
     unit = 'mm'
     if isinstance(string, str) and string[-2:].isalpha():
         string, unit = string[:-2], string[-2:]
@@ -464,6 +479,7 @@ DESCRIPTION
     if unit not in uuconv:
         raise ValueError("unknown unit: " + str(unit))
     return retval * uuconv[unit]
+
 
 def paper_png(filename, width=100, height=0, dpi=300, ray=1, *, _self=cmd):
     '''
@@ -500,6 +516,7 @@ SEE ALSO
     height = unittouu(height, dpi)
     _self.png(filename, width, height, dpi, ray)
 
+
 def save_pdb_without_ter(filename, selection, *args, _self=cmd, **kwargs):
     '''
 DESCRIPTION
@@ -509,9 +526,11 @@ DESCRIPTION
     case of missing loops.
     '''
     v = _self.get_setting_boolean('pdb_use_ter_records')
-    if v: _self.set('pdb_use_ter_records', 0)
+    if v:
+        _self.set('pdb_use_ter_records', 0)
     _self.save(filename, selection, *args, **kwargs)
-    if v: _self.set('pdb_use_ter_records')
+    if v:
+        _self.set('pdb_use_ter_records')
 
 
 def get_grostr(selection="all", state=-1, *, _self=cmd):

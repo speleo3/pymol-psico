@@ -6,6 +6,7 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+
 def mcsalign(mobile, target,
         mobile_state=-1, target_state=-1,
         cycles=5, timeout=10, method='', exact=0, quiet=1,
@@ -84,8 +85,8 @@ EXAMPLE
 
     # superpose
     m = identity(4)
-    m[0:3,0:3] = R
-    m[0:3,3] = t
+    m[0:3, 0:3] = R
+    m[0:3, 3] = t
     _self.transform_object(m_objects[0], list(m.flat), mobile_state)
 
     if object:
@@ -124,10 +125,11 @@ def get_molstr(sele, state, *, _self=cmd):
         a.symbol = a.symbol.capitalize()
     return ''.join(io.mol.toList(model))
 
+
 def get_mcs_indices(method, quiet, *args, **kwargs):
     '''Find the MCS between two molecules and return the substructure
     atom indices for both molecules.
-    
+
     @param method: empty string, rdkit, or indigo
     @param quiet: 0 or 1 (verbosity flag)
     @param m_sdf: mobile molecule as MOL string
@@ -157,6 +159,7 @@ def get_mcs_indices(method, quiet, *args, **kwargs):
             print(" Note: using method '%s'" % (method,))
 
     return methods[method](*args, **kwargs)
+
 
 def get_mcs_indices_rdkit(m_sdf, t_sdf, timeout, exact=False):
     try:
@@ -191,11 +194,12 @@ def get_mcs_indices_rdkit(m_sdf, t_sdf, timeout, exact=False):
         raise CmdException('MCS search has timed out')
 
     # atom indices of match
-    patt  = Chem.MolFromSmarts(mcs.smartsString)
+    patt = Chem.MolFromSmarts(mcs.smartsString)
     m_indices = m_mol.GetSubstructMatch(patt)
     t_indices = t_mol.GetSubstructMatch(patt)
 
     return m_indices, t_indices
+
 
 def get_mcs_indices_indigo(m_sdf, t_sdf, timeout=None, exact=False):
     import indigo
@@ -222,6 +226,7 @@ def get_mcs_indices_indigo(m_sdf, t_sdf, timeout=None, exact=False):
     t_indices = [a.index() for a in t_atoms if a is not None]
 
     return m_indices, t_indices
+
 
 # pymol commands
 cmd.extend('mcsalign', mcsalign)

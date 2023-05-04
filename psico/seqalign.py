@@ -13,6 +13,7 @@ import Bio
 from Bio.SeqIO import _FormatToIterator
 from pymol import CmdException
 
+
 def _assert_package_import():
     if not __name__.endswith('.seqalign'):
         raise CmdException("Must do 'import psico.seqalign' instead of 'run ...'")
@@ -96,6 +97,7 @@ def needle_alignment_Bio_pairwise2(s1, s2):
         SeqRecord(Seq(alns[0][1]), "s2"),
     ])
 
+
 def needle_alignment_emboss(s1, s2):
     '''
     Same as `needle_alignment` but uses EMBOSS' "needle" executable.
@@ -110,6 +112,7 @@ def needle_alignment_emboss(s1, s2):
             universal_newlines=True)
     return AlignIO.read(process.stdout, "emboss")
 
+
 def alignment_mapping(seq1, seq2):
     '''
 DESCRIPTION
@@ -120,9 +123,13 @@ DESCRIPTION
     '''
     i, j = -1, -1
     for a, b in zip(seq1, seq2):
-        if a != '-': i += 1
-        if b != '-': j += 1
-        if a != '-' and b != '-': yield i, j
+        if a != '-':
+            i += 1
+        if b != '-':
+            j += 1
+        if a != '-' and b != '-':
+            yield i, j
+
 
 def aln_magic_format(infile):
     '''
@@ -150,6 +157,7 @@ DESCRIPTION
         informat = 'emboss'
     return informat
 
+
 def aln_magic_read(infile, format=None):
     '''
 DESCRIPTION
@@ -161,6 +169,7 @@ DESCRIPTION
         format = aln_magic_format(infile)
     with open(infile) as handle:
         return AlignIO.read(handle, format)
+
 
 def FatCatIterator(handle):
     '''
@@ -181,8 +190,10 @@ DESCRIPTION
 
     seqs = [[], []]
     for line in handle:
-        if line.startswith('Chain 1:'): seqs[0].append(line[14:].rstrip())
-        if line.startswith('Chain 2:'): seqs[1].append(line[14:].rstrip())
+        if line.startswith('Chain 1:'):
+            seqs[0].append(line[14:].rstrip())
+        if line.startswith('Chain 2:'):
+            seqs[1].append(line[14:].rstrip())
 
     for seq, id in zip(seqs, ids):
         yield SeqRecord(Seq(''.join(seq)), id=id, name=id)

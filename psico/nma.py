@@ -10,6 +10,7 @@ from io import StringIO
 from pymol import cmd, stored, CmdException
 from pymol import selector
 
+
 def normalmodes_pdbmat(selection, cutoff=10.0, force=1.0, mass='COOR',
         first=7, last=10, choose='LOWE', substruct='RESI', blocksize=4,
         exe='pdbmat', diag_exe='diagrtb',
@@ -76,6 +77,7 @@ ARGUMENTS
     t.setDaemon(1)
     t.start()
 
+
 def _normalmodes(selection, cutoff, force, mass,
         first, last, choose, substruct, blocksize,
         exe, diag_exe, prefix, states, factor, clean, quiet, wiz=None,
@@ -105,7 +107,7 @@ def _normalmodes(selection, cutoff, force, mass,
 
         _self.select(sele_name, '(%s) and not hetatm' % (selection))
         _self.save(filename, sele_name)
-        
+
         f = open(commandfile, 'w')
         f.write('''! pdbmat file
  Coordinate FILENAME        = %s
@@ -182,21 +184,21 @@ def _normalmodes(selection, cutoff, force, mass,
         factor = float(factor)
         if factor < 0:
             factor = natoms**0.5
-        for mode in range(first, last+1):
+        for mode in range(first, last + 1):
             name = prefix + '%d' % mode
             _self.delete(name)
 
             if not quiet:
-                print(' normalmodes: object "%s" for mode %d with freq. %.6f' % \
-                        (name, mode, frequencies[mode-1]))
+                print(' normalmodes: object "%s" for mode %d with freq. %.6f' %
+                        (name, mode, frequencies[mode - 1]))
 
-            for state in range(1, states+1):
+            for state in range(1, states + 1):
                 _self.create(name, sele_name, 1, state, zoom=0)
                 _self.alter_state(state, name,
                         '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
-                        space={'cpv': cpv, 'myit': iter(eigenfacs[mode-1]),
+                        space={'cpv': cpv, 'myit': iter(eigenfacs[mode - 1]),
                             'next': next,
-                            'myfac': factor * (state - (states+1)/2.0)})
+                            'myfac': factor * (state - (states + 1) / 2.0)})
 
         # if CA only selection, show ribbon trace
         if natoms == _self.count_atoms('(%s) and name CA' % sele_name):
@@ -225,6 +227,7 @@ def _normalmodes(selection, cutoff, force, mass,
         if wiz is not None:
             _self.set_wizard_stack([w for w in _self.get_wizard_stack() if w != wiz])
 
+
 def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
     line_it = iter(open(filename))
     eigenfacs = []
@@ -246,6 +249,7 @@ def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
             a = list(map(float, a))
             vector.append(a)
     return eigenfacs, values
+
 
 def normalmodes_mmtk(selection, cutoff=12.0, ff='Deformation', first=7, last=10,
         prefix='mmtk', states=7, factor=-1, quiet=1, *, _self=cmd):
@@ -277,9 +281,9 @@ DESCRIPTION
     model = 'calpha'
     ff = ff.lower()
     if 'deformationforcefield'.startswith(ff):
-        forcefield = DeformationForceField(cutoff=cutoff/10.)
+        forcefield = DeformationForceField(cutoff=cutoff / 10.)
     elif 'calphaforcefield'.startswith(ff):
-        forcefield = CalphaForceField(cutoff=cutoff/10.)
+        forcefield = CalphaForceField(cutoff=cutoff / 10.)
     elif 'amber94forcefield'.startswith(ff):
         from MMTK.ForceFields import Amber94ForceField
         forcefield = Amber94ForceField()
@@ -299,7 +303,7 @@ DESCRIPTION
     universe = InfiniteUniverse(forcefield)
     universe.protein = Protein(*items)
 
-    nbasis = max(10, universe.numberOfAtoms()/5)
+    nbasis = max(10, universe.numberOfAtoms() / 5)
     cutoff, nbasis = estimateCutoff(universe, nbasis)
     if not quiet:
         print(" Calculating %d low-frequency modes." % nbasis)
@@ -318,7 +322,7 @@ DESCRIPTION
         if not quiet:
             print(' set factor to %.2f' % (factor))
 
-    if True: # cmd.count_atoms(selection) != natoms:
+    if True:  # cmd.count_atoms(selection) != natoms:
         import tempfile, os
         from MMTK import DCD
         filename = tempfile.mktemp(suffix='.pdb')
@@ -332,7 +336,7 @@ DESCRIPTION
             print('hmm... still wrong number of atoms')
 
     def eigenfacs_iter(mode):
-        x = modes[mode-1].array
+        x = modes[mode - 1].array
         return iter(x.take(z, 0))
 
     for mode in range(first, min(last, len(modes)) + 1):
@@ -340,16 +344,16 @@ DESCRIPTION
         _self.delete(name)
 
         if not quiet:
-            print(' normalmodes: object "%s" for mode %d with freq. %.6f' % \
-                    (name, mode, frequencies[mode-1]))
+            print(' normalmodes: object "%s" for mode %d with freq. %.6f' %
+                    (name, mode, frequencies[mode - 1]))
 
-        for state in range(1, states+1):
+        for state in range(1, states + 1):
             _self.create(name, selection, 1, state, zoom=0)
             _self.alter_state(state, name,
                     '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
                     space={'cpv': cpv, 'myit': eigenfacs_iter(mode),
                         'next': next,
-                        'myfac': 1e2 * factor * ((state-1.0)/(states-1.0) - 0.5)})
+                        'myfac': 1e2 * factor * ((state - 1.0) / (states - 1.0) - 0.5)})
 
     _self.delete(selection)
     if model == 'calpha':
@@ -357,6 +361,7 @@ DESCRIPTION
         _self.show_as('ribbon', prefix + '*')
     else:
         _self.show_as('lines', prefix + '*')
+
 
 def normalmodes_prody(selection, cutoff=15, first=7, last=10, guide=1,
         prefix='prody', states=7, factor=-1, quiet=1, *, _self=cmd):
@@ -400,9 +405,9 @@ DESCRIPTION
         if not quiet:
             print(' normalmodes: object "%s" for mode %d' % (name, mode))
 
-        for state in range(1, states+1):
-            xyz_it = iter(modes[mode-7].getArrayNx3() * (factor *
-                    ((state-1.0)/(states-1.0) - 0.5)))
+        for state in range(1, states + 1):
+            xyz_it = iter(modes[mode - 7].getArrayNx3() * (factor *
+                    ((state - 1.0) / (states - 1.0) - 0.5)))
             _self.create(name, tmpsele, 1, state, zoom=0)
             _self.alter_state(state, name, '(x,y,z) = next(xyz_it) + (x,y,z)',
                     space={'xyz_it': xyz_it, 'next': next})
@@ -414,6 +419,7 @@ DESCRIPTION
         _self.show_as('ribbon', prefix + '*')
     else:
         _self.show_as('lines', prefix + '*')
+
 
 cmd.extend('normalmodes_pdbmat', normalmodes_pdbmat)
 cmd.extend('normalmodes_mmtk', normalmodes_mmtk)

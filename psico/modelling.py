@@ -14,6 +14,7 @@ def _assert_package_import():
     if not __name__.endswith('.modelling'):
         raise CmdException("Must do 'import psico.modelling' instead of 'run ...'")
 
+
 def mutate(selection, new_resn, inplace=0, sculpt=0, hydrogens='auto', mode=3,
         quiet=1, *, _self=cmd):
     '''
@@ -80,26 +81,26 @@ EXAMPLE
         old_resn = scr[3]
         chi_atoms = {
             'ALA': [],
-            'ARG': ['C','CA','CB','CG','CD','NE','CZ'],
-            'ASN': ['C','CA','CB','CG','OD1'],
-            'ASP': ['C','CA','CB','CG','OD1'],
-            'CYS': ['C','CA','CB','SG'],
-            'GLN': ['C','CA','CB','CG','CD','OE1'],
-            'GLU': ['C','CA','CB','CG','CD','OE1'],
+            'ARG': ['C', 'CA', 'CB', 'CG', 'CD', 'NE', 'CZ'],
+            'ASN': ['C', 'CA', 'CB', 'CG', 'OD1'],
+            'ASP': ['C', 'CA', 'CB', 'CG', 'OD1'],
+            'CYS': ['C', 'CA', 'CB', 'SG'],
+            'GLN': ['C', 'CA', 'CB', 'CG', 'CD', 'OE1'],
+            'GLU': ['C', 'CA', 'CB', 'CG', 'CD', 'OE1'],
             'GLY': [],
-            'HIS': ['C','CA','CB','CG','ND1'],
-            'ILE': ['C','CA','CB','CG1','CD1'],
-            'LEU': ['C','CA','CB','CG','CD1'],
-            'LYS': ['C','CA','CB','CG','CD','CE','NZ'],
-            'MET': ['C','CA','CB','CG','SD','CE'],
-            'MSE': ['C','CA','CB','CG','SE','CE'],
-            'PHE': ['C','CA','CB','CG','CD1'],
+            'HIS': ['C', 'CA', 'CB', 'CG', 'ND1'],
+            'ILE': ['C', 'CA', 'CB', 'CG1', 'CD1'],
+            'LEU': ['C', 'CA', 'CB', 'CG', 'CD1'],
+            'LYS': ['C', 'CA', 'CB', 'CG', 'CD', 'CE', 'NZ'],
+            'MET': ['C', 'CA', 'CB', 'CG', 'SD', 'CE'],
+            'MSE': ['C', 'CA', 'CB', 'CG', 'SE', 'CE'],
+            'PHE': ['C', 'CA', 'CB', 'CG', 'CD1'],
             'PRO': [],
-            'SER': ['C','CA','CB','OG'],
-            'THR': ['C','CA','CB','OG1'],
-            'TRP': ['C','CA','CB','CG','CD2'],
-            'TYR': ['C','CA','CB','CG','CD1'],
-            'VAL': ['C','CA','CB','CG2'],
+            'SER': ['C', 'CA', 'CB', 'OG'],
+            'THR': ['C', 'CA', 'CB', 'OG1'],
+            'TRP': ['C', 'CA', 'CB', 'CG', 'CD2'],
+            'TYR': ['C', 'CA', 'CB', 'CG', 'CD1'],
+            'VAL': ['C', 'CA', 'CB', 'CG2'],
         }
         atoms = [res + '/' + name for name in chi_atoms.get(old_resn, [])]
         old_chi = []
@@ -121,12 +122,12 @@ EXAMPLE
 
     def get_best_state_bump():
         best_state = (1, 1e9)
-        _self.create(tmp, '%s and not name CA+C+N+O or (%s within 8.0 of (%s and name CB))' % \
+        _self.create(tmp, '%s and not name CA+C+N+O or (%s within 8.0 of (%s and name CB))' %
                 (mutagenesis.obj_name, cpy, mutagenesis.obj_name), zoom=0, singletons=1)
         _self.bond('name CB and %s in %s' % (tmp, mutagenesis.obj_name),
                 'name CA and %s in %s' % (tmp, res))
         _self.sculpt_activate(tmp)
-        for i in range(1, _self.count_states(tmp)+1):
+        for i in range(1, _self.count_states(tmp) + 1):
             score = _self.sculpt_iterate(tmp, state=i)
             if not quiet:
                 print('Frame %d Score %.2f' % (i, score))
@@ -159,6 +160,7 @@ EXAMPLE
 
     return cpy
 
+
 def mutate_all(selection, new_resn, inplace=1, sculpt=0, *args, _self=cmd, **kwargs):
     '''
 DESCRIPTION
@@ -186,6 +188,7 @@ SEE ALSO
         mutate(sele, new_resn, inplace, sculpt and not inplace, *args, **kwargs)
     if sculpt and inplace:
         sculpt_relax('(' + ' '.join(sele_list) + ')', 0, sculpt == 2)
+
 
 def sculpt_relax(selection, backbone=1, neighbors=0, model=None, cycles=100,
         state=0, quiet=1, *, _self=cmd):
@@ -222,8 +225,8 @@ USAGE
         _self.protect('name CA+C+N+O+OXT')
 
     _self.sculpt_activate(model, state)
-    _self.set('sculpt_vdw_weight', 0.25, model) # Low VDW forces
-    _self.set('sculpt_field_mask', 0x1FF, model) # Default
+    _self.set('sculpt_vdw_weight', 0.25, model)  # Low VDW forces
+    _self.set('sculpt_field_mask', 0x1FF, model)  # Default
 
     if neighbors:
         _self.sculpt_iterate(model, state, int(cycles * 0.25))
@@ -234,13 +237,14 @@ USAGE
     else:
         _self.sculpt_iterate(model, state, int(cycles * 0.75))
 
-    _self.set('sculpt_field_mask', 0x01F, model) # Local Geometry Only
+    _self.set('sculpt_field_mask', 0x01F, model)  # Local Geometry Only
     _self.sculpt_iterate(model, state, int(cycles * 0.25))
 
     _self.unset('sculpt_vdw_weight', model)
     _self.unset('sculpt_field_mask', model)
     _self.sculpt_deactivate(model)
     _self.deprotect()
+
 
 def add_missing_atoms(selection='all', cycles=200, quiet=1, *, _self=cmd):
     '''
@@ -330,6 +334,7 @@ SEE ALSO
 
     _self.delete(namedsele)
 
+
 def peptide_rebuild(name, selection='all', cycles=1000, state=1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -362,7 +367,7 @@ SEE ALSO
             'identifiers.append([segi,chain,resi,resv,resn])', space=locals())
 
     model = models.Indexed()
-    for (segi,chain,resi,resv,resn) in identifiers:
+    for (segi, chain, resi, resv, resn) in identifiers:
         try:
             fname = resn.lower() if resn != 'MSE' else 'met'
             frag = fragments.get(fname)
@@ -394,13 +399,13 @@ SEE ALSO
     if not quiet:
         print(' Sculpting...')
 
-    _self.set('sculpt_field_mask', 0x003, name) # bonds and angles only
+    _self.set('sculpt_field_mask', 0x003, name)  # bonds and angles only
     _self.sculpt_iterate(name, 1, int(cycles / 4))
 
-    _self.set('sculpt_field_mask', 0x09F, name) # local + torsions
+    _self.set('sculpt_field_mask', 0x09F, name)  # local + torsions
     _self.sculpt_iterate(name, 1, int(cycles / 4))
 
-    _self.set('sculpt_field_mask', 0x0FF, name) # ... + vdw
+    _self.set('sculpt_field_mask', 0x0FF, name)  # ... + vdw
     _self.sculpt_iterate(name, 1, int(cycles / 2))
 
     _self.sculpt_deactivate(name)

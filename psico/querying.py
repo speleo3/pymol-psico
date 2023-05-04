@@ -40,7 +40,7 @@ SEE ALSO
     if state < 0:
         states = [_self.get_state()]
     elif state == 0:
-        states = list(range(1, _self.count_states(selection)+1))
+        states = list(range(1, _self.count_states(selection) + 1))
     else:
         states = [state]
     com = cpv.get_null()
@@ -53,15 +53,16 @@ SEE ALSO
             m = a.get_mass() * a.q
             com = cpv.add(com, cpv.scale(a.coord, m))
             totmass += m
-    com = cpv.scale(com, 1./totmass)
+    com = cpv.scale(com, 1. / totmass)
     if not quiet:
         print(' Center of Mass: [%8.3f,%8.3f,%8.3f]' % tuple(com))
     return com
 
+
 def gyradius(selection='(all)', state=-1, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
- 
+
     Radius of gyration
 
     Based on: http://pymolwiki.org/index.php/Radius_of_gyration
@@ -75,7 +76,7 @@ SEE ALSO
     if state < 0:
         states = [_self.get_state()]
     elif state == 0:
-        states = list(range(1, _self.count_states(selection)+1))
+        states = list(range(1, _self.count_states(selection) + 1))
     else:
         states = [state]
     rg_sq_list = []
@@ -83,15 +84,16 @@ SEE ALSO
         model = _self.get_model(selection, state)
         x = [i.coord for i in model.atom]
         mass = [i.get_mass() * i.q for i in model.atom if i.q > 0]
-        xm = [cpv.scale(v,m) for v,m in zip(x,mass)]
+        xm = [cpv.scale(v, m) for v, m in zip(x, mass)]
         tmass = sum(mass)
-        rr = sum(cpv.dot_product(v,vm) for v,vm in zip(x,xm))
-        mm = sum((sum(i)/tmass)**2 for i in zip(*xm))
-        rg_sq_list.append(rr/tmass - mm)
-    rg = (sum(rg_sq_list)/len(rg_sq_list))**0.5
+        rr = sum(cpv.dot_product(v, vm) for v, vm in zip(x, xm))
+        mm = sum((sum(i) / tmass)**2 for i in zip(*xm))
+        rg_sq_list.append(rr / tmass - mm)
+    rg = (sum(rg_sq_list) / len(rg_sq_list))**0.5
     if not quiet:
         print(' Radius of gyration: %.2f' % (rg))
     return rg
+
 
 def get_alignment_coords(name, active_only=0, state=-1, quiet=0, *, _self=cmd):
     '''
@@ -100,9 +102,9 @@ DESCRIPTION
     API only function. Returns a dictionary with items
 
         (object name, Nx3 coords list)
- 
+
     N is the number of alignment columns without gaps.
- 
+
 EXAMPLE
 
     import numpy
@@ -123,9 +125,10 @@ EXAMPLE
     for pos in aln:
         if len(pos) != len(object_list):
             continue
-        for model,index in pos:
-            allcoords[model].append(idx2coords[model,index])
+        for model, index in pos:
+            allcoords[model].append(idx2coords[model, index])
     return allcoords
+
 
 def get_sasa(selection, state=-1, dot_density=5, quiet=1, *, _self=cmd):
     '''
@@ -149,6 +152,7 @@ SEE ALSO
     r = _self.get_area(n, quiet=int(quiet))
     _self.delete(n)
     return r
+
 
 def get_sasa_ball(selection, state=-1, quiet=1, *, _self=cmd):
     '''
@@ -185,6 +189,7 @@ DESCRIPTION
     if not quiet:
         print(' get_sasa_ball: %.3f Angstroms^2.' % (area))
     return area
+
 
 def get_sasa_mmtk(selection, state=-1, hydrogens='auto', quiet=1, *, _self=cmd):
     '''
@@ -229,6 +234,7 @@ SEE ALSO
     if not quiet:
         print(' get_sasa_mmtk: %.3f Angstroms^2 (volume: %.3f Angstroms^3).' % (area * 1e2, volume * 1e3))
     return area * 1e2
+
 
 def get_raw_distances(names='', state=1, selection='all', quiet=1, *, _self=cmd):
     '''
@@ -276,14 +282,14 @@ SEE ALSO
     r = []
     for obj in raw_objects:
         try:
-            points = obj[5][2][state-1][1]
+            points = obj[5][2][state - 1][1]
             if points is None:
                 raise ValueError
         except (KeyError, ValueError):
             continue
         for i in range(0, len(points), 6):
-            xyz1 = tuple(points[i:i+3])
-            xyz2 = tuple(points[i+3:i+6])
+            xyz1 = tuple(points[i:i + 3])
+            xyz2 = tuple(points[i + 3:i + 6])
             try:
                 r.append((xyz2idx[xyz1], xyz2idx[xyz2], cpv.distance(xyz1, xyz2)))
                 if not quiet:
@@ -292,6 +298,7 @@ SEE ALSO
                 if quiet < 0:
                     print(' Debug: no index for %s %s' % (xyz1, xyz2))
     return r
+
 
 def get_color(selection, which=0, mode=0, *, _self=cmd):
     '''
@@ -337,6 +344,7 @@ ARGUMENTS
         return '#%02x%02x%02x' % tuple(int(0xFF * v) for v in color)
     return color
 
+
 def get_object_name(selection, strict=0, *, _self=cmd):
     '''
 DESCRIPTION
@@ -349,6 +357,7 @@ DESCRIPTION
     if strict and len(names) > 1:
         raise CmdException('Selection spans more than one object')
     return names[0]
+
 
 def get_object_state(name, *, _self=cmd):
     '''
@@ -364,6 +373,7 @@ DESCRIPTION
         raise CmdException('Invalid state %d for object %s' % (state, name))
     return state
 
+
 def get_selection_state(selection, *, _self=cmd):
     '''
 DESCRIPTION
@@ -371,8 +381,7 @@ DESCRIPTION
     Returns the effective object state for all objects in given selection.
     Raises exception if objects are in different states.
     '''
-    state_set = set(map(get_object_state,
-        _self.get_object_list('(' + selection + ')')))
+    state_set = set(map(get_object_state, _self.get_object_list(selection)))
     if len(state_set) != 1:
         if len(state_set) == 0:
             return 1
@@ -385,7 +394,7 @@ def get_ensemble_coords(selection, *, _self=cmd):
 DESCRIPTION
 
     API only. Returns the (nstates, natoms, 3) coordinate matrix. Considers
-    the object rotation matrix. 
+    the object rotation matrix.
     '''
     nstates = _self.count_states(selection)
     return _self.get_coords(selection, 0).reshape((nstates, -1, 3))

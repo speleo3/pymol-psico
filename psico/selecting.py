@@ -6,6 +6,11 @@ License: BSD-2-Clause
 
 from pymol import cmd, CmdException
 
+_auto_arg0_align = cmd.auto_arg[0]['align']
+_auto_arg1_align = cmd.auto_arg[1]['align']
+_auto_arg1_select = cmd.auto_arg[1]['select']
+
+
 def _assert_package_import():
     if not __name__.endswith('.selecting'):
         raise CmdException("Must do 'import psico.selecting' instead of 'run ...'")
@@ -67,7 +72,7 @@ SEE ALSO
             seq_list.append('#')
             idx_list.append(None)
         seq_list.append(one_letter.get(resn, '#'))
-        idx_list.append((model,index))
+        idx_list.append((model, index))
         prev[:] = coord
 
     _self.iterate_state(state, '(%s) and guide' % (selection),
@@ -147,8 +152,8 @@ ARGUMENTS
     sele_list = []
     ss_names = {'S': 'Strand', 'H': 'Helix', '': 'Loop', 'L': 'Loop'}
     for key in elements:
-        model,segi,chain,ss = key
-        for resv_min,resv_max in elements[key]:
+        model, segi, chain, ss = key
+        for resv_min, resv_max in elements[key]:
             sele = '/%s/%s/%s/%d-%d' % (model, segi, chain, resv_min, resv_max)
             if caonly:
                 sele += '/CA'
@@ -163,6 +168,7 @@ ARGUMENTS
         print(' Selection: ' + sele)
 
     return sele
+
 
 def diff(sele1, sele2, byres=1, name=None, operator='in', quiet=0, *, _self=cmd):
     '''
@@ -207,6 +213,7 @@ SEE ALSO
         _self.iterate(seleiter, expr)
     return name
 
+
 def symdiff(sele1, sele2, byres=1, name=None, operator='in', quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
@@ -226,6 +233,7 @@ SEE ALSO
     _self.select(name, tmpname, merge=1)
     _self.delete(tmpname)
     return name
+
 
 def collapse_resi(selection='(sele)', quiet=1, *, _self=cmd):
     '''
@@ -251,13 +259,14 @@ ARGUMENTS
             if i <= r[-1][1] + 1:
                 r[-1][1] = i
             else:
-                r.append([i,i])
-        resi = '+'.join(('%d-%d' % (f,t) if f != t else '%d' % (f)) for (f,t) in r)
+                r.append([i, i])
+        resi = '+'.join(('%d-%d' % (f, t) if f != t else '%d' % (f)) for (f, t) in r)
         r_all.append('/%s/%s/%s/' % key + resi)
     if not int(quiet):
         for r in r_all:
             print(' collapse_resi: ' + str(r))
     return ' '.join(r_all)
+
 
 def wait_for(name, state=0, quiet=1, *, _self=cmd):
     '''
@@ -267,9 +276,12 @@ DESCRIPTION
     '''
     if _self.count_atoms('?' + name, 1, state) == 0:
         s = _self.get_setting_boolean('suspend_updates')
-        if s: _self.set('suspend_updates', 0)
+        if s:
+            _self.set('suspend_updates', 0)
         _self.refresh()
-        if s: _self.set('suspend_updates')
+        if s:
+            _self.set('suspend_updates')
+
 
 def select_distances(names='', name='sele', state=1, selection='all', cutoff=-1, quiet=1, *, _self=cmd):
     '''
@@ -295,7 +307,7 @@ SEE ALSO
     from .querying import get_raw_distances
 
     state, cutoff, quiet = int(state), float(cutoff), int(quiet)
-    states = [state] if state else list(range(1, _self.count_states(selection)+1))
+    states = [state] if state else list(range(1, _self.count_states(selection) + 1))
 
     sele_dict = defaultdict(set)
     for state in states:
@@ -363,6 +375,7 @@ DESCRIPTION
     >>> with select_temporary(sele_expr) as named_sele:
     ...     assert named_sele in cmd.get_names()
     '''
+
     def __init__(self, sele, prefix="_sele", *, _self=cmd):
         self._self = _self
         self.sele = sele
@@ -389,20 +402,20 @@ cmd.extend('select_range', select_range)
 
 # autocompletion
 cmd.auto_arg[0].update([
-    ('select_sspick', cmd.auto_arg[0]['align']),
-    ('symdiff',     cmd.auto_arg[0]['align']),
-    ('diff',        cmd.auto_arg[0]['align']),
+    ('select_sspick', _auto_arg0_align),
+    ('symdiff', _auto_arg0_align),
+    ('diff', _auto_arg0_align),
     ('collapse_resi', cmd.auto_arg[0]['zoom']),
     ('select_distances', [
         lambda: cmd.Shortcut(cmd.get_names_of_type('object:measurement')),
         'distance object', '']),
 ])
 cmd.auto_arg[1].update([
-    ('select_pepseq', cmd.auto_arg[1]['select']),
-    ('select_nucseq', cmd.auto_arg[1]['select']),
-    ('symdiff',     cmd.auto_arg[1]['align']),
-    ('diff',        cmd.auto_arg[1]['align']),
-    ('select_range', cmd.auto_arg[1]['select']),
+    ('select_pepseq', _auto_arg1_select),
+    ('select_nucseq', _auto_arg1_select),
+    ('symdiff', _auto_arg1_align),
+    ('diff', _auto_arg1_align),
+    ('select_range', _auto_arg1_select),
 ])
 
 # vi:expandtab:smarttab

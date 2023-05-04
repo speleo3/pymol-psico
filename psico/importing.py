@@ -14,9 +14,11 @@ mysql_kwargs = {
     'db': 'biomol',
 }
 
+
 def _assert_package_import():
     if not __name__.endswith('.importing'):
         raise CmdException("Must do 'import psico.importing' instead of 'run ...'")
+
 
 def local_mirror_pdb(code):
     '''
@@ -27,6 +29,7 @@ DESCRIPTION
     '''
     return '/ebio/abt1_toolkit/share/wye/databases/pdb/all/pdb%s.ent' % (code.lower())
 
+
 def fetch(code, name='', type='pdb', quiet=1, *, _self=cmd, **kwargs):
     '''
 PSICO NOTES
@@ -36,7 +39,7 @@ PSICO NOTES
 
     You can also fetch from a local filesystem mirror by setting up a
     function "psico.importing.local_mirror_pdb(code)" that returns a
-    full path to a pdb file. 
+    full path to a pdb file.
     '''
     from pymol.importing import fetch as pymol_fetch
 
@@ -45,12 +48,21 @@ PSICO NOTES
     if type != 'pdb':
         return pymol_fetch(code, name, type=type, quiet=quiet, **kwargs)
 
-    load_kwargs = {'state':0, 'format':'', 'finish':1, 'discrete':-1,
-            'quiet':quiet, 'multiplex':None, 'zoom':-1, 'partial':0, 'mimic':1}
-    load_kwargs = dict((k,kwargs[k]) for k in kwargs if k in load_kwargs)
+    load_kwargs = {
+        'state': 0,
+        'format': '',
+        'finish': 1,
+        'discrete': -1,
+        'quiet': quiet,
+        'multiplex': None,
+        'zoom': -1,
+        'partial': 0,
+        'mimic': 1,
+    }
+    load_kwargs = dict((k, kwargs[k]) for k in kwargs if k in load_kwargs)
     code_list = code.split()
     for code in list(code_list):
-        if len(code) in [5,6]:
+        if len(code) in [5, 6]:
             fetch_chain(code, name, **kwargs)
             code_list.remove(code)
         elif len(code) == 7:
@@ -71,11 +83,15 @@ PSICO NOTES
                 code_list.remove(code)
     if len(code_list) > 0:
         return pymol_fetch(' '.join(code_list), name, quiet=quiet, **kwargs)
+
+
 fetch.__doc__ += cmd.fetch.__doc__
 
 cath_domains = {}
+
+
 def cath_parse_domall(filename='', *, _self=cmd):
-    ''' 
+    '''
     Download "CathDomall.seqreschopping" to fetch_path (once), parse it and
     store results in global dict "cath_domains".
     '''
@@ -100,6 +116,7 @@ def cath_parse_domall(filename='', *, _self=cmd):
             resi = resiy.split('-')
             domain.append((domid[4], resi[0], resi[1]))
         cath_domains[domid] = domain
+
 
 def fetch_cath(code, name='', *, _self=cmd, **kwargs):
     if name == '':
@@ -128,6 +145,7 @@ def fetch_cath(code, name='', *, _self=cmd, **kwargs):
             print(' Warning: CATH domain resiude range handling failed')
             return -1
 
+
 def fetch_scop(code, name='', *, _self=cmd, **kwargs):
     if name == '':
         name = code
@@ -154,6 +172,7 @@ def fetch_scop(code, name='', *, _self=cmd, **kwargs):
         print(' Warning: SCOP domain resiude range handling failed')
         return -1
 
+
 def fetch_chain(code, name='', *, _self=cmd, **kwargs):
     if name == '':
         name = code
@@ -163,6 +182,7 @@ def fetch_chain(code, name='', *, _self=cmd, **kwargs):
     if cmd.is_error(r):
         return r
     _self.remove(name + ' and not chain ' + chain)
+
 
 def loadall(pattern, group='', quiet=1, *, _self=cmd, **kwargs):
     '''
@@ -186,6 +206,7 @@ DESCRIPTION
                 safe_oname_re.sub('_', os.path.split(filename)[-1])))
                 for filename in filenames]
         _self.group(group, ' '.join(members))
+
 
 def load_traj_dcd(filename, object='', state=0, start=1, stop=-1, quiet=1,
         *, _self=cmd):
@@ -217,8 +238,9 @@ SEE ALSO
 
     endian = '<'
     handle = open(filename)
-    read = lambda fmt: struct.unpack(endian + fmt,
-            handle.read(struct.calcsize(fmt)))
+
+    def read(fmt):
+        return struct.unpack(endian + fmt, handle.read(struct.calcsize(fmt)))
 
     # Header
     length = read('i')[0]
@@ -246,6 +268,7 @@ SEE ALSO
 
     # Coord Sets
     fmt = 'i %df i' % (NATOM)
+
     def readX():
         X = read(fmt)
         assert X[0] == X[-1]
@@ -256,7 +279,7 @@ SEE ALSO
             break
 
         length = read('i')[0]
-        if length == 6*8:
+        if length == 6 * 8:
             box = read('6d i')
             assert box[-1] == length
         else:
@@ -275,6 +298,7 @@ SEE ALSO
 
         _self.load_coords(coordset, object, state)
         state += 1
+
 
 def load_traj_crd(filename, object='', state=0, box=0, start=1, stop=-1,
         quiet=1, *, _self=cmd):
@@ -302,7 +326,8 @@ SEE ALSO
         state = _self.count_states(object) + 1
     natom = _self.count_atoms(object)
     line_it = iter(open(filename))
-    next(line_it) # skip title
+    next(line_it)  # skip title
+
     def crd_coord_iter():
         '''
         Iterator that yields True at the beginning of a coord set, followed
@@ -342,7 +367,7 @@ SEE ALSO
                     # skip box line
                     continue
             for i in range(0, len(line.rstrip()), width):
-                x = float(line[i:i+width])
+                x = float(line[i:i + width])
                 if count == 0:
                     yield True
                 count += 1
@@ -359,6 +384,7 @@ SEE ALSO
         if stop > 0 and frame == stop:
             break
         frame += 1
+
 
 def load_3d(filename, object='', *, _self=cmd):
     '''
@@ -377,16 +403,16 @@ DESCRIPTION
 
     f = open(filename, 'rb')
 
-    line = f.readline() # File ID
+    line = f.readline()  # File ID
     if not line.startswith('Survex 3D Image File'):
         raise CmdException("not a Survex 3D File")
 
-    line = f.readline() # File format version
+    line = f.readline()  # File format version
     assert line[0] == 'v'
     ff_version = int(line[1:])
 
-    line = f.readline().decode('latin1') # Survex title
-    line = f.readline() # Timestamp
+    line = f.readline().decode('latin1')  # Survex title
+    line = f.readline()  # Timestamp
 
     class Station:
         def __init__(self):
@@ -394,16 +420,22 @@ DESCRIPTION
             self.adjacent = []
             self.lrud = None
             self.flag = 0
+
         def connect(self, other):
             self.adjacent.append(other)
+
         def is_surface(self):
             return self.flag & 0x01
+
         def is_underground(self):
             return self.flag & 0x02
+
         def is_entrance(self):
             return self.flag & 0x04
+
         def is_exported(self):
             return self.flag & 0x08
+
         def is_fixed(self):
             return self.flag & 0x10
 
@@ -412,21 +444,26 @@ DESCRIPTION
             self.prev = None
             self.curr_label = ''
             self.labelmap = {}
+
         def get(self, xyz):
             return dict.setdefault(self, tuple(xyz), Station())
+
         def line(self, xyz):
             s = self.get(xyz)
             self.prev.connect(s)
             self.prev = s
+
         def move(self, xyz):
             s = self.get(xyz)
             self.prev = s
+
         def label(self, xyz, flag=0):
             s = self.get(xyz)
             s.labels.append(self.curr_label)
             self.labelmap[s.labels[-1]] = s
             if flag > 0:
                 s.flag = flag
+
         def lrud(self, lrud):
             s = self.labelmap[self.curr_label]
             s.lrud = lrud
@@ -458,21 +495,22 @@ DESCRIPTION
             return -1
         return ord(byte)
 
-    while 1:
+    while True:
         byte = read_byte()
         if byte == -1:
             break
-        
+
         if byte == 0x00:
             # STOP
             survey.curr_label = ''
         elif byte <= 0x0e:
             # TRIM
             # FIXME: according to doc, trim 16 bytes, but img.c does 17!
-            (i,n) = (-17,0)
+            (i, n) = (-17, 0)
             while n < byte:
                 i -= 1
-                if survey.curr_label[i] == '.': n += 1
+                if survey.curr_label[i] == '.':
+                    n += 1
             survey.curr_label = survey.curr_label[:i + 1]
         elif byte <= 0x0f:
             # MOVE
@@ -533,12 +571,12 @@ DESCRIPTION
             continue
 
     model = models.Indexed()
-    for (xyz,s) in survey.items():
+    for (xyz, s) in survey.items():
         l0, _, l1 = s.labels[0].rpartition('.')
         resi, name = l1[:5], l1[5:]
         segi, chain, resn = l0[-8:-4], l0[-4:-3], l0[-3:]
         atom = Atom()
-        atom.coord = [i/100.0 for i in xyz]
+        atom.coord = [i / 100.0 for i in xyz]
         atom.segi = segi
         atom.chain = chain
         atom.resn = resn
@@ -547,11 +585,11 @@ DESCRIPTION
         atom.b = atom.coord[2]
         atom.label = s.labels[0]
         if s.lrud is not None:
-            atom.vdw = sum(s.lrud)/400.0
+            atom.vdw = sum(s.lrud) / 400.0
         model.add_atom(atom)
 
-    s2i = dict((s,i) for (i,s) in enumerate(survey.values()))
-    for (s,i) in s2i.items():
+    s2i = dict((s, i) for (i, s) in enumerate(survey.values()))
+    for (s, i) in s2i.items():
         for o in s.adjacent:
             bnd = Bond()
             bnd.index = [i, s2i[o]]
@@ -560,6 +598,7 @@ DESCRIPTION
     _self.load_model(model, object, 1)
     _self.show_as('lines', object)
     _self.spectrum('b', 'rainbow', object)
+
 
 def set_raw_alignment(name, aln, transform=0, guide='', *, _self=cmd):
     '''
@@ -601,6 +640,7 @@ SEE ALSO
         fit(sele1, sele2, cycles=0, matchmaker=4, object=name)
     _self.delete(sele1)
     _self.delete(sele2)
+
 
 def load_aln(filename, object=None, mobile=None, target=None, mobile_id=None,
         target_id=None, format='', transform=0, quiet=1, *, _self=cmd):
@@ -649,8 +689,10 @@ EXAMPLE
     target_record = alignment[1] if target_id is None else aln_dict[target_id]
 
     # guess selections from sequence identifiers (if not given)
-    if mobile is None: mobile = mobile_record.id
-    if target is None: target = target_record.id
+    if mobile is None:
+        mobile = mobile_record.id
+    if target is None:
+        target = target_record.id
 
     try:
         mobile_obj = _self.get_object_list('(' + mobile + ')')[0]
@@ -687,6 +729,7 @@ EXAMPLE
     set_raw_alignment(object, r, int(transform))
     return r
 
+
 def load_gro(filename, object='', state=-1, quiet=1, zoom=-1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -719,9 +762,9 @@ DESCRIPTION
         resn = line[5:10].strip()
         name = line[10:15].strip()
         ID = int(line[15:20])
-        x, y, z = 10*float(line[20:28]), 10*float(line[28:36]), 10*float(line[36:44])
-        segi = '%02d%02d' % (ID/100000, resi/10000)
-        ID, resi = ID%100000, resi%10000
+        x, y, z = 10 * float(line[20:28]), 10 * float(line[28:36]), 10 * float(line[36:44])
+        segi = '%02d%02d' % (ID / 100000, resi / 10000)
+        ID, resi = ID % 100000, resi % 10000
         return _pdbAtomLine % (ID, name[:3], resn[:3], 'A', resi, x, y, z, 1, 0, segi, name[0])
 
     def pdbBox(line):
@@ -729,7 +772,7 @@ DESCRIPTION
         from math import degrees
         from chempy.cpv import length, get_angle
 
-        v = [10*float(i) for i in line.split()] + 6*[0] # Padding for rectangular boxes
+        v = [10 * float(i) for i in line.split()] + 6 * [0]  # Padding for rectangular boxes
         v1, v2, v3 = (v[0], v[3], v[4]), (v[5], v[1], v[6]), (v[7], v[8], v[2])
 
         a = length(v1)
@@ -764,6 +807,7 @@ DESCRIPTION
 
     _self.read_pdbstr('\n'.join(pdb), object, int(state), quiet=int(quiet), zoom=int(zoom))
     _self.alter(object, '(ID,resi,segi) = (ID+100000*int(segi[:2]),resv+10000*int(segi[2:]),"")')
+
 
 def load_coords(coords, object, state, quiet=1, *, _self=cmd):
     '''
