@@ -70,4 +70,12 @@ markers = [
     "web: test requires internet access",
 ]
 
+[tool.mypy]
+files = [
+    "psico",
+    "tests",
+]
+ignore_missing_imports = true
+explicit_package_bases = true
+
 # vi:sw=4
