@@ -38,7 +38,7 @@ import psico.fullinit
 
 ## Dependencies
 
-* PyMOL 2.0+ (https://pymol.org/)
+* PyMOL 2.3+ (https://pymol.org/)
 * Python 3.7+
 
 Some functions in *psico* require the following python modules:

@@ -16,7 +16,7 @@ pytest -W ignore::DeprecationWarning -m "not (web or exe)"
 
 ```bash
 pip install --editable .
-conda install pytest biopython
+conda install pytest biopython apbs
 conda install -c speleo3 csb
 conda install -c salilab -c speleo3 dssp
 conda install -c kimlab stride
