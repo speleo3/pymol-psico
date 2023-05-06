@@ -41,12 +41,21 @@ def _get_aligner_BLOSUM62() -> "Bio.Align.PairwiseAligner":
 
 
 def _msa_from_pairwise(
-    pairwise: "Bio.Align.PairwiseAlignment"
+    pairwise: "Bio.Align.PairwiseAlignment",
+    biopython_version: tuple = (1, 81),
 ) -> "Bio.Align.MultipleSeqAlignment":
     from Bio.Align import MultipleSeqAlignment
     from Bio.SeqRecord import SeqRecord
     from Bio.Seq import Seq
-    seqs = pairwise.format().splitlines()[::2]
+
+    if biopython_version < (1, 80):
+        seqs = format(pairwise).splitlines()[::2]
+    else:
+        seqs = list(pairwise)
+
+    assert len(seqs) == 2
+    assert isinstance(seqs[0], str)
+
     return MultipleSeqAlignment([
         SeqRecord(Seq(seqs[0]), "s1"),
         SeqRecord(Seq(seqs[1]), "s2"),
@@ -66,7 +75,7 @@ DESCRIPTION
 
     aligner = _get_aligner_BLOSUM62()
     alns = aligner.align(s1, s2)
-    return _msa_from_pairwise(alns[0])
+    return _msa_from_pairwise(alns[0], biopython_version)
 
 
 def needle_alignment_Bio_pairwise2(s1, s2):
