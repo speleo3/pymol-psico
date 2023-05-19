@@ -146,7 +146,7 @@ class AAindex(dict):
                     try:
                         assert list(Record.aakeys[:10]) == [i[0] for i in a]
                         assert list(Record.aakeys[10:]) == [i[2] for i in a]
-                    except:
+                    except AssertionError:
                         print('Warning: wrong amino acid sequence for', current.key)
             elif key == 'M ':
                 a = line[2:].split()
@@ -242,11 +242,11 @@ class MatrixRecord(Record):
     def get(self, aai, aaj, d=None):
         try:
             return self._get(aai, aaj)
-        except:
+        except LookupError:
             pass
         try:
             return self._get(aaj, aai)
-        except:
+        except LookupError:
             return d
 
     def __getitem__(self, aaij):

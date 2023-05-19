@@ -167,7 +167,7 @@ SEE ALSO
     accn = seq.id
     try:
         protein_acc, protein_ver = accn.split('.')
-    except:
+    except ValueError:
         print('no refseq accession found')
         return
 
@@ -196,7 +196,7 @@ SEE ALSO
             refRes = node.get('residue')
             refPos = node.get('aaPosition')
             intPos = int(refPos) + 1
-        except:
+        except KeyError:
             print('no ref')
             continue
         # snp alleles

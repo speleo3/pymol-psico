@@ -107,7 +107,7 @@ EXAMPLE
         for args in zip(atoms, atoms[1:], atoms[2:], atoms[3:]):
             try:
                 old_chi.append(_self.get_dihedral(*args))
-            except:
+            except CmdException:
                 break
 
     _self.remove('%s and not name CA+C+N+O+OXT' % (res))
@@ -325,8 +325,8 @@ SEE ALSO
 
                 if not quiet:
                     print(' Mutated ' + skey)
-            except:
-                print(' Mutating ' + skey + ' failed')
+            except Exception as ex:
+                print(f' Mutating {skey} failed: {ex}')
 
     for model in sele_dict:
         _self.sort(model)

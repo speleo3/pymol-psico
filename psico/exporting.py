@@ -120,7 +120,7 @@ ARGUMENTS
     if box:
         try:
             boxdim = _self.get_symmetry(selection)[0:3]
-        except:
+        except (CmdException, TypeError):
             boxdim = [0, 0, 0]
     else:
         boxdim = None
@@ -359,7 +359,7 @@ DESCRIPTION
     return buf
 
 
-def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0,
+def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=None,
         seqres=0, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -370,7 +370,7 @@ DESCRIPTION
 
 USAGE
 
-    save_pdb filename, selection [, state [, symm [, ss [, aniso ]]]]
+    save_pdb filename, selection [, state [, symm [, ss ]]]
 
 ARGUMENTS
 
@@ -386,13 +386,17 @@ ARGUMENTS
 
     ss = 0 or 1: save secondary structure info {default: 1}
 
-    aniso = 0 or 1: save ANISO records {default: 0}
+    aniso: unused/obsolete
 
 SEE ALSO
 
     save
     '''
     _assert_package_import()
+    from . import pymol_version_tuple
+
+    if aniso is not None:
+        print("The 'aniso' argument is deprecated and unused")
 
     selection = selector.process(selection)
     state, quiet = int(state), int(quiet)
@@ -407,16 +411,18 @@ SEE ALSO
         f.write(get_pdb_seqres(selection))
 
     # Write the CRYST1 line if possible
-    if symm:
+    if symm and pymol_version_tuple < (2, 5):
         try:
             obj1 = _self.get_object_list(selection)[0]
+        except IndexError:
+            sym = None
+        else:
             sym = _self.get_symmetry(obj1)
-            if len(sym) != 7:
-                raise
+        if sym is not None:
             f.write("CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-10s%4d\n" % tuple(sym + [1]))
             if not quiet:
                 print(' Info: Wrote unit cell and space group info')
-        except:
+        else:
             if not quiet:
                 print(' Info: No crystal information')
 
@@ -424,12 +430,13 @@ SEE ALSO
     if ss:
         try:
             sss = get_pdb_sss(selection, state, quiet)
-            if not sss:
-                raise
+        except Exception:
+            sss = ""
+        if sss:
             f.write(sss)
             if not quiet:
                 print(' Info: Wrote secondary structure info')
-        except:
+        else:
             if not quiet:
                 print(' Info: No secondary structure information')
 
@@ -455,7 +462,7 @@ ADDITIONAL NOTE
         from pymol.exporting import save
         return save(filename, selection, state, format, ref, ref_state, quiet,
                 *args, **kwargs, _self=_self)
-    save_pdb(filename, selection, state, 1, 1, 0, quiet, _self=_self)
+    save_pdb(filename, selection, state, sym=1, ss=1, quiet=quiet, _self=_self)
 
 
 save.__doc__ = cmd.save.__doc__ + save.__doc__
@@ -474,7 +481,7 @@ DESCRIPTION
         string, unit = string[:-2], string[-2:]
     try:
         retval = float(string)
-    except:
+    except (ValueError, TypeError):
         raise ValueError("cannot parse value from: " + str(string))
     if unit not in uuconv:
         raise ValueError("unknown unit: " + str(unit))

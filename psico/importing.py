@@ -140,8 +140,8 @@ def fetch_cath(code, name='', *, _self=cmd, **kwargs):
                     rsele += ' and resi %s-%s' % (start, stop)
                 rsele += ')'
             _self.remove(name + ' and not (' + rsele + ')')
-        except:
-            print(' Warning: CATH domain resiude range handling failed')
+        except Exception as ex:
+            print(f' Warning: CATH domain resiude range handling failed: {ex}')
             return -1
 
 
@@ -167,8 +167,8 @@ def fetch_scop(code, name='', *, _self=cmd, **kwargs):
                     rsele += ' and resi %s-%s' % (start, stop)
                 rsele += ')'
             _self.remove(name + ' and not (' + rsele + ')')
-    except:
-        print(' Warning: SCOP domain resiude range handling failed')
+    except Exception as ex:
+        print(f' Warning: SCOP domain resiude range handling failed: {ex}')
         return -1
 
 
@@ -696,7 +696,11 @@ EXAMPLE
     try:
         mobile_obj = _self.get_object_list('(' + mobile + ')')[0]
         target_obj = _self.get_object_list('(' + target + ')')[0]
-    except:
+    except (
+            IndexError,  # empty list (no atoms in selection)
+            TypeError,  # None (Selector-Error)
+            CmdException,  # future-proofing (Selector-Error)
+    ):
         raise CmdException('selection "%s" or "%s" does not exist' % (mobile, target))
 
     # get structure models and sequences

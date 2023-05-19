@@ -227,9 +227,9 @@ SEE ALSO
 
     try:
         area, volume = surfaceAndVolume(system, radius * 0.1)
-    except:
-        print(' Error: MMTK.MolecularSurface.surfaceAndVolume failed')
-        raise CmdException
+    except Exception as ex:
+        raise CmdException(
+            f'MMTK.MolecularSurface.surfaceAndVolume failed: {ex}')
 
     if not quiet:
         print(' get_sasa_mmtk: %.3f Angstroms^2 (volume: %.3f Angstroms^3).' % (area * 1e2, volume * 1e3))
@@ -319,7 +319,7 @@ ARGUMENTS
     '''
     s_first = 'first' if which == 0 else ''
 
-    try:
+    def inner():
         colors = []
 
         for s_guide in ('guide', 'elem C', 'all'):
@@ -327,6 +327,9 @@ ARGUMENTS
                     'colors.append(color)', space=locals())
             if colors:
                 break
+        else:
+            print(' Warning: could not get color for ' + str(selection))
+            return 'gray'
 
         if which == 2:
             color = max((colors.count(color), color) for color in colors)[1]
@@ -335,9 +338,10 @@ ARGUMENTS
 
         if color >= 0x40000000:
             color = '0x%06x' % (color & 0xFFFFFF)
-    except:
-        print(' Warning: could not get color for ' + str(selection))
-        color = 'gray'
+
+        return color
+
+    color = inner()
     if mode > 0:
         color = _self.get_color_tuple(color)
     if mode == 2:

@@ -60,7 +60,7 @@ def overload():
 
 try:
     overload()
-except:
-    print('matplotlib_fix failed')
+except Exception as ex:
+    print(f'matplotlib_fix failed: {ex}')
 
 # vi:expandtab:smarttab

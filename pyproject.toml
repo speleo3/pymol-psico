@@ -59,7 +59,6 @@ ignore = [
     "E401",     # Multiple imports on one line
     "E501",     # Line too long
     "E731",     # lambda-assignment
-    "E722",     # FIXME Do not use bare `except`
 ]
 
 [tool.pytest.ini_options]

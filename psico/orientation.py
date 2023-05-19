@@ -416,9 +416,9 @@ SEE ALSO
         method(mobile=mobile_tmp, target=selection2, mobile_state=1,
                 target_state=state2, quiet=quiet)
         mat = _self.get_object_matrix(mobile_tmp)
-    except:
-        raise CmdException('superposition with method "%s" failed' %
-                           (method.__name__))
+    except Exception as ex:
+        raise CmdException(
+            f'superposition with method "{method.__name__}" failed: {ex}')
     finally:
         _self.delete(mobile_tmp)
 
@@ -445,8 +445,8 @@ SEE ALSO
 
         angle = math.atan2(sina, cosa)
         angle = abs(math.degrees(angle))
-    except:
-        raise CmdException('rotation from matrix failed')
+    except Exception as ex:
+        raise CmdException(f'rotation from matrix failed: {ex}')
 
     if not quiet:
         try:

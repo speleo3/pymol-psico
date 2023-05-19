@@ -227,7 +227,7 @@ DESCRIPTION
     try:
         code1, chain1, code2, chain2 = handle.name.rsplit('.', 1)[0].split('_')
         ids = [code1 + '_' + chain1, code2 + '_' + chain2]
-    except:
+    except ValueError:
         ids = 'chain1', 'chain2'
 
     seqs = [[], []]
@@ -238,7 +238,7 @@ DESCRIPTION
         try:
             aa1 = one_letter[a[2]]
             aa2 = one_letter[a[3]]
-        except:
+        except LookupError:
             print(' Warning: Exception while parsing ProSMART alignment')
             continue
         seqs[0].append(aa1)

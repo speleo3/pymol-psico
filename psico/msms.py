@@ -109,8 +109,8 @@ def _get_solvent_radius(selection, state, *, _self=cmd):
             # Note: One of my test cases failed with radius 2.75, rounding
             # to one digit worked
             return '{:.1}'.format(radius[0])
-    except:
-        print('Using global solvent_radius')
+    except Exception as ex:
+        print(f'Using global solvent_radius: {ex}')
 
     return _self.get('solvent_radius')
 
