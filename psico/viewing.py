@@ -69,15 +69,9 @@ DESCRIPTION
     from pymol import menu
     colors = []
     try:
-        for (c, _, expr) in getattr(menu, color)(cmd, ''):
-            if c != 1:
-                continue
-            assert expr.startswith('cmd.color(')
-            col = expr[10:].partition(',')[0]
-            if col[0] in ['"', "'"]:
-                col = col[1:-1]
+        for (_, col) in dict(menu.all_colors_list)[color]:
             colors.append(col)
-    except:
+    except KeyError:
         raise CmdException(repr(color))
     return colors
 
