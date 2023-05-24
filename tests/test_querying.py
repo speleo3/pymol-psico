@@ -3,6 +3,22 @@ from pymol import cmd
 from pytest import approx
 
 
+def test_get_color():
+    cmd.reinitialize()
+    cmd.pseudoatom(color="0xFF0000")
+    cmd.pseudoatom(color="0xFFFF00")  # most frequent
+    cmd.pseudoatom(color="0x00FF00")  # middle
+    cmd.pseudoatom(color="0xFFFF00")  # most frequent
+    cmd.pseudoatom(color="0x0000FF")
+    assert psico.querying.get_color("*", which=0) == "0xff0000"
+    assert psico.querying.get_color("*", which=1) == "0x00ff00"
+    assert psico.querying.get_color("*", which=2) == "0xffff00"
+    assert psico.querying.get_color("*", mode=0) == "0xff0000"
+    assert psico.querying.get_color("*", mode=1) == (1.0, 0.0, 0.0)
+    assert psico.querying.get_color("*", mode=2) == "#ff0000"
+    assert psico.querying.get_color("none") == "gray"
+
+
 def test_iterate_to_list():
     cmd.reinitialize()
     cmd.fragment("gly")

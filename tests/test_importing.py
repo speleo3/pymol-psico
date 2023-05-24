@@ -1,4 +1,7 @@
 import psico.importing
+import psico.querying
+import pymol
+import pytest
 from pytest import approx
 from pymol import cmd
 from pathlib import Path
@@ -30,6 +33,36 @@ ALA_TRAJ_COORDS_STATE_8 = [
     [-1.042, -2.13, -0.82],
     [-0.268, 0.608, -1.424],
 ]
+
+
+# downloads an 8MB file
+@pytest.mark.web
+def test_fetch_cath(tmp_path):
+    cmd.reinitialize()
+    cmd.set("fetch_path", str(tmp_path))
+    psico.importing.fetch_cath("10gsB02", "m1")
+    assert cmd.get_chains() == ["B"]
+    resv_list = psico.querying.iterate_to_list("*", "resv")
+    assert min(resv_list) == 79
+    assert max(resv_list) == 186
+
+
+def test_load_aln(tmp_path):
+    cmd.reinitialize()
+    cmd.fab("ACDEFGHIKLMN", "m1")
+    cmd.fab("DEFGHSSSVRVMNPQ", "m2")
+    cmd.align("m1 & guide", "m2 & guide", cycles=0, object="aln1")
+    cmd.save(tmp_path / "tmp.aln", "aln1")
+    cmd.delete("aln1")
+    psico.importing.load_aln(tmp_path / "tmp.aln", "aln2", format="clustal")
+    assert cmd.count_atoms("aln2 & m1") == 10
+    assert cmd.count_atoms("aln2 & m2") == 10
+    with pytest.raises(pymol.CmdException) as excinfo:
+        psico.importing.load_aln(tmp_path / "tmp.aln", mobile="none", target="none")
+    assert 'selection "none" or "none" does not exist' in str(excinfo.value)
+    with pytest.raises(pymol.CmdException) as excinfo:
+        psico.importing.load_aln(tmp_path / "tmp.aln", mobile="foo1", target="foo2")
+    assert 'selection "foo1" or "foo2" does not exist' in str(excinfo.value)
 
 
 def test_loadall_traj():

@@ -5,6 +5,7 @@ License: BSD-2-Clause
 '''
 
 import os.path
+from pathlib import Path
 from pymol import cmd, CmdException
 
 mysql_kwargs = {
@@ -100,14 +101,12 @@ def cath_parse_domall(filename='', *, _self=cmd):
         if fetch_path == '.':
             import tempfile
             fetch_path = tempfile.gettempdir()
-        basename = 'CathDomall.seqreschopping'
-        filename = os.path.join(fetch_path, basename)
-        if not os.path.exists(filename):
-            import urllib.request as urllib2
-            handle = urllib2.urlopen('http://release.cathdb.info/latest/' + basename)
-            out = open(filename, 'w')
-            out.write(handle.read())
-            out.close()
+        filename = Path(fetch_path) / 'cath-domain-boundaries-seqreschopping.txt'
+        if not filename.exists():
+            import urllib.request
+            url = f"http://release.cathdb.info/cath/releases/latest-release/cath-classification-data/{filename.name}"
+            with urllib.request.urlopen(url) as handle:
+                filename.write_bytes(handle.read())
 
     for line in open(os.path.expanduser(filename)):
         domid, resix = line.split()

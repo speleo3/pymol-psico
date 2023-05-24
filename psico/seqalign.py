@@ -33,6 +33,8 @@ DEFAULT_GAPEXTEND = DEFAULT_GAPEXTEND_EMBOSS
 def _get_aligner_BLOSUM62() -> "Bio.Align.PairwiseAligner":
     from Bio.Align import PairwiseAligner, substitution_matrices
     blosum62 = substitution_matrices.load("BLOSUM62")
+    missing_codes = ''.join(set('JUO-.?').difference(blosum62.alphabet))
+    blosum62 = blosum62.select(blosum62.alphabet + missing_codes)
     aligner = PairwiseAligner(internal_open_gap_score=-DEFAULT_GAPOPEN,
                               extend_gap_score=-DEFAULT_GAPEXTEND,
                               substitution_matrix=blosum62)
@@ -70,7 +72,7 @@ DESCRIPTION
     returns a Bio.Align.MultipleSeqAlignment object.
     '''
     biopython_version = tuple(map(int, Bio.__version__.split(".")[:2]))
-    if biopython_version < (1, 77):
+    if biopython_version < (1, 78):
         return needle_alignment_Bio_pairwise2(s1, s2)
 
     aligner = _get_aligner_BLOSUM62()

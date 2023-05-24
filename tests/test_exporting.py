@@ -43,6 +43,17 @@ def test_save_traj(ext, save_func, tmp_path):
     assert coords3 == approx(coords2, abs=1e-2)
 
 
+def test_save_pdb(tmp_path):
+    cmd.reinitialize()
+    cmd.load(DATA_PATH / '1ubq.cif.gz')
+    filename = tmp_path / "out.pdb"
+    psico.exporting.save_pdb(filename, symm=1, ss=1, seqres=1)
+    content = filename.read_text()
+    assert "\nSEQRES   2 A   76  THR LEU GLU VAL" in content
+    assert "\nSHEET    1   1 1 MET A   1  THR A   7  0" in content
+    assert "\nCRYST1   50.840   42.770   28.950  90.00  90.00  90.00 P 21 21 21" in content
+
+
 def test_save_pdb_without_ter(tmp_path):
     cmd.reinitialize()
     cmd.load(DATA_PATH / '2x19-frag-mse.pdb')
@@ -75,9 +86,23 @@ def test_get_grostr__dims_from_extent():
     assert grostr.splitlines()[-1] == "   0.26170   0.23123   0.29780"
 
 
+def test_unittouu():
+    unittouu = psico.exporting.unittouu
+    assert unittouu("1in") == approx(90)
+    assert unittouu("2.54cm") == approx(90)
+    assert unittouu("25.4mm", dpi=150) == approx(150)
+    with pytest.raises(ValueError) as excinfo:
+        unittouu(None)
+    assert 'cannot parse value' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        unittouu("#")
+    assert 'cannot parse value' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        unittouu("123xx")
+    assert 'unknown unit' in str(excinfo.value)
+
+
 # def get_pdb_sss(selection='(all)', state=-1, quiet=1):
 # def get_pdb_seqres(selection='all', quiet=1):
-# def save_pdb(filename, selection='(all)', state=-1, symm=1, ss=1, aniso=0, seqres=0, quiet=1):
 # def save(filename, selection='(all)', state=-1, format='',
-# def unittouu(string, dpi=90.0):
 # def paper_png(filename, width=100, height=0, dpi=300, ray=1):
