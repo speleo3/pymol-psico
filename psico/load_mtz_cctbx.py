@@ -21,7 +21,7 @@ def mtz2ccp4maps(filename, prefix, amplitudes, phases):
 
     temp_dir = tempfile.mkdtemp()
 
-    for i_map, array in enumerate(hkl_in.as_miller_arrays()):
+    for array in hkl_in.as_miller_arrays():
         if not array.is_complex_array():
             continue
 

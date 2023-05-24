@@ -251,7 +251,7 @@ SEE ALSO
     _self.set('surface_ramp_above_mode', 1)
 
 
-def volume_esp(name, map, stops=[0.1, 1.0], neg='red', pos='blue',
+def volume_esp(name, map, stops=(0.1, 1.0), neg='red', pos='blue',
         opacity=0.2, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
@@ -343,7 +343,7 @@ SEE ALSO
     _self.recolor(name)
 
 
-def volume_fofc(name, map, stops=[2.5, 3.0, 4.0], neg='red', pos='green',
+def volume_fofc(name, map, stops=(2.5, 3.0, 4.0), neg='red', pos='green',
         opacity=0.4, quiet=1, *, _self=cmd):
     '''
 DESCRIPTION

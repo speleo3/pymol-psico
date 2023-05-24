@@ -1291,7 +1291,7 @@ def _promix(conformers=0, prefix=None,
     print(' Log Likelihood: %.2f' % (mixture.log_likelihood))
 
 
-def intra_boxfit(selection="polymer", center=[0.5, 0.5, 0.5], _self=cmd):
+def intra_boxfit(selection="polymer", center=(0.5, 0.5, 0.5), *, _self=cmd):
     """
 DESCRIPTION
 

@@ -174,7 +174,7 @@ SEE ALSO
             doc = pattern_header.split(doc, 1)[0]
             doc = pattern_emptyline.sub('', doc)
             f.write('%s\t%s\n\n' % (a, doc))
-        f.close
+        f.close()
         return
 
     f.write("<html><head><style type='text/css'>")

@@ -798,7 +798,7 @@ DESCRIPTION
         natoms = int(natoms)
 
         pdb.append('MODEL %8d' % model)
-        for i in range(natoms):
+        for _ in range(natoms):
             pdb.append(pdbAtom(stream.readline()))
         pdb.append('ENDMDL')
 
