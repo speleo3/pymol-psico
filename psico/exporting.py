@@ -462,7 +462,7 @@ ADDITIONAL NOTE
         from pymol.exporting import save
         return save(filename, selection, state, format, ref, ref_state, quiet,
                 *args, **kwargs, _self=_self)
-    save_pdb(filename, selection, state, sym=1, ss=1, quiet=quiet, _self=_self)
+    save_pdb(filename, selection, state, symm=1, ss=1, quiet=quiet, _self=_self)
 
 
 save.__doc__ = cmd.save.__doc__ + save.__doc__
