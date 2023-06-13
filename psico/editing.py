@@ -496,6 +496,7 @@ SEE ALSO
 
     dss, dssp, stride
     '''
+    import ssl
     import urllib.request as urllib2
 
     state, quiet = int(state), int(quiet)
@@ -540,6 +541,10 @@ SEE ALSO
 
         body = body.encode('ascii', 'ignore')
 
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
         try:
             request = urllib2.Request(
                 data=body,
@@ -548,7 +553,7 @@ SEE ALSO
                     sys.platform)
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
             request.add_header('Content-length', len(body))
-            lines = urllib2.urlopen(request).readlines()
+            lines = urllib2.urlopen(request, context=ctx).readlines()
         except urllib2.URLError:
             raise CmdException('URL request failed')
 
