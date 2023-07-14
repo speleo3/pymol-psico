@@ -8,6 +8,7 @@ def make_version_int_tuple(version: str) -> tuple:
     Ignores all additional qualifiers like "alpha" or "rc".
     """
     m = re.match(r"[0-9.]*", version)
+    assert m is not None
     parts = [int(p) for p in m.group().split(".") if p]
     while parts and parts[-1] == 0:
         parts.pop()

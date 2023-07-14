@@ -572,14 +572,14 @@ EXAMPLE
     sele_2_atoms = get_atoms(state2, selection2)
 
     # Calculate the shortest distance
-    min_distance_sq = None
+    min_distance_sq = float("inf")
     closest_pair = None
     for sele_a_atom in sele_1_atoms:
         for sele_b_atom in sele_2_atoms:
             if sele_a_atom == sele_b_atom:
                 continue
             dist_sq = cpv.distance_sq(sele_a_atom.coord, sele_b_atom.coord)
-            if min_distance_sq is None or dist_sq < min_distance_sq:
+            if dist_sq < min_distance_sq:
                 min_distance_sq = dist_sq
                 closest_pair = (sele_a_atom, sele_b_atom)
 

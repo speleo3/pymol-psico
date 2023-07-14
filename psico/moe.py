@@ -215,6 +215,8 @@ ARGUMENTS
                                  for _ in range(moleculedata["atoms"]))
 
         elif blockname == "bond":
+            assert molecule is not None
+
             for bonddata in blockvalues:
                 bond = chempy.Bond()
                 bond.index = [bonddata["a"] - 1, bonddata["b"] - 1]
@@ -222,6 +224,8 @@ ARGUMENTS
                 molecule.bond.append(bond)
 
         elif blockname == "attr":
+            assert molecule is not None
+
             for row in blockvalues:
                 if "rAtomCount" in row:
                     rStart = rEnd
@@ -256,6 +260,7 @@ ARGUMENTS
         elif blockname == "collection":
             collections = blockvalues
 
+    assert molecule is not None
     assert len(residues) > 0
     resiter = iter(residues.values())
     cAtomEnd = 0

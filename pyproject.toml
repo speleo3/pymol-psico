@@ -64,6 +64,7 @@ ignore = [
 ]
 
 [tool.pytest.ini_options]
+addopts = "--strict-markers"
 testpaths = ["tests"]
 markers = [
     "exe: test requires third-party executable",
