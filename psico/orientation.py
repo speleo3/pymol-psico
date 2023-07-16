@@ -380,9 +380,9 @@ USAGE
 
 ARGUMENTS
 
-    selection1 = string: atom selection of first helix
+    selection1 = string: atom selection of first domain
 
-    selection2 = string: atom selection of second helix
+    selection2 = string: atom selection of second domain
 
     method = string: alignment command like "align" or "super" {default: align}
 
