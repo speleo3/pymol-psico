@@ -21,6 +21,7 @@ jobs:
         python3-scipy
         apbs
         dssp
+        tm-align
 
     - name: Install pip dependencies
       run: sudo python3 -m pip install -q ruff

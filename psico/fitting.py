@@ -554,8 +554,8 @@ EXAMPLE
     mm = MatchMaker('(%s) and guide' % (mobile),
             '(%s) and guide' % (target), match, _self=_self)
 
-    model_mobile = _self.get_model(mm.mobile)
-    model_target = _self.get_model(mm.target)
+    model_mobile = _self.get_model(mm.mobile, mobile_state)
+    model_target = _self.get_model(mm.target, target_state)
 
     if len(model_mobile.atom) != len(model_mobile.atom):
         raise CmdException('number of atoms differ, please check match method')
