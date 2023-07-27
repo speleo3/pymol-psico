@@ -14,11 +14,13 @@ jobs:
         sudo apt-get install -yq
         python3-biopython
         python3-csb
+        python3-coverage
         python3-mdtraj
         python3-pip
         python3-pymol
         python3-pytest
         python3-scipy
+        python3-tomli
         apbs
         dssp
         tm-align
@@ -40,7 +42,14 @@ jobs:
       run: sudo python3 -m pip install -q .
 
     - name: Test
-      run: python3 -m pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
+      run: |
+        python3 -m coverage run -m pytest
+        python3 -m coverage xml
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Lint
       run: ruff check psico tests

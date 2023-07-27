@@ -17,6 +17,7 @@ repository = "https://github.com/speleo3/pymol-psico"
 
 [project.optional-dependencies]
 dev = [
+    "coverage",
     "pre-commit",
     "pytest",
     "ruff",
@@ -70,6 +71,9 @@ markers = [
     "exe: test requires third-party executable",
     "web: test requires internet access",
 ]
+
+[tool.coverage.run]
+source = ["psico"]
 
 [tool.mypy]
 files = [

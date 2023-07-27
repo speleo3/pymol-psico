@@ -1,4 +1,5 @@
 [![CI](https://github.com/speleo3/pymol-psico/workflows/CI/badge.svg)](https://github.com/speleo3/pymol-psico/actions)
+[![codecov](https://codecov.io/gh/speleo3/pymol-psico/branch/master/graph/badge.svg)](https://codecov.io/gh/speleo3/pymol-psico)
 
 # Pymol ScrIpt COllection (PSICO)
 
