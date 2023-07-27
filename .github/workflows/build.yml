@@ -8,38 +8,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install system dependencies
-      run: >
-        sudo apt-get update;
-        sudo apt-get install -yq
-        python3-biopython
-        python3-csb
-        python3-coverage
-        python3-mdtraj
-        python3-pip
-        python3-pymol
-        python3-pytest
-        python3-scipy
-        python3-tomli
-        apbs
-        dssp
-        tm-align
+    - uses: mamba-org/setup-micromamba@v1
+      with:
+        environment-file: environment.yml
+        environment-name: ci
 
-    - name: Install pip dependencies
-      run: sudo python3 -m pip install -q ruff
-
-    - name: Install stride
-      run: |
-        wget -nv https://anaconda.org/kimlab/stride/1.6.4/download/linux-64/stride-1.6.4-1.tar.bz2
-        sudo tar xf stride-*.tar.bz2 -C /usr bin/stride
-
-    - name: Install msms
-      run: |
-        wget -nv https://anaconda.org/bioconda/msms/2.6.1/download/linux-64/msms-2.6.1-2.tar.bz2
-        sudo tar xf msms-*.tar.bz2 -C /usr bin lib
+    - name: Activate environment
+      run: echo "$MAMBA_ROOT_PREFIX/envs/ci/bin" >> $GITHUB_PATH
 
     - name: Install
-      run: sudo python3 -m pip install -q .
+      run: python3 -m pip install -q .
 
     - name: Test
       run: |

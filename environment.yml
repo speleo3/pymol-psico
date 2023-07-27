@@ -1,0 +1,19 @@
+channels:
+  - conda-forge
+  - speleo3
+  - sbl
+dependencies:
+  - apbs
+  - biopython
+  - csb
+  - coverage
+  - dssp
+  - mdtraj
+  - msms
+  - pip
+  - pymol-open-source
+  - pytest
+  - ruff
+  - scipy
+  - kimlab::stride
+  - tmalign
