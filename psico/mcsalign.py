@@ -113,17 +113,7 @@ def iterate_state_to_list(state, selection, expression, space=None, _self=cmd):
 
 def get_molstr(sele, state, *, _self=cmd):
     '''Export the given selection to a molfile string'''
-    try:
-        # new in PyMOL 1.8.4
-        return _self.get_str('mol', sele, state)
-    except Exception as e:
-        print(e)
-
-    from chempy import io
-    model = _self.get_model(sele, state)
-    for a in model.atom:
-        a.symbol = a.symbol.capitalize()
-    return ''.join(io.mol.toList(model))
+    return _self.get_str('mol', sele, state)
 
 
 def get_mcs_indices(method, quiet, *args, **kwargs):

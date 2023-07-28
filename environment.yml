@@ -11,7 +11,13 @@ dependencies:
   - pip
   - pymol-open-source
   - pytest
+  - qhull
+  - rdkit
   - ruff
   - scipy
   - kimlab::stride
+  - theseus
   - speleo3::tmalign
+
+  - pip:
+    - epam.indigo

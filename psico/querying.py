@@ -17,6 +17,9 @@ DESCRIPTION
 
     Calculates the center of mass. Considers atom mass and occupancy.
 
+    Notice: Atoms with occupancy 0 are ignored. This differs from PyMOL's
+    cmd.centerofmass which treats occupancy 0 as 1.
+
 ARGUMENTS
 
     selection = string: atom selection {default: all}

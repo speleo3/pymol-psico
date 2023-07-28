@@ -1,5 +1,6 @@
 import psico.querying
-from pymol import cmd
+from pymol import cmd, CmdException
+import pytest
 from pytest import approx
 
 
@@ -109,18 +110,89 @@ def test_get_segis():
     assert psico.querying.get_segis() == {"seg1", "seg2"}
 
 
-#def centerofmass(selection='(all)', state=-1, quiet=1):
-#def gyradius(selection='(all)', state=-1, quiet=1):
-#def get_alignment_coords(name, active_only=0, state=-1, quiet=0):
-#def get_sasa(selection, state=-1, dot_density=5, quiet=1):
-#def get_sasa_ball(selection, state=-1, quiet=1):
-#def get_sasa_mmtk(selection, state=-1, hydrogens='auto', quiet=1):
-#def get_raw_distances(names='', state=1, selection='all', quiet=1):
-#def get_color(selection, which=0, mode=0):
-#def get_object_name(selection, strict=0):
-#def get_object_state(name):
-#def get_selection_state(selection):
-#def get_ensemble_coords(selection):
+def test_centerofmass():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    cmd.alter("all", "q=index/7.0")
+    r = psico.querying.centerofmass()
+    assert r == approx([0.384, -0.389, 0.578], abs=1e-3)
+
+
+def test_gyradius():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    cmd.alter("all", "q=index/7.0")
+    r = psico.querying.gyradius()
+    assert r == approx(1.28512885)
+
+
+def test_get_alignment_coords():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    cmd.fragment("val")
+    cmd.fragment("ala")
+    cmd.align("gly", "ala & !hydro", object="aln")
+    cmd.align("val", "ala & !hydro", object="aln")
+    assert cmd.count_atoms("aln & gly") == 4
+    assert cmd.count_atoms("aln & val") == 5
+    r = psico.querying.get_alignment_coords("aln")
+    assert set(r) == {"ala", "val", "gly"}
+    assert all(len(c) == 4 for c in r.values())
+    assert r["ala"][0] == approx([-0.6769, -1.2303, -0.4905], abs=1e-4)
+    assert r["ala"][1] == approx([-0.0009, 0.0637, -0.4905], abs=1e-4)
+    assert r["gly"][0] == approx([-0.67673, -1.23049, -0.49175], abs=1e-4)
+    assert r["gly"][3] == approx([2.02836, -1.22582, -0.49986], abs=1e-4)
+
+
+def test_get_sasa():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    r = psico.querying.get_sasa("gly", dot_density=4)
+    assert r == approx(200.888, abs=1e-3)
+    assert cmd.get_setting_int("dot_solvent") == 0
+    assert cmd.get_setting_int("dot_density") == 2
+    assert cmd.get_setting_int("dot_density", "gly") == 2
+
+
+def test_get_object_state():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    cmd.fragment("ala")
+    with pytest.raises(CmdException, match="No object"):
+        psico.querying.get_object_name("none")
+    with pytest.raises(CmdException, match="more than one object"):
+        psico.querying.get_object_name("all", strict=1)
+    assert psico.querying.get_object_name("all") == "gly"
+    assert psico.querying.get_object_name("name CB") == "ala"
+
+
+def test_get_selection_state():
+    cmd.reinitialize()
+    cmd.fragment("cys")
+    cmd.fragment("ser")
+    cmd.create("cys", "cys", 1, 2)
+    cmd.create("cys", "cys", 1, 3)
+    assert psico.querying.get_selection_state("name SG") == 1
+    assert psico.querying.get_selection_state("name OG") == 1
+    cmd.frame(3)
+    assert psico.querying.get_selection_state("name SG") == 3
+    assert psico.querying.get_selection_state("name OG") == 1
+    cmd.set("state", 2, "cys")
+    cmd.set("static_singletons", 0)
+    assert psico.querying.get_selection_state("name SG") == 2
+    with pytest.raises(CmdException, match="Invalid state"):
+        psico.querying.get_selection_state("name OG")
+
+
+def test_get_raw_distances():
+    cmd.reinitialize()
+    cmd.fragment("gly")
+    cmd.distance("d1", "gly & elem C", "gly & elem N")
+    d = sorted(psico.querying.get_raw_distances("d1"))
+    assert len(d) == 2
+    assert d[0] == (('gly', 2), ('gly', 1), approx(1.4601, abs=1e-3))
+    assert d[1] == (('gly', 3), ('gly', 1), approx(2.4473, abs=1e-3))
+
 
 def test_shortest_distance():
     cmd.reinitialize()

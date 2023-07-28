@@ -8,11 +8,21 @@ from pytest import approx
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 FILENAME_MULTISTATE = os.path.join(DATA_DIR, '1nmr-frag-nohydro.pdb')
 
-
-@pytest.mark.skipif(
-    psico.pymol_version_tuple < (2, 6),
+skipif_GIL_bug = pytest.mark.skipif(
+    psico.pymol_version_tuple < (2, 5, 6),
     reason="Affected by transform_object GIL bug, "
     "fixed in https://github.com/schrodinger/pymol-open-source/pull/285")
+
+
+def test_alignwithanymethod():
+    cmd.reinitialize()
+    cmd.load(FILENAME_MULTISTATE, "m1")
+    cmd.create("m3", "m1", 3, 1)
+    psico.fitting.alignwithanymethod("m3", "m1", "align super", target_state=1, async_=0)
+    assert cmd.get_object_list() == ["m1", "m3", "m3_align01", "m3_super01"]
+
+
+@skipif_GIL_bug
 @pytest.mark.exe
 def test_tmalign():
     cmd.reinitialize()
@@ -80,6 +90,64 @@ def test_extra_fit():
     assert cmd.count_atoms("aln & m1") == 0
 
 
+def _assert_object_matrix_equal(obj, state, matrix):
+    assert cmd.get_object_matrix(obj, state, 0) == approx(matrix, abs=1e-3)
+
+
+@skipif_GIL_bug
+@pytest.mark.exe
+def test_theseus():
+    cmd.reinitialize()
+    cmd.load(FILENAME_MULTISTATE, "m1")
+    cmd.create("m3", "m1", 3, 1)
+    psico.fitting.theseus("m3", "m1")
+    _assert_object_matrix_equal("m3", 1, [
+        0.9992, 0.0347, -0.0222, -0.1863, -0.0349, 0.9993, -0.01, -0.2639,
+        0.0218, 0.0108, 0.9997, 0.3903, 0.0, 0.0, 0.0, 1.0
+    ])
+
+
+@skipif_GIL_bug
+@pytest.mark.exe
+def test_intra_theseus():
+    cmd.reinitialize()
+    cmd.load(FILENAME_MULTISTATE, "m1")
+    psico.fitting.intra_theseus("m1")
+    _assert_object_matrix_equal("m1", 1, [
+        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0
+    ])
+    _assert_object_matrix_equal("m1", 2, [
+        0.99876, 0.02313, -0.04404, -0.09647, -0.02267, 0.99968, 0.01101,
+        -0.34898, 0.04428, -0.01, 0.99897, 0.61188, 0.0, 0.0, 0.0, 1.0
+    ])
+    _assert_object_matrix_equal("m1", 3, [
+        0.99968, 0.02362, -0.00903, -0.10755, -0.02368, 0.99969, -0.0074,
+        -0.16009, 0.00886, 0.00762, 0.99993, 0.29786, 0.0, 0.0, 0.0, 1.0
+    ])
+    _assert_object_matrix_equal("m1", 4, [
+        0.99656, 0.08201, -0.01205, -0.21902, -0.08149, 0.99592, 0.03863,
+        -0.96714, 0.01517, -0.03752, 0.99918, 0.50427, 0.0, 0.0, 0.0, 1.0
+    ])
+    psico.fitting.intra_theseus("m1", cov=1, cycles=50)
+    _assert_object_matrix_equal("m1", 1, [
+        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0
+    ])
+    _assert_object_matrix_equal("m1", 2, [
+        0.99957, 0.01668, -0.02415, -0.02072, -0.01597, 0.99945, 0.02918,
+        -0.26491, 0.02463, -0.02878, 0.99928, 0.5978, 0.0, 0.0, 0.0, 1.0
+    ])
+    _assert_object_matrix_equal("m1", 3, [
+        0.99933, 0.01346, 0.03418, -0.04087, -0.01223, 0.99928, -0.03588,
+        -0.0714, -0.03463, 0.03544, 0.99877, -0.34112, 0.0, 0.0, 0.0, 1.0
+    ])
+    _assert_object_matrix_equal("m1", 4, [
+        0.99649, 0.07346, 0.04025, -0.15404, -0.07444, 0.99695, 0.02331,
+        -0.88119, -0.03841, -0.02622, 0.99892, -0.13483, 0.0, 0.0, 0.0, 1.0
+    ])
+
+
 def test_intra_xfit():
     cmd.reinitialize()
     cmd.load(FILENAME_MULTISTATE)
@@ -102,12 +170,9 @@ def test_intra_center():
         [-1.0, 1.425962, 8.287644, 7.676795])
 
 
-# def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1, **kwargs):
 # def dyndom_parse_info(filename, selection='(all)', quiet=0):
 # def dyndom(mobile, target, window=5, domain=20, ratio=1.0, exe='', transform=1,
 # def matchmaker(mobile, target, match):
-# def theseus(mobile, target, match='align', cov=0, cycles=200,
-# def intra_theseus(selection, state=1, cov=0, cycles=200,
 # def prosmart(mobile, target, mobile_state=1, target_state=1,
 # def xfit(mobile, target, mobile_state=-1, target_state=-1, load_b=0,
 # def promix(mobile, target, K=0, prefix=None, mobile_state=-1, target_state=-1,
