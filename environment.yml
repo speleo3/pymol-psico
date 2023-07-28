@@ -9,7 +9,7 @@ dependencies:
   - mdtraj
   - msms
   - pip
-  - pymol-open-source
+  - schrodinger::pymol >=2.5.6
   - pytest
   - qhull
   - rdkit
