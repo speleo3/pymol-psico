@@ -31,6 +31,9 @@ extra = [
     "rdkit",
 ]
 
+[tool.setuptools.packages.find]
+include = ["psico"]
+
 [tool.setuptools.dynamic]
 version = {attr = "psico.__version__"}
 
