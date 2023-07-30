@@ -72,6 +72,12 @@ markers = [
     "exe: test requires third-party executable",
     "web: test requires internet access",
 ]
+filterwarnings = [
+    'ignore:.*xdrlib.*:DeprecationWarning:mdtraj.formats',
+    'ignore:.*pkg_resources.*:DeprecationWarning:mdtraj.geometry.order',
+    'ignore:.*declare_namespace.*:DeprecationWarning:pkg_resources',
+    'ignore:.*setDaemon.*:DeprecationWarning:pymol.licensing',
+]
 
 [tool.coverage.run]
 source = ["psico"]

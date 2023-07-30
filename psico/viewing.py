@@ -306,7 +306,7 @@ DESCRIPTION
 
     def __enter__(self):
         import random
-        self.name = 'tmp_%d' % (random.randint(0, 1e8))
+        self.name = 'tmp_%d' % (random.randint(0, 100_000_000))
         self._self.scene(self.name, 'store', **self.kwargs)
 
     def __exit__(self, type, value, traceback):
