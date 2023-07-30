@@ -61,7 +61,6 @@ ignore = [
     "E401",     # Multiple imports on one line
     "E501",     # Line too long
     "E731",     # lambda-assignment
-    "B904",     # raise ... from None FIXME
 ]
 
 [tool.pytest.ini_options]

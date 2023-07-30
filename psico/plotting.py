@@ -296,7 +296,7 @@ EXAMPLE
     try:
         U, L, V = svd(X)
     except LinAlgError as e:
-        raise CmdException(str(e), 'PCA Error')
+        raise CmdException(str(e), 'PCA Error') from e
 
     if int(load_b):
         _self.alter('byobj ' + aln_object, 'b=-0.01')

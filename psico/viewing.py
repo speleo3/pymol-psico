@@ -72,7 +72,7 @@ DESCRIPTION
         for (_, col) in dict(menu.all_colors_list)[color]:
             colors.append(col)
     except KeyError:
-        raise CmdException(repr(color))
+        raise CmdException(repr(color)) from None
     return colors
 
 

@@ -93,10 +93,7 @@ EXAMPLE
         t_idx_list = iterate_state_to_list(target_state, target, 'model, index')
         m_idx_list = iterate_state_to_list(mobile_state, mobile, 'model, index')
         raw = [[t_idx_list[i], m_idx_list[j]] for (i, j) in zip(t_indices, m_indices)]
-        try:
-            _self.set_raw_alignment(object, raw, guide=t_idx_list[0][0])
-        except AttributeError:
-            raise CmdException('Creating an alignment object requires PyMOL 2.3')
+        _self.set_raw_alignment(object, raw, guide=t_idx_list[0][0])
 
 
 def iterate_state_to_list(state, selection, expression, space=None, _self=cmd):

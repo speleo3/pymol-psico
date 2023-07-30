@@ -112,8 +112,10 @@ ARGUMENTS
         process = subprocess.Popen(args, stdout=subprocess.PIPE,
                 universal_newlines=True)
         lines = process.stdout.readlines()
-    except OSError:
-        raise CmdException('Cannot execute "%s", please provide full path to TMscore or TMalign executable' % (exe))
+    except OSError as ex:
+        raise CmdException(
+            f'Cannot execute "{exe}", please provide full path to TMscore or TMalign executable'
+        ) from ex
     finally:
         os.remove(mobile_filename)
         os.remove(target_filename)
@@ -313,8 +315,10 @@ USAGE
 
         _self.color('gray', mobile)
         fixed_name = dyndom_parse_info(infofile, mm.mobile, quiet)
-    except OSError:
-        raise CmdException('Cannot execute "%s", please provide full path to DynDom executable' % (exe))
+    except OSError as ex:
+        raise CmdException(
+            f'Cannot execute "{exe}", please provide full path to DynDom executable'
+        ) from ex
     finally:
         if not int(preserve):
             shutil.rmtree(tempdir)
@@ -706,8 +710,8 @@ DESCRIPTION
                 rotations.append(list(map(float, line[13:].split())))
         handle.close()
 
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (args[0]))
+    except OSError as ex:
+        raise CmdException('Cannot execute "%s"' % (args[0])) from ex
     finally:
         if not preserve:
             import shutil
@@ -889,8 +893,10 @@ DESCRIPTION
             alnfiles = [x for x in alnfiles if not x.endswith('_clusters.txt')]
             load_aln(alnfiles[0], object, mobile, target, _self=_self)
 
-    except OSError:
-        raise CmdException('Cannot execute "%s", please provide full path to prosmart executable' % (exe))
+    except OSError as ex:
+        raise CmdException(
+            f'Cannot execute "{exe}", please provide full path to prosmart executable'
+        ) from ex
     finally:
         shutil.rmtree(tempdir)
 

@@ -330,7 +330,7 @@ SEE ALSO
     try:
         orientation = globals()[methods_sc[str(method)]]
     except KeyError:
-        raise CmdException('no such method: ' + str(method))
+        raise CmdException('no such method: ' + str(method)) from None
 
     if not int(quiet):
         print(' Using method:', orientation.__name__)
@@ -408,7 +408,7 @@ SEE ALSO
         try:
             method = cmd.keyword[method][0]
         except KeyError:
-            raise CmdException('no such method: ' + str(method))
+            raise CmdException('no such method: ' + str(method)) from None
 
     mobile_tmp = _self.get_unused_name('_')
     _self.create(mobile_tmp, selection1, state1, 1, zoom=0)
@@ -418,7 +418,7 @@ SEE ALSO
         mat = _self.get_object_matrix(mobile_tmp)
     except Exception as ex:
         raise CmdException(
-            f'superposition with method "{method.__name__}" failed: {ex}')
+            f'superposition with method "{method.__name__}" failed: {ex}') from None
     finally:
         _self.delete(mobile_tmp)
 
@@ -446,7 +446,7 @@ SEE ALSO
         angle = math.atan2(sina, cosa)
         angle = abs(math.degrees(angle))
     except Exception as ex:
-        raise CmdException(f'rotation from matrix failed: {ex}')
+        raise CmdException(f'rotation from matrix failed: {ex}') from ex
 
     if not quiet:
         try:

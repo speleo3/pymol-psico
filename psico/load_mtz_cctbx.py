@@ -99,8 +99,8 @@ ARGUMENTS
         try:
             # try inside this Python interpreter
             outdir = mtz2ccp4maps(*args)
-        except ImportError:
-            raise pymol.CmdException("can't import iotbx and can't run cctbx.python")
+        except ImportError as ex:
+            raise pymol.CmdException("can't import iotbx and can't run cctbx.python") from ex
 
     # normalization is done by apply_sigma_scaling()
     normalize = _self.get_setting_int('normalize_ccp4_maps')

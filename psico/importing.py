@@ -701,7 +701,8 @@ EXAMPLE
             TypeError,  # None (Selector-Error)
             CmdException,  # future-proofing (Selector-Error)
     ):
-        raise CmdException('selection "%s" or "%s" does not exist' % (mobile, target))
+        raise CmdException(
+            f'selection "{mobile}" or "{target}" does not exist') from None
 
     # get structure models and sequences
     mobile_model = _self.get_model('(%s) and guide' % mobile)

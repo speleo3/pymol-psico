@@ -63,8 +63,8 @@ def validate_apbs_exe(exe):
                 stdout=open(os.devnull, "w"), stderr=subprocess.STDOUT)
         if r < 0:
             raise CmdException("Broken executable: " + exe)
-    except OSError:
-        raise CmdException("Cannot execute: " + exe)
+    except OSError as ex:
+        raise CmdException(f"Cannot execute {exe!r}") from ex
 
     return exe
 
@@ -183,8 +183,8 @@ SEE ALSO
 
         # load map
         _self.load(dx_list[0], name, quiet=quiet)
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (exe))
+    except OSError as ex:
+        raise CmdException(f"Cannot execute {exe!r}") from ex
     finally:
         if not preserve:
             shutil.rmtree(tempdir)

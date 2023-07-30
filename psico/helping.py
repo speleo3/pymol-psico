@@ -132,7 +132,7 @@ ARGUMENTS
     try:
         func = cmd.keyword[name][0]
     except KeyError:
-        raise CmdException('No such command')
+        raise CmdException('No such command') from None
     print(' CMD: ' + str(name))
     print(' API: %s.%s' % (func.__module__, func.__name__))
     if func == getattr(cmd, func.__name__, None):

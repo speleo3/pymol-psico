@@ -363,8 +363,8 @@ SEE ALSO
         try:
             process = Popen(args + [tmpfilepdb], stdout=PIPE,
                     universal_newlines=True)
-        except OSError:
-            raise CmdException('Cannot execute exe=' + exe)
+        except OSError as ex:
+            raise CmdException('Cannot execute exe=' + exe) from ex
         for line in process.stdout:
             if line.startswith('  #  RESIDUE'):
                 break
@@ -409,8 +409,8 @@ SEE ALSO
         try:
             process = Popen([exe, tmpfilepdb], stdout=PIPE,
                     universal_newlines=True)
-        except OSError:
-            raise CmdException('Cannot execute exe=' + exe)
+        except OSError as ex:
+            raise CmdException('Cannot execute exe=' + exe) from ex
         for line in process.stdout:
             if not line.startswith('ASG'):
                 continue
@@ -478,8 +478,8 @@ SEE ALSO
                     ss_dict[model, chain, resi] = ss
 
             os.remove(tmpfilesst)
-    except OSError:
-        raise CmdException('Cannot execute exe=' + exe)
+    except OSError as ex:
+        raise CmdException('Cannot execute exe=' + exe) from ex
     finally:
         shutil.rmtree(tmpdir)
     _common_ss_alter(selection, ss_dict, ss_map, raw, _self=_self)
@@ -554,8 +554,8 @@ SEE ALSO
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
             request.add_header('Content-length', len(body))
             lines = urllib2.urlopen(request, context=ctx).readlines()
-        except urllib2.URLError:
-            raise CmdException('URL request failed')
+        except urllib2.URLError as ex:
+            raise CmdException('URL request failed') from ex
 
         lines = (line.decode('ascii', 'ignore') for line in lines)
         lines = iter(lines)

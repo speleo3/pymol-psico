@@ -256,8 +256,8 @@ ARGUMENTS
             print(''.join(remark5))
 
         _self.load(outfile, name)
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (exe))
+    except OSError as ex:
+        raise CmdException(f"Cannot execute {exe!r}") from ex
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
@@ -310,8 +310,8 @@ DESCRIPTION
             raise CmdException("corina failed: " + stderr.strip())
 
         _self.load(outfile, name)
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (exe))
+    except OSError as ex:
+        raise CmdException(f"Cannot execute {exe!r}") from ex
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
@@ -387,8 +387,8 @@ ARGUMENTS
             raise CmdException('%s failed with exit status %d' % (args[0], p.returncode))
 
         _self.load(os.path.join(tmpdir, outfile), name)
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (exe))
+    except OSError as ex:
+        raise CmdException(f"Cannot execute {exe!r}") from ex
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)
@@ -486,8 +486,8 @@ EXAMPLES
 
             _self.load(outfile, name, quiet=quiet)
 
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (exe))
+    except OSError as ex:
+        raise CmdException(f"Cannot execute {exe!r}") from ex
     finally:
         if not preserve:
             shutil.rmtree(tmpdir)

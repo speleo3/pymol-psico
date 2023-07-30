@@ -482,7 +482,7 @@ DESCRIPTION
     try:
         retval = float(string)
     except (ValueError, TypeError):
-        raise ValueError("cannot parse value from: " + str(string))
+        raise ValueError("cannot parse value from: " + str(string)) from None
     if unit not in uuconv:
         raise ValueError("unknown unit: " + str(unit))
     return retval * uuconv[unit]

@@ -172,8 +172,8 @@ EXAMPLE
 
         load_msms_surface(tmp_of, name, colors, _self=_self)
 
-    except OSError:
-        raise CmdException('Cannot execute exe=' + exe)
+    except OSError as ex:
+        raise CmdException('Cannot execute exe=' + exe) from ex
     finally:
         if not int(preserve):
             shutil.rmtree(tmpdir)
@@ -223,9 +223,9 @@ EXAMPLE
 
     try:
         handle = open(filename)
-    except IOError:
+    except IOError as ex:
         raise CmdException("can't open file '%s', please provide correct "
-                "filename" % (filename))
+                "filename" % (filename)) from ex
 
     for line in handle:
         fields = line.split()

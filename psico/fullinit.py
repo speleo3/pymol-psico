@@ -18,7 +18,7 @@ else:
     try:
         _script_path = __script__  # noqa: F821 Undefined name
     except NameError:
-        raise ImportError('invalid invocation of psico.fullinit')
+        raise ImportError('invalid invocation of psico.fullinit') from None
 
     imp.load_module('psico', None, os.path.dirname(_script_path),
             ('', '', imp.PKG_DIRECTORY))

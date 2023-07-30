@@ -30,7 +30,7 @@ def typedvalue(typ: str, value):
     try:
         return TYPES[typ](value)
     except ValueError as ex:
-        raise ValueError(f"typ={typ} {ex}")
+        raise ValueError(f"typ={typ} {ex}") from ex
 
 
 class MoeParserError(Exception):
@@ -151,7 +151,7 @@ class MoeParser:
         except MoeParserError:
             raise
         except Exception as ex:
-            raise self.make_parser_exception(str(ex))
+            raise self.make_parser_exception(str(ex)) from ex
 
 
 ATOM_1to1 = {

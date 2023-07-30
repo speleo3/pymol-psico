@@ -87,8 +87,8 @@ SEE ALSO
 
     try:
         subprocess.call([exe])
-    except OSError:
-        raise CmdException('Cannot execute "%s"' % (exe))
+    except OSError as ex:
+        raise CmdException('Cannot execute "%s"' % (exe)) from ex
 
     if not quiet:
         print(' save_movie: Rendering frames...')
