@@ -8,7 +8,6 @@ License: BSD-2-Clause
 
 from io import StringIO
 from pymol import cmd, stored, CmdException
-from pymol import selector
 
 
 def normalmodes_pdbmat(selection, cutoff=10.0, force=1.0, mass='COOR',
@@ -251,118 +250,6 @@ def parse_eigenfacs(filename='diagrtb.eigenfacs', readmax=20):
     return eigenfacs, values
 
 
-def normalmodes_mmtk(selection, cutoff=12.0, ff='Deformation', first=7, last=10,
-        prefix='mmtk', states=7, factor=-1, quiet=1, *, _self=cmd):
-    '''
-DESCRIPTION
-
-    Fast normal modes for large proteins using an elastic network model (CA only)
-
-    Based on:
-    http://dirac.cnrs-orleans.fr/MMTK/using-mmtk/mmtk-example-scripts/normal-modes/
-    '''
-
-    selection = selector.process(selection)
-    cutoff = float(cutoff)
-    first, last = int(first), int(last)
-    states, factor, quiet = int(states), float(factor), int(quiet)
-
-    from math import log
-    from chempy import cpv
-
-    from MMTK import InfiniteUniverse
-    from MMTK.PDB import PDBConfiguration
-    from MMTK.Proteins import Protein
-
-    from MMTK.ForceFields import DeformationForceField, CalphaForceField
-    from MMTK.FourierBasis import FourierBasis, estimateCutoff
-    from MMTK.NormalModes import NormalModes, SubspaceNormalModes
-
-    model = 'calpha'
-    ff = ff.lower()
-    if 'deformationforcefield'.startswith(ff):
-        forcefield = DeformationForceField(cutoff=cutoff / 10.)
-    elif 'calphaforcefield'.startswith(ff):
-        forcefield = CalphaForceField(cutoff=cutoff / 10.)
-    elif 'amber94forcefield'.startswith(ff):
-        from MMTK.ForceFields import Amber94ForceField
-        forcefield = Amber94ForceField()
-        model = 'all'
-    else:
-        raise NotImplementedError('unknown ff = ' + str(ff))
-    if not quiet:
-        print(' Forcefield:', forcefield.__class__.__name__)
-
-    if model == 'calpha':
-        selection = '(%s) and polymer and name CA' % (selection)
-
-    f = StringIO(_self.get_pdbstr(selection))
-    conf = PDBConfiguration(f)
-    items = conf.createPeptideChains(model)
-
-    universe = InfiniteUniverse(forcefield)
-    universe.protein = Protein(*items)
-
-    nbasis = max(10, universe.numberOfAtoms() / 5)
-    cutoff, nbasis = estimateCutoff(universe, nbasis)
-    if not quiet:
-        print(" Calculating %d low-frequency modes." % nbasis)
-
-    if cutoff is None:
-        modes = NormalModes(universe)
-    else:
-        subspace = FourierBasis(universe, cutoff)
-        modes = SubspaceNormalModes(universe, subspace)
-
-    natoms = modes.array.shape[1]
-    frequencies = modes.frequencies
-
-    if factor < 0:
-        factor = log(natoms)
-        if not quiet:
-            print(' set factor to %.2f' % (factor))
-
-    if True:  # cmd.count_atoms(selection) != natoms:
-        import tempfile, os
-        from MMTK import DCD
-        filename = tempfile.mktemp(suffix='.pdb')
-        sequence = DCD.writePDB(universe, None, filename)
-        z = [a.index for a in sequence]
-        selection = _self.get_unused_name('_')
-        _self.load(filename, selection, zoom=0)
-        os.remove(filename)
-
-        if _self.count_atoms(selection) != natoms:
-            print('hmm... still wrong number of atoms')
-
-    def eigenfacs_iter(mode):
-        x = modes[mode - 1].array
-        return iter(x.take(z, 0))
-
-    for mode in range(first, min(last, len(modes)) + 1):
-        name = prefix + '%d' % mode
-        _self.delete(name)
-
-        if not quiet:
-            print(' normalmodes: object "%s" for mode %d with freq. %.6f' %
-                    (name, mode, frequencies[mode - 1]))
-
-        for state in range(1, states + 1):
-            _self.create(name, selection, 1, state, zoom=0)
-            _self.alter_state(state, name,
-                    '(x,y,z) = cpv.add([x,y,z], cpv.scale(next(myit), myfac))',
-                    space={'cpv': cpv, 'myit': eigenfacs_iter(mode),
-                        'next': next,
-                        'myfac': 1e2 * factor * ((state - 1.0) / (states - 1.0) - 0.5)})
-
-    _self.delete(selection)
-    if model == 'calpha':
-        _self.set('ribbon_trace_atoms', 1, prefix + '*')
-        _self.show_as('ribbon', prefix + '*')
-    else:
-        _self.show_as('lines', prefix + '*')
-
-
 def normalmodes_prody(selection, cutoff=15, first=7, last=10, guide=1,
         prefix='prody', states=7, factor=-1, quiet=1, *, _self=cmd):
     '''
@@ -422,12 +309,10 @@ DESCRIPTION
 
 
 cmd.extend('normalmodes_pdbmat', normalmodes_pdbmat)
-cmd.extend('normalmodes_mmtk', normalmodes_mmtk)
 cmd.extend('normalmodes_prody', normalmodes_prody)
 
 cmd.auto_arg[0].update([
     ('normalmodes_pdbmat', cmd.auto_arg[0]['zoom']),
-    ('normalmodes_mmtk', cmd.auto_arg[0]['zoom']),
     ('normalmodes_prody', cmd.auto_arg[0]['zoom']),
 ])
 

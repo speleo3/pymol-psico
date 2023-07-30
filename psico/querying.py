@@ -6,7 +6,6 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, CmdException
-from pymol import selector
 
 CURRENT_STATE = -1  # pymol.constants.CURRENT_STATE
 
@@ -192,51 +191,6 @@ DESCRIPTION
     if not quiet:
         print(' get_sasa_ball: %.3f Angstroms^2.' % (area))
     return area
-
-
-def get_sasa_mmtk(selection, state=-1, hydrogens='auto', quiet=1, *, _self=cmd):
-    '''
-DESCRIPTION
-
-    Get solvent accesible surface area using MMTK.MolecularSurface
-
-    http://dirac.cnrs-orleans.fr/MMTK/
-
-    This command is very picky with missing atoms and wrong atom naming.
-
-SEE ALSO
-
-    stub2ala, get_sasa, get_sasa_ball
-    '''
-    from MMTK.PDB import PDBConfiguration
-    from MMTK.Proteins import Protein
-    from MMTK.MolecularSurface import surfaceAndVolume
-    from io import StringIO
-
-    selection = selector.process(selection)
-    state, quiet = int(state), int(quiet)
-    radius = _self.get_setting_float('solvent_radius')
-
-    if hydrogens == 'auto':
-        if _self.count_atoms('(%s) and hydro' % selection) > 0:
-            hydrogens = 'all'
-        else:
-            hydrogens = 'no_hydrogens'
-    elif hydrogens == 'none':
-        hydrogens = 'no_hydrogens'
-
-    conf = PDBConfiguration(StringIO(_self.get_pdbstr(selection)))
-    system = Protein(conf.createPeptideChains(hydrogens))
-
-    try:
-        area, volume = surfaceAndVolume(system, radius * 0.1)
-    except Exception as ex:
-        raise CmdException(
-            f'MMTK.MolecularSurface.surfaceAndVolume failed: {ex}')
-
-    if not quiet:
-        print(' get_sasa_mmtk: %.3f Angstroms^2 (volume: %.3f Angstroms^3).' % (area * 1e2, volume * 1e3))
-    return area * 1e2
 
 
 def get_raw_distances(names='', state=1, selection='all', quiet=1, *, _self=cmd):
@@ -665,7 +619,6 @@ if 'centerofmass' not in cmd.keyword:
 cmd.extend('gyradius', gyradius)
 cmd.extend('get_sasa', get_sasa)
 cmd.extend('get_sasa_ball', get_sasa_ball)
-cmd.extend('get_sasa_mmtk', get_sasa_mmtk)
 cmd.extend('get_raw_distances', get_raw_distances)
 cmd.extend('csp', csp)
 cmd.extend('extinction_coefficient', extinction_coefficient)
@@ -676,7 +629,6 @@ cmd.auto_arg[0].update([
     ('get_sasa', cmd.auto_arg[0]['zoom']),
     ('get_segis', cmd.auto_arg[0]['zoom']),
     ('get_sasa_ball', cmd.auto_arg[0]['zoom']),
-    ('get_sasa_mmtk', cmd.auto_arg[0]['zoom']),
     ('get_raw_distances', [
         lambda: cmd.Shortcut(cmd.get_names_of_type('object:measurement')),
         'distance object', '']),

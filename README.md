@@ -46,7 +46,6 @@ Some functions in *psico* require the following python modules:
 
 * numpy
 * Bio (biopython)
-* MMTK
 * csb (https://github.com/csb-toolbox/CSB)
 * modeller
 * prody
