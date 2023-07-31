@@ -1,7 +1,9 @@
 import psico.mcsalign
 from pymol import cmd
+import pytest
 
 
+@pytest.mark.rdkit
 def test_mcsalign():
     cmd.reinitialize()
     cmd.fragment("his")
