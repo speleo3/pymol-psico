@@ -134,6 +134,7 @@ ARGUMENTS
             plt.text(x, y, text, horizontalalignment='left')
 
     _showfigure(fig, filename, quiet)
+    return fig
 
 
 @cmd.extend
@@ -141,7 +142,7 @@ def area_plot(selection='all', filename=None, *, quiet=1, _self=cmd):
     '''
 DESCRIPTION
 
-    Surface area plot.
+    Surface area plot. Every model-state is one data point.
 
     Uses `get_area`, so the same settings and flags apply! In particular, the
     `dot_solvent` setting controls whether SAS or SES is computed, and the
@@ -171,6 +172,7 @@ ARGUMENTS
         plt.plot(x_list, y_list, color=color, label=model)
 
     _showfigure(fig, filename, quiet)
+    return fig
 
 
 def pca_plot(aln_object, ref='all', state=0, maxlabels=20, size=20, invert='',
@@ -342,6 +344,7 @@ EXAMPLE
             plt.text(x, y, text, horizontalalignment='left')
 
     _showfigure(fig, filename, quiet)
+    return fig
 
 
 def iterate_plot(selection, expr_y, expr_x=None, scatter=0, filename=None,
@@ -403,6 +406,7 @@ EXAMPLE
             plt.plot(x_values, y_values, c=color)
 
     _showfigure(fig, filename, quiet)
+    return fig
 
 
 def contact_map_plot(selection="guide", metric="euclidean", *,

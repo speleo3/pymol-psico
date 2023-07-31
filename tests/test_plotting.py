@@ -1,10 +1,30 @@
 import psico.plotting
+import functools
 import matplotlib.pyplot
 from matplotlib.testing.decorators import image_comparison
 from pathlib import Path
 from pymol import cmd
 
 DATA_PATH = Path(__file__).resolve().parent / 'data'
+
+
+def my_image_comparison(key: str = "default", figsize=(0.64, 0.48)):
+
+    def decorator(func):
+        assert func.__name__.startswith("test_")
+
+        @image_comparison([f'{func.__name__[5:]}-{key}.png'],
+                          remove_text=True,
+                          style='mpl20')
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            cmd.reinitialize()
+            matplotlib.pyplot.rcParams['figure.figsize'] = figsize
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def test_get_model_color():
@@ -14,17 +34,39 @@ def test_get_model_color():
     assert psico.plotting.get_model_color("m1") == "#123456"
 
 
-# def rms_plot(selection='guide', ref1=None, ref2=None, state1=1, state2=-1,
-# def area_plot(selection='all', filename=None, *, quiet=1, _self=cmd):
-# def pca_plot(aln_object, ref='all', state=0, maxlabels=20, size=20, invert='',
-# def iterate_plot(selection, expr_y, expr_x=None, scatter=0, filename=None,
+@my_image_comparison()
+def test_rms_plot():
+    cmd.load(DATA_PATH / "1nmr-frag-nohydro.pdb", "m1")
+    cmd.color("blue")
+    psico.plotting.rms_plot()
 
 
-@image_comparison(baseline_images=['contact_map_plot-2x19-frag-mse.png'],
-                  remove_text=True,
-                  style='mpl20')
-def test_contact_map_plot():
+@my_image_comparison()
+def test_area_plot():
+    cmd.load(DATA_PATH / "1nmr-frag-nohydro.pdb", "m1")
+    cmd.color("red")
+    psico.plotting.area_plot()
+
+
+def test_pca_plot(tmp_path):
+    # PCA plot can be randomly inverted (same PCA), so don't use image comparison.
     cmd.reinitialize()
+    cmd.load(DATA_PATH / "1nmr-frag-nohydro.pdb", "m1")
+    cmd.split_states("m1")
+    cmd.extra_fit("m1_*", object="aln")
+    path = tmp_path / "plot.png"
+    psico.plotting.pca_plot("aln", filename=path)
+    assert path.exists()
+
+
+@my_image_comparison()
+def test_iterate_plot():
     cmd.load(DATA_PATH / "2x19-frag-mse.pdb", "m1")
-    matplotlib.pyplot.rcParams['figure.figsize'] = [0.64, 0.48]
+    cmd.color("magenta")
+    psico.plotting.iterate_plot("guide", "b", "resv")
+
+
+@my_image_comparison('2x19-frag-mse')
+def test_contact_map_plot():
+    cmd.load(DATA_PATH / "2x19-frag-mse.pdb", "m1")
     psico.plotting.contact_map_plot()
