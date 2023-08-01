@@ -159,12 +159,12 @@ SEE ALSO
     spacegroup = sym[6]
 
     basis = cellbasis(cell_angles, cell_edges)
-    basis = numpy.matrix(basis)
+    basis_I = numpy.linalg.inv(basis)
 
     extent = _self.get_extent(object)
     center = sum(numpy.array(extent)) * 0.5
-    center = numpy.matrix(center.tolist() + [1.0]).T
-    center_cell = basis.I * center
+    center = numpy.array(center.tolist() + [1.0])
+    center_cell = basis_I @ center
 
     spacegroup = xray.space_group_map.get(spacegroup, spacegroup)
 
@@ -173,13 +173,14 @@ SEE ALSO
     for mat in matrices:
         i += 1
 
-        mat = numpy.matrix(mat)
-        shift = -numpy.floor(numpy.array(mat * center_cell)[0:3, 0])
+        mat = numpy.asfarray(mat)
+        shift = -numpy.floor((mat @ center_cell)[0:3])
         shift = shift.flatten().astype(int)
+        assert shift.shape == (3,)
         shift += [a, b, c]
-        mat[0:3, 3] += shift.reshape((3, 1))
+        mat[0:3, 3] += shift
 
-        mat = basis * mat * basis.I
+        mat = basis @ mat @ basis_I
         mat_list = list(mat.flat)
 
         name = '%s%d' % (prefix, i)
@@ -302,7 +303,7 @@ EXAMPLE
 
     if numpy is not None:
         mat_source = numpy.reshape(_self.get_object_matrix(name), (4, 4))
-        mat_source = numpy.matrix(mat_source)
+        mat_source_I = numpy.linalg.inv(mat_source)
 
     for chains, matrices in biomt[number].items():
         for num in matrices:
@@ -315,7 +316,7 @@ EXAMPLE
             _self.alter(copy, 'segi="%d"' % (num))
 
             if numpy is not None:
-                mat = mat_source * numpy.reshape(mat, (4, 4)) * mat_source.I
+                mat = mat_source @ numpy.reshape(mat, (4, 4)) @ mat_source_I
                 mat = list(mat.flat)
 
             _self.transform_object(copy, mat)
