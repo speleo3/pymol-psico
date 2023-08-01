@@ -27,7 +27,17 @@ def test_load_or_update():
     assert cmd.rms("m2", "m1", matchmaker=-1) == approx(0.0)
 
 
-# def minimize_ob(selection='enabled', state=-1, ff='UFF', nsteps=500,
+@pytest.mark.openbabel
+def test_minimize_ob():
+    cmd.reinitialize()
+    cmd.fab("ACD", "m1")
+    cmd.copy("m2", "m1")
+    psico.minimizing.minimize_ob("m2", nsteps=100, ff="UFF")
+    r = cmd.rms("m2", "m1")
+    assert r == approx(0.1739, abs=1e-2)
+    psico.minimizing.minimize_ob("m2", nsteps=100, ff="MMFF94s")
+    r = cmd.rms("m2", "m1")
+    assert r == approx(0.2198, abs=1e-2)
 
 
 @pytest.mark.rdkit
@@ -35,9 +45,21 @@ def test_minimize_rdkit():
     cmd.reinitialize()
     cmd.fab("ACD", "m1")
     cmd.copy("m2", "m1")
-    psico.minimizing.minimize_rdkit("m2", nsteps=100)
+    psico.minimizing.minimize_rdkit("m2", nsteps=100, ff="MMFF94")
     r = cmd.rms("m2", "m1")
     assert r == approx(0.7118, abs=1e-2)
+    psico.minimizing.minimize_rdkit("m2", nsteps=100, ff="UFF")
+    r = cmd.rms("m2", "m1")
+    assert r == approx(0.9508, abs=1e-2)
 
 
-# def clean_ob(selection, present='', state=-1, fix='', restrain='',
+@pytest.mark.openbabel
+def test_clean_ob():
+    cmd.reinitialize()
+    cmd.fab("ACD", "m1")
+    cmd.copy("m2", "m1")
+    psico.minimizing.clean_ob("m2 & resn CYS+ASP", "m2")
+    r = cmd.rms("m2 & resn ALA & not hydro", "m1 & resn ALA")
+    assert r == approx(0.0)
+    r = cmd.rms("m2", "m1")
+    assert r == approx(0.1108, abs=1e-2)

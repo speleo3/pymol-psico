@@ -65,6 +65,29 @@ def test_load_aln(tmp_path):
     assert 'selection "foo1" or "foo2" does not exist' in str(excinfo.value)
 
 
+@pytest.mark.exe
+@pytest.mark.openbabel
+def test_load_smi(tmp_path):
+    cmd.reinitialize()
+    path = tmp_path / "foo.smi"
+    path.write_text("O")
+    psico.importing.load_smi(path)
+    assert cmd.get_names() == ["foo"]
+    assert cmd.count_atoms() == 3
+    assert cmd.count_atoms("elem O") == 1
+    assert cmd.count_atoms("elem H") == 2
+    path.write_text("C#C Acetylene\nc1ccccc1 Benzene\n")
+    psico.importing.load_smi(path, "m2", discrete=1)
+    assert cmd.count_atoms("m2 & state 1") == 4
+    assert cmd.count_atoms("m2 & state 2") == 12
+    assert cmd.get_title("m2", 1) == "Acetylene"
+    assert cmd.get_title("m2", 2) == "Benzene"
+    psico.importing.load_smi(path, multiplex=1)
+    assert cmd.get_names() == ["foo", "m2", "Acetylene", "Benzene"]
+    assert cmd.count_atoms("Acetylene") == 4
+    assert cmd.count_atoms("Benzene") == 12
+
+
 def test_loadall_traj():
     cmd.reinitialize()
     cmd.set("retain_order")
