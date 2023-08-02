@@ -49,7 +49,6 @@ __all__ = [
     'querying',
     'selecting',
     'setting',
-    'snp',
     'viewing',
     'wizards',
     'xtal',
