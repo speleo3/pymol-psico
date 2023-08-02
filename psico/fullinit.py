@@ -13,15 +13,20 @@ if __name__.endswith('.fullinit'):
 
     init(pymol_version < 2.5, False, 1)
 else:
-    import os, imp
+    from pathlib import Path
+    from importlib import util
+    import sys
 
     try:
         _script_path = __script__  # noqa: F821 Undefined name
     except NameError:
         raise ImportError('invalid invocation of psico.fullinit') from None
 
-    imp.load_module('psico', None, os.path.dirname(_script_path),
-            ('', '', imp.PKG_DIRECTORY))
+    path = Path(_script_path).parent / "__init__.py"
+    spec = util.spec_from_file_location('psico', path)
+    module = util.module_from_spec(spec)
+    sys.modules['psico'] = module
+    spec.loader.exec_module(module)
 
     import psico.fullinit  # noqa: F401
 
