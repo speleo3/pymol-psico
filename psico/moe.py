@@ -5,6 +5,17 @@ License: BSD-2-Clause
 """
 
 from pymol import cmd
+from typing import (
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 
 def dict_from_tag_value(items: list) -> dict:
@@ -15,7 +26,14 @@ def parse_str(s: str) -> str:
     return s.replace("!", " ")
 
 
-TYPES = {
+T = TypeVar("T")
+ValuePrimitive = Union[int, float, str]
+AnyValue = Union[ValuePrimitive, "ValueList"]
+ValueList = List[AnyValue]
+ParseResultGeneric = List[Tuple[str, List[Dict[str, T]]]]
+ParseResult = ParseResultGeneric[AnyValue]
+
+TYPES: Dict[str, Callable[[str], ValuePrimitive]] = {
     'i': int,
     'ix': lambda s: int(s, 16),
     'r': float,
@@ -26,7 +44,7 @@ TYPES = {
 }
 
 
-def typedvalue(typ: str, value):
+def typedvalue(typ: str, value: str) -> ValuePrimitive:
     try:
         return TYPES[typ](value)
     except ValueError as ex:
@@ -39,7 +57,9 @@ class MoeParserError(Exception):
 
 class MoeParser:
 
-    def parse(self, contents: bytes, filename: str = "<buffer>") -> list:
+    def parse(self,
+              contents: Union[bytes, str, None],
+              filename: str = "<buffer>") -> ParseResultGeneric:
         """
         Args:
           contents: File content string
@@ -65,12 +85,12 @@ class MoeParser:
     def make_parser_exception(self, msg: str) -> MoeParserError:
         return MoeParserError(msg, f"{self.filename}:{self.linenumber}")
 
-    def gen_lines(self, line_it: iter) -> iter:
+    def gen_lines(self, line_it: Iterable[str]) -> Iterator[str]:
         for line in line_it:
             self.linenumber += 1
             yield line
 
-    def gen_words(self) -> iter:
+    def gen_words(self) -> Iterator[str]:
         while True:
             yield from next(self.linehandle).split()
 
@@ -87,14 +107,14 @@ class MoeParser:
         count = int(next(self.wordhandle))
         return "".join(next(self.wordhandle) for _ in range(count))
 
-    def parse_array(self, typ="*") -> list:
+    def parse_array(self, typ="*") -> ValueList:
         count = int(next(self.wordhandle))
         return self.parse_fixed_array(count, typ)
 
-    def parse_fixed_array(self, count: int, typ="*") -> list:
+    def parse_fixed_array(self, count: int, typ="*") -> ValueList:
         return [self.parse_value(typ) for _ in range(count)]
 
-    def parse_value(self, typ: str):
+    def parse_value(self, typ: str) -> AnyValue:
         if typ == "*":
             typ = next(self.wordhandle)
 
@@ -112,7 +132,8 @@ class MoeParser:
 
         raise self.make_parser_exception(typ)
 
-    def parse_values(self, attr: dict) -> iter:
+    def parse_values(self, attr: dict) -> Iterator[Tuple[str, AnyValue]]:
+        value: AnyValue
         for key, typ in attr["cols"]:
             typ, delim, default = typ.partition("=")
             if delim:
@@ -121,14 +142,14 @@ class MoeParser:
                 value = self.parse_value(typ)
             yield key, value
 
-    def parse_values_block(self, attr: dict) -> iter:
+    def parse_values_block(self, attr: dict) -> Iterator[Dict[str, AnyValue]]:
         for _ in range(attr["count"]):
             yield dict(self.parse_values(attr))
 
-    def parse_lines_raw(self, line_it: iter) -> list:
+    def parse_lines_raw(self, line_it: Iterable[str]) -> ParseResult:
         self.linehandle = self.gen_lines(line_it)
         self.wordhandle = self.gen_words()
-        blocks = []
+        blocks: ParseResult = []
 
         line = next(self.linehandle)
         assert line.startswith("#moe")
@@ -145,7 +166,7 @@ class MoeParser:
 
         return blocks
 
-    def parse_lines(self, line_it: iter) -> list:
+    def parse_lines(self, line_it: Iterable[str]) -> ParseResult:
         try:
             return self.parse_lines_raw(line_it)
         except MoeParserError:
@@ -175,7 +196,7 @@ def load_moe(filename: str,
              oname: str,
              state: int = 0,
              *,
-             contents: bytes = None,
+             contents: Optional[bytes] = None,
              partial: int = 0,
              discrete: int = -1,
              quiet: int = 1,

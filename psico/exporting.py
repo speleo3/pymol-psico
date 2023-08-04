@@ -25,6 +25,7 @@ def save_mdtraj(filename,
                 selection="all",
                 topformat="pdb",
                 quiet=1,
+                *,
                 _self=cmd):
     """
 DESCRIPTION

@@ -64,7 +64,7 @@ def trapezoidal_integration(values: list) -> float:
     return sum(values[1:-1]) + (values[0] + values[-1]) / 2
 
 
-def aggrescan1d_scores(seq: str, winsize: int = None) -> dict:
+def aggrescan1d_scores(seq: str, winsize: int = 0) -> dict:
     """Aggrescan reimplementation.
 
     Equivalent to http://bioinf.uab.es/aggrescan/
@@ -75,7 +75,8 @@ def aggrescan1d_scores(seq: str, winsize: int = None) -> dict:
 
     Args:
       seq: Amino acid sequence in single letter code.
-      winsize: Window size, must be odd and larger than 2.
+      winsize: Window size, must be odd and larger than 2. A value of 0 will
+      choose a window size based on the sequence length.
 
     Returns:
       Dictionary with aggregation and hotspot scores.
@@ -104,7 +105,7 @@ def aggrescan1d_scores(seq: str, winsize: int = None) -> dict:
 
     N = len(seq)
 
-    if winsize is None:
+    if not winsize:
         if N <= 75:
             winsize = 5
         elif N <= 175:
