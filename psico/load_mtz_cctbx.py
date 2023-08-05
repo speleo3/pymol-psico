@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
 try:
     # running this script in the "pymol" namespace
-    this_file = __script__
+    this_file = __script__  # type: ignore[name-defined]
 except NameError:
     this_file = __file__
 

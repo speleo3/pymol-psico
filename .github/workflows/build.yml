@@ -31,3 +31,6 @@ jobs:
 
     - name: Lint
       run: ruff check psico tests
+
+    - name: Type checking
+      run: mypy

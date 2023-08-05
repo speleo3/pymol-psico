@@ -349,11 +349,14 @@ DESCRIPTION
         for obj in cmd.get_object_list(group)
     }
 
-    slots_done = set()
-    names_done = set()
+    slots_done: set = set()  # set[int]
+    names_done: set = set()  # set[str]
 
-    def done(set_, name):
-        return (name in set_) or set_.add(name) and False
+    def done(set_: set, name) -> bool:
+        if name in set_:
+            return True
+        set_.add(name)
+        return False
 
     tmpsele = _self.get_unused_name("_tmpsele")
 

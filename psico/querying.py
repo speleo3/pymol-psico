@@ -361,11 +361,11 @@ DESCRIPTION
     return _self.get_coords(selection, 0).reshape((nstates, -1, 3))
 
 
-def iterate_to_list(selection, expression, *, space=None, _self=cmd):
+def iterate_to_list(selection, expression, *, space=None, _self=cmd) -> list:
     """
     API-only function to capture "iterate" results in a list.
     """
-    outlist = []
+    outlist: list = []
     _self.iterate(selection, "outlist.append(({}))".format(expression),
             space=dict(space or (), outlist=outlist))
     return outlist
@@ -380,7 +380,7 @@ def iterate_state_to_list(state: int,
     """
     API-only function to capture "iterate_state" results in a list.
     """
-    outlist = []
+    outlist: list = []
     _self.iterate_state(state,
                         selection,
                         f"outlist.append(({expression}))",
@@ -560,7 +560,7 @@ EXAMPLE
 def isoelectric_point(selection: str = "polymer",
                       *,
                       ph: float = 7,
-                      quiet: bool = 1,
+                      quiet: int = 1,
                       _self=cmd):
     """
 DESCRIPTION

@@ -898,8 +898,8 @@ def loadall_traj(
     object: str = '',
     state: int = 1,
     *,
-    sort: bool = 1,
-    quiet: bool = 1,
+    sort: int = 1,
+    quiet: int = 1,
     _self=cmd,
     **kwargs,
 ):
@@ -933,7 +933,7 @@ EXAMPLE
     if int(sort):
         filenames = sorted(filenames)
 
-    state = {"current": -1, "append": 0}.get(state, state)
+    state = {"current": -1, "append": 0}.get(state, state)  # type: ignore
 
     for filename in filenames:
         if not quiet:

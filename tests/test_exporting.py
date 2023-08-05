@@ -3,10 +3,11 @@ import pytest
 from pytest import approx
 from pymol import cmd
 from pathlib import Path
+from typing import List, Tuple, Callable
 
 DATA_PATH = Path(__file__).resolve().parent / 'data'
 
-save_traj_params = [
+save_traj_params: List[Tuple[str, Callable[[str, str], object]]] = [
     ('dcd', psico.exporting.save_traj),
     ('crd', psico.exporting.save_traj),
 ]
