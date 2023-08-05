@@ -831,16 +831,12 @@ SEE ALSO
 def load_mtz(filename, prefix='', maptypes='FoFc 2FoFc', multistate=0,
         quiet=1, *, _self=cmd):
     '''
-DESCRIPTION
-
-    Load a MTZ file as two map objects (FoFc, 2FoFc)
-
-    This only works with the incentive PyMOL product!
-
-USAGE
-
-    load_mtz filename [, prefix [, maptypes ]]
+    Deprecated. Use PyMOL's cmd.load_mtz() instead, or
+    psico.load_mtz_cctbx.load_mtz_cctbx()
     '''
+    from pymol.colorprinting import warning
+    warning(" " + load_mtz.__doc__.strip())
+
     from pymol import headering
 
     multistate, quiet = int(multistate), int(quiet)
@@ -953,8 +949,6 @@ cmd.extend('load_traj_dcd', load_traj_dcd)
 cmd.extend('load_3d', load_3d)
 cmd.extend('load_aln', load_aln)
 cmd.extend('load_gro', load_gro)
-if 'load_mtz' not in cmd.keyword:
-    cmd.extend('load_mtz', load_mtz)
 cmd.extend('load_smi', load_smi)
 
 # vi:expandtab:smarttab
