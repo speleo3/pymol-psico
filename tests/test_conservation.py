@@ -2,8 +2,19 @@ import psico.conservation
 import psico.querying
 from pathlib import Path
 from pymol import cmd
+import pytest
 
 DATA_PATH = Path(__file__).resolve().parent / 'data'
+
+
+@pytest.mark.web
+def test_consurfdb():
+    cmd.reinitialize()
+    cmd.load(DATA_PATH / "1ubq.cif.gz", "m1")
+    cmd.color("white")
+    psico.conservation.consurfdb("6Q00", "A", "m1")
+    colors = psico.querying.iterate_to_list("m1", "color")
+    assert len(set(colors)) > 10
 
 
 def test_load_consurf():

@@ -36,7 +36,7 @@ SEE ALSO
     import urllib.request as urllib2
 
     code = code.upper()
-    url = 'https://consurfdb.tau.ac.il/DB/%s%s/consurf_summary.txt' % (code, chain)
+    url = f'https://consurfdb.tau.ac.il/DB/{code}{chain}/{code}{chain}_consurf_summary.txt'
     context = ssl._create_unverified_context()
 
     try:
