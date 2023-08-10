@@ -1,6 +1,7 @@
 import psico.plotting
 import functools
 import matplotlib.pyplot
+from matplotlib.testing.conftest import mpl_test_settings  # noqa: F401
 from matplotlib.testing.decorators import image_comparison
 from pathlib import Path
 from pymol import cmd
