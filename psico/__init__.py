@@ -11,7 +11,7 @@ PyMOL> psico.helping.write_html_ref('psico-commands.html')
 License: BSD-2-Clause
 '''
 
-__version__ = '4.2'
+__version__ = '4.3'
 
 from psico.versioning import make_version_int_tuple
 
