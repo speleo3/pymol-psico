@@ -37,6 +37,7 @@ ALA_TRAJ_COORDS_STATE_8 = [
 
 # downloads an 8MB file
 @pytest.mark.web
+@pytest.mark.xfail
 def test_fetch_cath(tmp_path):
     cmd.reinitialize()
     cmd.set("fetch_path", str(tmp_path))

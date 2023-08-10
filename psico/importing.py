@@ -141,8 +141,8 @@ def fetch_cath(code, name='', *, _self=cmd, **kwargs):
                 rsele += ')'
             _self.remove(name + ' and not (' + rsele + ')')
         except Exception as ex:
-            print(f' Warning: CATH domain resiude range handling failed: {ex}')
-            return -1
+            raise CmdException(
+                f'CATH domain resiude range handling failed: {ex}') from ex
 
 
 def fetch_scop(code, name='', *, _self=cmd, **kwargs):
