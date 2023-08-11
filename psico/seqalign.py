@@ -53,7 +53,7 @@ def _msa_from_pairwise(
     if biopython_version < (1, 80):
         seqs = format(pairwise).splitlines()[::2]
     else:
-        seqs = list(pairwise)
+        seqs = [pairwise[0], pairwise[1]]
 
     assert len(seqs) == 2
     assert isinstance(seqs[0], str)
