@@ -81,6 +81,7 @@ filterwarnings = [
     'ignore:.*pkg_resources.*:DeprecationWarning:mdtraj.geometry.order',
     'ignore:.*declare_namespace.*:DeprecationWarning:pkg_resources',
     'ignore:.*setDaemon.*:DeprecationWarning:pymol.licensing',
+    'ignore:.*eigvals.*:DeprecationWarning:prody',
 ]
 
 [tool.coverage.run]
