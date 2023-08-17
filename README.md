@@ -1,5 +1,6 @@
 [![CI](https://github.com/speleo3/pymol-psico/workflows/CI/badge.svg)](https://github.com/speleo3/pymol-psico/actions)
 [![codecov](https://codecov.io/gh/speleo3/pymol-psico/branch/master/graph/badge.svg)](https://codecov.io/gh/speleo3/pymol-psico)
+[![Anaconda.org](https://anaconda.org/speleo3/pymol-psico/badges/version.svg)](https://anaconda.org/speleo3/pymol-psico)
 
 # Pymol ScrIpt COllection (PSICO)
 
@@ -24,10 +25,10 @@ Option 1: Install from source. In your activated (conda or venv) environment, ru
 pip install .
 ```
 
-Option 2: Use the conda package manager. In your activated conda environment, run:
+Option 2: Use a [conda-compatible](https://mamba.readthedocs.io/) package manager. In your activated conda environment, run:
 
 ```sh
-conda install speleo3::pymol-psico
+micromamba install speleo3::pymol-psico
 ```
 
 To activate all *psico* commands in PyMOL, add this to your `~/.pymolrc.py`
@@ -55,14 +56,14 @@ Some functions in *psico* require the following python modules:
 *psico* has several wrappers for external tools. For full support, you need
 these binaries:
 
-* dssp (http://www.cmbi.ru.nl/dssp.html)
+* dssp (https://swift.cmbi.umcn.nl/gv/dssp/)
 * stride (http://webclu.bio.wzw.tum.de/stride/)
-* TMalign (http://zhanglab.ccmb.med.umich.edu/TM-align/)
+* TMalign (https://zhanggroup.org/TM-align/)
 * TMscore
 * MMalign
 * theseus (http://www.theseus3d.org)
 * needle (http://emboss.sourceforge.net)
-* DynDom (http://fizz.cmp.uea.ac.uk/dyndom/)
+* DynDom (http://dyndom.cmp.uea.ac.uk/dyndom/)
 * qdelaunay (http://www.qhull.org)
 * mencoder (http://www.mplayerhq.hu)
 * pdbmat (http://ecole.modelisation.free.fr/modes.html)
@@ -71,4 +72,4 @@ these binaries:
 * pdb2pqr
 * prosmart (http://www2.mrc-lmb.cam.ac.uk/groups/murshudov/)
 * p_sstruc3
-* msms (http://mgltools.scripps.edu/packages/MSMS)
+* msms (https://ccsb.scripps.edu/msms/)
