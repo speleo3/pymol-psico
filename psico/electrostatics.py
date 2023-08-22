@@ -279,16 +279,12 @@ SEE ALSO
 
     volume
     '''
-    from .setting import set_temporary
-
     opacity, quiet = float(opacity), int(quiet)
 
     if isinstance(stops, str):
         stops = cmd.safe_list_eval(stops)
 
-    try:
-        from pymol.colorramping import ColorRamp
-    except ImportError:
+    if True:
         print(' Warning: volume_esp is deprecated')
         stdevD = _self.get_volume_histogram(map, 0)[3]
         stops = [s * stdevD for s in stops]
@@ -301,46 +297,6 @@ SEE ALSO
         if len(stops) == 3:
             ramp = [-stops[2], neg, opacity] + ramp + [stops[2], pos, opacity]
         _self.volume(name, map, ramp, quiet=quiet)
-        return
-
-    c_neg = _self.get_color_tuple(neg)
-    c_pos = _self.get_color_tuple(pos)
-
-    c_pos_0 = c_pos + (0.0,)
-    c_pos_1 = c_pos + (opacity,)
-    c_neg_0 = c_neg + (0.0,)
-    c_neg_1 = c_neg + (opacity,)
-
-    if len(stops) == 2:
-        cstops = [(c_neg_1, -999), (c_neg_1, -stops[1]), (c_neg_0, -stops[0]),
-                (c_pos_0, stops[0]), (c_pos_1, stops[1]), (c_pos_1, 999)]
-    elif len(stops) == 3:
-        cstops = [(c_neg_0, -999), (c_neg_0, -stops[2]), (c_neg_1, -stops[1]),
-                (c_neg_0, -stops[0]), (c_pos_0, stops[0]), (c_pos_1, stops[1]),
-                (c_pos_0, stops[2]), (c_pos_0, 999)]
-    else:
-        raise CmdException('need 2 or 3 stops')
-
-    _self.volume(name, map, quiet=quiet)
-
-    # get_volume_histogram returns zeros without refresh
-    with set_temporary(suspend_updates='off', _self=_self):
-        _self.refresh()
-
-    minD, maxD, meanD, stdevD = _self.get_volume_histogram(name)[:4]
-
-    v_ramp = []
-    c_ramp = ColorRamp(360)
-    for c, s in cstops:
-        i = int(360 * ((s * stdevD) - minD) / (maxD - minD))
-        i = min(max(i, 0), 359)
-        v_ramp.append(i)
-        v_ramp.extend(c)
-        c_ramp.addColor(i, c)
-
-    _self.set_volume_ramp(name, v_ramp)
-    _self.volume_color(name, c_ramp.getRamp())
-    _self.recolor(name)
 
 
 def volume_fofc(name, map, stops=(2.5, 3.0, 4.0), neg='red', pos='green',
