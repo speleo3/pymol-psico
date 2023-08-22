@@ -156,7 +156,7 @@ EXAMPLE
         _self.unpick()
 
     if sculpt > 0:
-        sculpt_relax(res, 0, sculpt == 2, cpy)
+        sculpt_relax(res, 0, sculpt == 2, cpy, _self=_self)
 
     return cpy
 
@@ -179,7 +179,9 @@ SEE ALSO
     if sculpt and len(_self.get_object_list('(' + selection + ')')) > 1:
         raise CmdException('Sculpting in multiple models not supported')
 
-    kwargs.pop('_self', None)
+    assert '_self' not in kwargs
+    kwargs['_self'] = _self
+
     sele_list = set()
     _self.iterate(selection,
             'sele_list.add("/%s/%s/%s/%s" % (model, segi, chain, resi))',
@@ -187,7 +189,7 @@ SEE ALSO
     for sele in sele_list:
         mutate(sele, new_resn, inplace, sculpt and not inplace, *args, **kwargs)
     if sculpt and inplace:
-        sculpt_relax('(' + ' '.join(sele_list) + ')', 0, sculpt == 2)
+        sculpt_relax(' '.join(sele_list), 0, sculpt == 2, _self=_self)
 
 
 def sculpt_relax(selection, backbone=1, neighbors=0, model=None, cycles=100,
@@ -330,7 +332,7 @@ SEE ALSO
 
     for model in sele_dict:
         _self.sort(model)
-        sculpt_relax(' '.join(sele_dict[model]), 0, 0, model, cycles)
+        sculpt_relax(' '.join(sele_dict[model]), 0, 0, model, cycles, _self=_self)
 
     _self.delete(namedsele)
 

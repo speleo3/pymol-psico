@@ -6,10 +6,11 @@ from pytest import approx, mark
 DATA_PATH = Path(__file__).resolve().parent / 'data'
 
 
-def test_mutate():
+@mark.parametrize("mode", [0, 1, 3])
+def test_mutate(mode):
     cmd.reinitialize()
     cmd.load(DATA_PATH / '2x19-frag-mse.pdb')
-    psico.modelling.mutate("resi 134", "K", inplace=1)
+    psico.modelling.mutate("resi 134", "K", inplace=1, mode=mode)
     assert psico.modelling.get_seq("all") == "LSKMPD"
 
 
