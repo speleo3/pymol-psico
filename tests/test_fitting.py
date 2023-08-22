@@ -66,6 +66,33 @@ def test_get_rmsd_func(monkeypatch):
         assert func(func.array(X), func.array(Y)) == approx(1.806, abs=0.1)
 
 
+def test_MatchMaker():
+    cmd.reinitialize()
+    cmd.fab("ACDEFGHIKL", "m1", chain="A")
+    cmd.create("m2", "m1 & resi 2-9")
+    cmd.remove("m1 & resi 5-6")
+    cmd.create("m1_copy", "m1")
+    with psico.fitting.MatchMaker("m1", "m1_copy", match="none") as mm:
+        assert mm.check()
+    with psico.fitting.MatchMaker("m1", "m2", match="none") as mm:
+        assert not mm.check()
+        assert cmd.count_atoms(mm.mobile) == 125
+        assert cmd.count_atoms(mm.target) == 123
+    with psico.fitting.MatchMaker("m1", "m2", match="in") as mm:
+        assert mm.check()
+        assert cmd.count_atoms(mm.mobile) == 96
+        assert cmd.count_atoms(mm.target) == 96
+    with psico.fitting.MatchMaker("m1", "m2", match="align") as mm:
+        assert mm.check()
+        assert cmd.count_atoms(mm.mobile) == 96
+        assert cmd.count_atoms(mm.target) == 96
+    cmd.align("m1", "m2", cycles=0, object="my_aln")
+    with psico.fitting.MatchMaker("m1", "m2", match="my_aln") as mm:
+        assert mm.check()
+        assert cmd.count_atoms(mm.mobile) == 96
+        assert cmd.count_atoms(mm.target) == 96
+
+
 def test_local_rms():
     cmd.reinitialize()
     cmd.load(FILENAME_MULTISTATE, "m1")
@@ -160,6 +187,13 @@ def test_intra_xfit():
         -0.109, 2.399, 1.314, 2.389
     ]
     assert b_list == approx(b_list_ref, abs=1e-3)
+
+
+def test_intra_xfit__bfit():
+    cmd.reinitialize()
+    cmd.load(FILENAME_MULTISTATE, "m1")
+    psico.fitting.intra_xfit("all", load_b=1, cycles=10, bfit=1)
+    assert cmd.rms_cur("m1", "m1", 1, 4) == approx(3.124, abs=0.08)
 
 
 def test_intra_center():
