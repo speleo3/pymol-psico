@@ -2,7 +2,7 @@ import psico.editing
 import psico.querying
 import os
 import pytest
-from pymol import cmd
+from pymol import cmd, CmdException
 from pytest import approx
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -147,10 +147,20 @@ def test_remove_alt():
     cmd.alter('resn ALA', 'alt="A"')
     cmd.alter('resn CYS', 'alt="B"')
     cmd.create('m2', 'm1')
-    psico.editing.remove_alt('m1')
+    cmd.create('m3', 'm1')
+    cmd.alter('m3', 'alt = {"A": "X", "B": "Y"}[alt]')
+    cmd.create('m4', 'm1 m3')
+    assert cmd.count_atoms('m4') == 42
+    psico.editing.remove_alt('m1', keep='A')
     psico.editing.remove_alt('m2', keep='B')
     assert cmd.count_atoms('m1') == 10
     assert cmd.count_atoms('m2') == 11
+    psico.editing.remove_alt('m3', keep='first')
+    assert cmd.count_atoms('m3') == 21
+    psico.editing.remove_alt('m4', keep='first')
+    assert cmd.count_atoms('m4') == 21
+    with pytest.raises(CmdException, match="single letter"):
+        psico.editing.remove_alt('m1', keep='last')
 
 
 @pytest.mark.exe

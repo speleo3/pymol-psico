@@ -254,7 +254,7 @@ SEE ALSO
     _self.sort()
 
 
-def remove_alt(selection='all', keep='A', quiet=1, *, _self=cmd):
+def remove_alt(selection='all', keep='first', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -268,11 +268,37 @@ ARGUMENTS
 
     selection = string: atom selection
 
-    keep = string: AltLoc to keep {default: A}
+    keep = string: AltLoc to keep, or 'first' to keep the first observed AltLoc {default: first}
     '''
+    if keep == "first":
+        return remove_alt_keep_first(selection, quiet=quiet, _self=_self)
+
+    if len(keep) != 1:
+        raise CmdException(
+            f"keep must be 'first' or a single letter, got {keep!r}")
+
     _self.remove('(%s) and not alt +%s' % (selection, keep), quiet=int(quiet))
     _self.alter(selection, '(alt,q)=("",1.0)')
     _self.sort()
+
+
+def remove_alt_keep_first(selection='*', *, quiet=1, _self=cmd):
+    '''
+    Remove alternative location atoms, keep the first observed.
+    '''
+    alts = {}
+    expr = "(alt, q) = callback((model, segi, chain, resi, resn, name), alt)"
+
+    def callback(namekey, alt):
+        return ("#", 0.) if alts.setdefault(namekey, alt) != alt else ("", 1.)
+
+    tmpsele = _self.get_unused_name("_sele")
+    _self.select(tmpsele, selection)
+    try:
+        _self.alter(tmpsele, expr, space={"callback": callback})
+        _self.remove(f"{tmpsele} & not alt ''", quiet=quiet)
+    finally:
+        _self.delete(tmpsele)
 
 
 def _common_ss_alter(selection, ss_dict, ss_map, raw='', *, _self=cmd):
