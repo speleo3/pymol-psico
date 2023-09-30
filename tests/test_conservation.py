@@ -8,6 +8,7 @@ DATA_PATH = Path(__file__).resolve().parent / 'data'
 
 
 @pytest.mark.web
+@pytest.mark.xfail
 def test_consurfdb():
     cmd.reinitialize()
     cmd.load(DATA_PATH / "1ubq.cif.gz", "m1")
