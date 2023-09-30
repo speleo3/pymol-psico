@@ -9,9 +9,13 @@ License: BSD-2-Clause
 '''
 
 import functools
+import os
 import Bio
 from Bio.SeqIO import _FormatToIterator
 from pymol import CmdException
+from typing import Iterator, Optional, Tuple, Union
+
+_PathArg = Union[os.PathLike, str]
 
 
 def _assert_package_import():
@@ -64,7 +68,7 @@ def _msa_from_pairwise(
     ])
 
 
-def needle_alignment(s1, s2):
+def needle_alignment(s1: str, s2: str) -> "Bio.Align.MultipleSeqAlignment":
     '''
 DESCRIPTION
 
@@ -109,7 +113,7 @@ def needle_alignment_Bio_pairwise2(s1, s2):
     ])
 
 
-def needle_alignment_emboss(s1, s2):
+def needle_alignment_emboss(s1: str, s2: str) -> "Bio.Align.MultipleSeqAlignment":
     '''
     Same as `needle_alignment` but uses EMBOSS' "needle" executable.
     '''
@@ -124,7 +128,7 @@ def needle_alignment_emboss(s1, s2):
     return AlignIO.read(process.stdout, "emboss")
 
 
-def alignment_mapping(seq1, seq2):
+def alignment_mapping(seq1: str, seq2: str) -> Iterator[Tuple[int, int]]:
     '''
 DESCRIPTION
 
@@ -142,7 +146,7 @@ DESCRIPTION
             yield i, j
 
 
-def aln_magic_format(infile):
+def aln_magic_format(infile: _PathArg) -> str:
     '''
 DESCRIPTION
 
@@ -169,7 +173,9 @@ DESCRIPTION
     return informat
 
 
-def aln_magic_read(infile, format=None):
+def aln_magic_read(
+        infile: _PathArg,
+        format: Optional[str] = None) -> "Bio.Align.MultipleSeqAlignment":
     '''
 DESCRIPTION
 
