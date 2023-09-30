@@ -48,16 +48,6 @@ def mol_generate(self_cmd, sele):
 
 
 @menuappend
-def map_volume(self_cmd, sele):
-    m = 'psico.electrostatics'
-    return [
-        [0, '', ''],
-        [1, 'electrostatics', m + '.volume_esp("' + sele + '_volume_esp","' + sele + '")'],
-        [1, 'difference density', m + '.volume_fofc("' + sele + '_volume_fofc","' + sele + '")'],
-    ]
-
-
-@menuappend
 def presets(self_cmd, sele):
     return [
         [0, '', ''],
