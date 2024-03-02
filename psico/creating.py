@@ -495,6 +495,100 @@ EXAMPLES
             print(' Notice: not deleting', tmpdir)
 
 
+@cmd.extendaa(cmd.auto_arg[0]['create'], cmd.auto_arg[1]['create'])
+def confgen_rdkit(name: str,
+                  selection: str,
+                  state: int = -1,
+                  numconf: int = 10,
+                  ff='none',
+                  prune: float = 0.1,
+                  *,
+                  quiet=1,
+                  _self=cmd):
+    '''
+DESCRIPTION
+
+    Conformer generation with RDKit
+
+    Based on https://github.com/iwatobipen/rdk_confgen
+
+ARGUMENTS
+
+    name = str: Name of new object
+
+    selection = str: atom selection
+
+    state = int: object state of selection {default: -1}
+
+    numconf = int: Number of conformations to generate {default: 10}
+
+    ff = MMFF94s|MMFF94|UFF|none: force field {default: none}
+
+    prune = float: RMSD threshold for pruning {default: 0.1}
+    '''
+    _assert_package_import()
+    from .editing import update_identifiers
+    from .minimizing import get_fixed_indices
+
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    state = int(state)
+    quiet = int(quiet)
+
+    sele = _self.get_unused_name('_sele')
+    natoms = _self.select(sele, selection, 0)
+
+    try:
+        if natoms == 0:
+            raise CmdException('empty selection')
+
+        molstr = _self.get_str('mol', sele, state)
+        mol = Chem.MolFromMolBlock(molstr, True, False)
+
+        coordMap = {
+            i: mol.GetConformer(0).GetAtomPosition(i)
+            for i in get_fixed_indices(sele, state, _self=_self)
+        }
+
+        cids = AllChem.EmbedMultipleConfs(  #
+            mol, int(numconf), pruneRmsThresh=float(prune), coordMap=coordMap)
+
+        if not len(cids):
+            raise CmdException('no conformations')
+
+        if ff == "UFF":
+            energies = AllChem.UFFOptimizeMoleculeConfs(mol, numThreads=0)
+        elif ff == "none":
+            energies = AllChem.UFFOptimizeMoleculeConfs(mol, maxIters=0)
+        else:
+            energies = AllChem.MMFFOptimizeMoleculeConfs(mol, numThreads=0, mmffVariant=ff)
+
+        for cid, (_not_converged, energy) in zip(cids, energies):
+            if not quiet:
+                print(f' Conformer {cid + 1:2} Energy: {energy:8.2f} kcal/mol')
+
+            molstr = Chem.MolToMolBlock(mol, confId=cid)
+            _self.load_raw(molstr, 'mol', name, -1, zoom=0)
+            _self.set_title(name, cmd.count_states(name), f'{energy:.2f} kcal/mol')
+
+        _self.rename(name)
+        update_identifiers(name, sele, "segi chain resi resn name type flags",
+                           match="none", _self=_self)
+
+        fit_mobile = name
+        fit_target = sele
+
+        if len(coordMap) > 2:
+            fit_mobile = f"({fit_mobile}) & fixed"
+            fit_target = f"({fit_target}) & fixed"
+
+        _self.intra_fit(fit_mobile)
+        _self.fit(fit_mobile, fit_target, target_state=state)
+    finally:
+        _self.delete(sele)
+
+
 if 'join_states' not in cmd.keyword:
     cmd.extend('join_states', join_states)
 cmd.extend('sidechaincenters', sidechaincenters)
