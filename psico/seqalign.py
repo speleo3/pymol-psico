@@ -13,7 +13,10 @@ import os
 import Bio
 from Bio.SeqIO import _FormatToIterator
 from pymol import CmdException
-from typing import Iterator, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterator, Optional, Tuple, Union
+
+if TYPE_CHECKING:
+    import Bio.Align
 
 _PathArg = Union[os.PathLike, str]
 
@@ -47,7 +50,7 @@ def _get_aligner_BLOSUM62() -> "Bio.Align.PairwiseAligner":
 
 
 def _msa_from_pairwise(
-    pairwise: "Bio.Align.PairwiseAlignment",
+    pairwise: "Bio.Align.Alignment",
     biopython_version: tuple = (1, 81),
 ) -> "Bio.Align.MultipleSeqAlignment":
     from Bio.Align import MultipleSeqAlignment
