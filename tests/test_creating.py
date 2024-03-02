@@ -1,5 +1,6 @@
 import psico.creating
 import psico.querying
+import pytest
 from pathlib import Path
 from pymol import cmd
 from pytest import approx
@@ -42,6 +43,22 @@ def test_join_states():
     assert cmd.count_states("m3") == 4
     assert cmd.count_discrete("m3") == 1
     assert cmd.count_atoms("m3") == 241 * 4
+
+
+@pytest.mark.rdkit
+def test_confgen_rdkit():
+    cmd.reinitialize()
+    cmd.fragment("leu", "m1")
+    cmd.remove("hydro")
+    cmd.flag("fix", "name N+C+CA+CB")
+    psico.creating.confgen_rdkit("m2", "m1", numconf=3, ff="none")
+    assert cmd.count_states("m2") == 3
+    assert cmd.rms("m2", "m2", 1, 2) > 1.0
+    assert cmd.rms("m2", "m2", 1, 3) > 1.0
+    assert cmd.rms("m2", "m2", 2, 3) > 1.0
+    assert cmd.rms("m2 & fixed", "m2 & fixed", 1, 2) < 0.1
+    assert cmd.rms("m2 & fixed", "m2 & fixed", 1, 3) < 0.1
+    assert cmd.rms("m2 & fixed", "m2 & fixed", 2, 3) < 0.1
 
 
 # def ramp_levels(name, levels, quiet=1):
