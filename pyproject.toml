@@ -95,4 +95,10 @@ files = [
 ignore_missing_imports = true
 explicit_package_bases = true
 
+[[tool.mypy.overrides]]
+module = [
+    "rdkit.Chem",
+]
+ignore_errors = true
+
 # vi:sw=4
