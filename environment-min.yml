@@ -14,6 +14,7 @@ dependencies:
   - numpy 1.*
   - openbabel
   - pip
+  - prody
   - pymol-open-source <2.5
   - pytest
   - python 3.7.*

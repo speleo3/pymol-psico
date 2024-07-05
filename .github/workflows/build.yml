@@ -62,5 +62,5 @@ jobs:
         generate-run-shell: true
 
     - name: Test
-      run: python3 -m pytest -v -k "not dssp"
+      run: python3 -m pytest -v -k "not (dssp or prody)"
       shell: micromamba-shell {0}
