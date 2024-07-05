@@ -6,6 +6,9 @@
 /build
 /dist
 
+# created by tests
+result_images
+
 # created by apbs in the current directory
 io.mc
 
