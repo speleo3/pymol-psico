@@ -6,7 +6,8 @@ dependencies:
   - biopython
   - speleo3::csb
   - coverage
-  - sbl::dssp
+  - sbl::dssp 4.2.2.1
+  - sbl::libcifpp >=5.1,<6  # 5.0.8 basic_filebuf::underflow error
   - mdtraj
   - matplotlib
   - msms
