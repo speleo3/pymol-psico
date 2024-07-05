@@ -14,13 +14,14 @@ dependencies:
   - mypy
   - openbabel
   - pip
+  - prody
   - schrodinger::pymol >=2.5.8
   - schrodinger::vtk-m 1.5.*
   - pytest
   - qhull
   - rdkit
   - ruff
-  - scipy
+  - scipy <=1.13.1  # https://github.com/prody/ProDy/issues/1906
   - kimlab::stride
   - theseus
   - speleo3::tmalign
