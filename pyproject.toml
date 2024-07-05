@@ -97,8 +97,10 @@ explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = [
-    "rdkit.Chem",
+    "rdkit.Chem.*",
 ]
+follow_imports = "skip"
+follow_imports_for_stubs = true
 ignore_errors = true
 
 # vi:sw=4
