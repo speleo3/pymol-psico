@@ -14,6 +14,9 @@ from .mcsalign import mcsalign  # noqa: F401
 ALL_STATES = 0
 CURRENT_STATE = -1
 
+_auto_arg0_align = cmd.auto_arg[0]['align']
+_auto_arg1_align = cmd.auto_arg[1]['align']
+
 
 def alignwithanymethod(mobile, target, methods=None, async_=1, quiet=1,
         *, _self=cmd, **kwargs):
@@ -61,6 +64,16 @@ ARGUMENTS
             myalign(method)
 
 
+@cmd.extendaa(_auto_arg0_align, _auto_arg1_align)
+def usalign(mobile, target, *args, exe='USalign', _self=cmd, **kwargs):
+    '''
+DESCRIPTION
+
+    USalign wrapper. See `tmalign` for details.
+    '''
+    return tmalign(mobile, target, *args, **kwargs, exe=exe, _self=_self)
+
+
 def tmalign(mobile, target, mobile_state=1, target_state=1, args='',
         exe='TMalign', ter=0, transform=1, object=None, quiet=0, *, _self=cmd):
     '''
@@ -80,7 +93,7 @@ ARGUMENTS
 
     args = string: Extra arguments like -d0 5 -L 100
 
-    exe = string: Path to TMalign (or TMscore, MMalign) executable
+    exe = string: Path to TMalign (or TMscore, MMalign, USalign) executable
     {default: TMalign}
 
     ter = 0/1: If ter=0, then ignore chain breaks because TMalign will stop
@@ -144,6 +157,8 @@ ARGUMENTS
             if len(a) == 3:
                 headercheck = a[1]
         elif line.lower().startswith(' -------- rotation matrix'):
+            rowcount = 1
+        elif line.startswith('------ The rotation matrix'):
             rowcount = 1
         elif line.startswith('(":" denotes'):
             alignment = [next(line_it).rstrip() for i in range(3)]
@@ -1385,8 +1400,6 @@ cmd.extend('intra_promix', intra_promix)
 cmd.extend('intra_boxfit', intra_boxfit)
 
 # autocompletion
-_auto_arg0_align = cmd.auto_arg[0]['align']
-_auto_arg1_align = cmd.auto_arg[1]['align']
 cmd.auto_arg[0].update([
     ('alignwithanymethod', _auto_arg0_align),
     ('tmalign', _auto_arg0_align),

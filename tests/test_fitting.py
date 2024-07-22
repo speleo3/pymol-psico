@@ -1,6 +1,7 @@
 import psico.fitting
 import psico.querying
 import os
+import shutil
 from pymol import cmd
 import pytest
 from pytest import approx
@@ -20,6 +21,21 @@ def test_alignwithanymethod():
     cmd.create("m3", "m1", 3, 1)
     psico.fitting.alignwithanymethod("m3", "m1", "align super", target_state=1, async_=0)
     assert cmd.get_object_list() == ["m1", "m3", "m3_align01", "m3_super01"]
+
+
+@skipif_GIL_bug
+@pytest.mark.skipif(not shutil.which("USalign"), reason="USalign not found")
+def test_usalign():
+    cmd.reinitialize()
+    cmd.load(FILENAME_MULTISTATE, "m1")
+    cmd.create("m2", "m1", 1, 1)
+    score = psico.fitting.usalign("m1 & resi 51-72",
+                                  "m2 & resi 62-82",
+                                  mobile_state=3,
+                                  target_state=1,
+                                  object="aln")
+    assert score == approx(0.50016)
+    assert cmd.count_atoms("aln") == 22
 
 
 @skipif_GIL_bug
