@@ -65,13 +65,41 @@ ARGUMENTS
 
 
 @cmd.extendaa(_auto_arg0_align, _auto_arg1_align)
-def usalign(mobile, target, *args, exe='USalign', _self=cmd, **kwargs):
+def usalign(mobile: str,
+            target: str,
+            mobile_state: int = 1,
+            target_state: int = 1,
+            *,
+            mm: int = 1,
+            ter: int = 0,
+            args: str = '',
+            exe='USalign',
+            _self=cmd,
+            **_kwargs):
     '''
 DESCRIPTION
 
     USalign wrapper. See `tmalign` for details.
+
+    Reference: Zhang et al., Nature Methods 2022 19: 1109-1115
+    https://zhanggroup.org/US-align/
+
+ARGUMENTS
+
+    mm = int: 1=multi-chain, 3=circularly permutated {default: 1}
+
+    ter = int: 3=stop at the first TER record {default: 0}
+
+EXAMPLE
+
+    fetch 1y39 2zjr
+    usalign 1y39 & chain A+C, 2zjr & chain F+X, object=aln
     '''
-    return tmalign(mobile, target, *args, **kwargs, exe=exe, _self=_self)
+    args += f" -ter {ter} -mm {mm}"
+    ter = int(ter) == 3
+
+    return tmalign(mobile, target, mobile_state, target_state, args,
+                   exe, ter, **_kwargs, _self=_self)
 
 
 def tmalign(mobile, target, mobile_state=1, target_state=1, args='',
@@ -108,15 +136,17 @@ ARGUMENTS
     mobile_filename = tempfile.mktemp('.pdb', 'mobile')
     target_filename = tempfile.mktemp('.pdb', 'target')
     matrix_filename = tempfile.mktemp('.txt', 'matrix')
-    mobile_ca_sele = '(%s) and (not hetatm) and name CA and alt +A' % (mobile)
-    target_ca_sele = '(%s) and (not hetatm) and name CA and alt +A' % (target)
+    mobile_sele = f'({mobile}) and (not hetatm) and alt +A'
+    target_sele = f'({target}) and (not hetatm) and alt +A'
+    mobile_ca_sele = f'({mobile_sele}) and guide'
+    target_ca_sele = f'({target_sele}) and guide'
 
     if ter:
         save = pymol.exporting.save
     else:
         save = save_pdb_without_ter
-    save(mobile_filename, mobile_ca_sele, state=mobile_state, _self=_self)
-    save(target_filename, target_ca_sele, state=target_state, _self=_self)
+    save(mobile_filename, mobile_sele, state=mobile_state, _self=_self)
+    save(target_filename, target_sele, state=target_state, _self=_self)
 
     exe = cmd.exp_path(exe)
     args = [exe, mobile_filename, target_filename, '-m', matrix_filename] + args.split()
@@ -144,7 +174,7 @@ ARGUMENTS
     matrix = []
     line_it = iter(lines)
     headercheck = False
-    alignment = []
+    alignment = [""] * 3
     for line in line_it:
         if 4 >= rowcount > 0:
             if rowcount >= 2:
@@ -169,6 +199,9 @@ ARGUMENTS
         if not quiet:
             print(line.rstrip())
 
+    if not matrix:
+        raise CmdException("incomplete output")
+
     if not quiet:
         for i in range(0, len(alignment[0]) - 1, 78):
             for line in alignment:
@@ -189,11 +222,12 @@ ARGUMENTS
         _self.iterate_state(mobile_state, mobile_ca_sele, 'mobile_idx.append("%s`%d" % (model, index))', space=space)
         _self.iterate_state(target_state, target_ca_sele, 'target_idx.append("%s`%d" % (model, index))', space=space)
         for i, aa in enumerate(alignment[0]):
-            if aa == '-':
+            if aa in ('-', '*'):
                 mobile_idx.insert(i, None)
         for i, aa in enumerate(alignment[2]):
-            if aa == '-':
+            if aa in ('-', '*'):
                 target_idx.insert(i, None)
+
         if (len(mobile_idx) == len(target_idx) == len(alignment[2])):
             _self.rms_cur(
                     ' '.join(idx for (idx, m) in zip(mobile_idx, alignment[1]) if m in ':.'),
