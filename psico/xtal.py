@@ -173,7 +173,7 @@ SEE ALSO
     for mat in matrices:
         i += 1
 
-        mat = numpy.asfarray(mat)
+        mat = numpy.asarray(mat, dtype=float)
         shift = -numpy.floor((mat @ center_cell)[0:3])
         shift = shift.flatten().astype(int)
         assert shift.shape == (3,)
