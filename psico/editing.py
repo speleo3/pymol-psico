@@ -348,7 +348,6 @@ SEE ALSO
 
     dss, stride
     '''
-    from subprocess import Popen, PIPE
     import subprocess, re
     import tempfile, os
 
@@ -387,14 +386,18 @@ SEE ALSO
         cmd.multisave(tmpfilepdb,
                 '%s and (%s)' % (model, selection), state, _self=_self)
         try:
-            process = Popen(args + [tmpfilepdb], stdout=PIPE,
+            process = subprocess.run(args + [tmpfilepdb],
+                    capture_output=True,
                     universal_newlines=True)
         except OSError as ex:
             raise CmdException('Cannot execute exe=' + exe) from ex
-        for line in process.stdout:
+        if process.returncode != 0:
+            raise CmdException('dssp failed: ' + process.stderr.strip())
+        line_it = iter(process.stdout.splitlines())
+        for line in line_it:
             if line.startswith('  #  RESIDUE'):
                 break
-        for line in process.stdout:
+        for line in line_it:
             resi = line[5:11].strip()
             chain = line[11].strip()
             ss = line[16]
