@@ -15,7 +15,6 @@ dependencies:
   - openbabel
   - pip
   - schrodinger::pymol >=2.5.8
-  - schrodinger::vtk-m 1.5.*
   - pytest
   - qhull
   - rdkit
