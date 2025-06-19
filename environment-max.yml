@@ -1,0 +1,26 @@
+# Latest supported versions with packages available
+channels:
+  - conda-forge
+dependencies:
+  - apbs
+  - speleo3::aggrescan3d
+  - biopython >=1.81
+  - speleo3::csb
+  - mdtraj
+  - matplotlib
+  - msms
+  - numpy 2.*
+  - openbabel
+  - pip
+  - pymol-open-source >=3.1
+  - pytest
+  - python >=3.12
+  - qhull
+  - rdkit
+  - scipy
+  - kimlab::stride
+  - theseus
+  - speleo3::tmalign
+
+  - pip:
+    - epam.indigo

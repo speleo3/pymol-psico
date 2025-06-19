@@ -6,9 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: mamba-org/setup-micromamba@v1
+    - uses: mamba-org/setup-micromamba@v2
       with:
         environment-file: environment.yml
         environment-name: ci
@@ -34,3 +34,33 @@ jobs:
 
     - name: Type checking
       run: mypy
+
+  build-min:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: mamba-org/setup-micromamba@v2
+      with:
+        environment-file: environment-min.yml
+        environment-name: min
+        generate-run-shell: true
+
+    - name: Test
+      run: python3 -m pytest -v
+      shell: micromamba-shell {0}
+
+  build-max:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: mamba-org/setup-micromamba@v2
+      with:
+        environment-file: environment-max.yml
+        environment-name: max
+        generate-run-shell: true
+
+    - name: Test
+      run: python3 -m pytest -v -k "not dssp"
+      shell: micromamba-shell {0}

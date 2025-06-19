@@ -1,0 +1,28 @@
+# Oldest supported versions with packages available
+channels:
+  - conda-forge
+dependencies:
+  - apbs
+  - speleo3::aggrescan3d
+  - biopython <1.78
+  - speleo3::csb
+  - sbl::dssp 4.2.2.1
+  - sbl::libcifpp >=5.1,<6  # 5.0.8 basic_filebuf::underflow error
+  - mdtraj
+  - matplotlib
+  - msms
+  - numpy 1.*
+  - openbabel
+  - pip
+  - pymol-open-source <2.5
+  - pytest
+  - python 3.7.*
+  - qhull
+  - rdkit
+  - scipy
+  - kimlab::stride
+  - theseus
+  - speleo3::tmalign
+
+  - pip:
+    - epam.indigo
