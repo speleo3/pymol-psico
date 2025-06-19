@@ -40,7 +40,7 @@ SEE ALSO
     context = ssl._create_unverified_context()
 
     try:
-        handle = urllib2.urlopen(url, context=context)
+        handle = urllib2.urlopen(url, context=context, timeout=5)
     except urllib2.HTTPError as ex:
         raise CmdException(
             f'no pre-calculated profile for {code}/{chain}') from ex
