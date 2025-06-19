@@ -6,11 +6,19 @@ License: BSD-2-Clause
 '''
 
 from pymol import cmd, CmdException
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from typing import Literal
+    import numpy as np
+
+ModelAtomIndex = Tuple[str, int]
+Float3 = Tuple[float, float, float]
 
 CURRENT_STATE = -1  # pymol.constants.CURRENT_STATE
 
 
-def centerofmass(selection='(all)', state=-1, quiet=1, *, _self=cmd):
+def centerofmass(selection='(all)', state=-1, quiet=1, *, _self=cmd) -> List[float]:
     '''
 DESCRIPTION
 
@@ -61,7 +69,7 @@ SEE ALSO
     return com
 
 
-def gyradius(selection='(all)', state=-1, quiet=1, *, _self=cmd):
+def gyradius(selection='(all)', state=-1, quiet=1, *, _self=cmd) -> float:
     '''
 DESCRIPTION
 
@@ -81,7 +89,7 @@ SEE ALSO
         states = list(range(1, _self.count_states(selection) + 1))
     else:
         states = [state]
-    rg_sq_list = []
+    rg_sq_list: List[float] = []
     for state in states:
         model = _self.get_model(selection, state)
         x = [i.coord for i in model.atom]
@@ -97,7 +105,7 @@ SEE ALSO
     return rg
 
 
-def get_alignment_coords(name, active_only=0, state=-1, quiet=0, *, _self=cmd):
+def get_alignment_coords(name: str, active_only=0, state=-1, quiet=0, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -120,10 +128,10 @@ EXAMPLE
     active_only, state, quiet = int(active_only), int(state), int(quiet)
     aln = _self.get_raw_alignment(name, active_only)
     object_list = _self.get_object_list(name)
-    idx2coords = dict()
+    idx2coords: Dict[ModelAtomIndex, Float3] = dict()
     _self.iterate_state(state, name, 'idx2coords[model,index] = (x,y,z)',
             space={'idx2coords': idx2coords})
-    allcoords = dict((model, []) for model in object_list)
+    allcoords: Dict[str, List[Float3]] = dict((model, []) for model in object_list)
     for pos in aln:
         if len(pos) != len(object_list):
             continue
@@ -132,7 +140,7 @@ EXAMPLE
     return allcoords
 
 
-def get_sasa(selection, state=-1, dot_density=5, quiet=1, *, _self=cmd):
+def get_sasa(selection: str, state=-1, dot_density=5, quiet=1, *, _self=cmd) -> float:
     '''
 DESCRIPTION
 
@@ -156,7 +164,7 @@ SEE ALSO
     return r
 
 
-def get_sasa_ball(selection, state=-1, quiet=1, *, _self=cmd):
+def get_sasa_ball(selection: str, state=-1, quiet=1, *, _self=cmd) -> float:
     '''
 DESCRIPTION
 
@@ -193,7 +201,7 @@ DESCRIPTION
     return area
 
 
-def get_raw_distances(names='', state=1, selection='all', quiet=1, *, _self=cmd):
+def get_raw_distances(names: str = '', state=1, selection='all', quiet=1, *, _self=cmd):
     '''
 DESCRIPTION
 
@@ -232,21 +240,21 @@ SEE ALSO
 
     raw_objects = _self.get_session(names, 1, 1, 0, 0)['names']
 
-    xyz2idx = {}
+    xyz2idx: Dict[Float3, ModelAtomIndex] = {}
     _self.iterate_state(state, selection, 'xyz2idx[x,y,z] = (model,index)',
             space=locals())
 
-    r = []
+    r: List[Tuple[ModelAtomIndex, ModelAtomIndex, float]] = []
     for obj in raw_objects:
         try:
-            points = obj[5][2][state - 1][1]
+            points: "list[float] | None" = obj[5][2][state - 1][1]
             if points is None:
                 raise ValueError
         except (KeyError, ValueError):
             continue
         for i in range(0, len(points), 6):
-            xyz1 = tuple(points[i:i + 3])
-            xyz2 = tuple(points[i + 3:i + 6])
+            xyz1 = points[i + 0], points[i + 1], points[i + 2]
+            xyz2 = points[i + 3], points[i + 4], points[i + 5]
             try:
                 r.append((xyz2idx[xyz1], xyz2idx[xyz2], cpv.distance(xyz1, xyz2)))
                 if not quiet:
@@ -257,7 +265,7 @@ SEE ALSO
     return r
 
 
-def get_color(selection, which=0, mode=0, *, _self=cmd):
+def get_color(selection, which=0, mode=0, *, _self=cmd) -> "int | str | Float3":
     '''
 DESCRIPTION
 
@@ -276,8 +284,8 @@ ARGUMENTS
     '''
     s_first = 'first' if which == 0 else ''
 
-    def inner():
-        colors = []
+    def inner() -> "int | str":
+        colors: List[int] = []
 
         for s_guide in ('guide', 'elem C', 'all'):
             _self.iterate('{} (({}) & {})'.format(s_first, selection, s_guide),
@@ -294,23 +302,30 @@ ARGUMENTS
             color = colors[len(colors) // 2]
 
         if color >= 0x40000000:
-            color = '0x%06x' % (color & 0xFFFFFF)
+            return '0x%06x' % (color & 0xFFFFFF)
 
         return color
 
     color = inner()
     if mode > 0:
         color = _self.get_color_tuple(color)
-    if mode == 2:
-        return '#%02x%02x%02x' % tuple(int(0xFF * v) for v in color)
+        assert isinstance(color, tuple)
+        if mode == 2:
+            return '#%02x%02x%02x' % tuple(int(0xFF * v) for v in color)
     return color
 
 
-def get_object_name(selection, strict=0, *, _self=cmd):
+def get_object_name(selection: str, strict=0, *, _self=cmd) -> str:
     '''
 DESCRIPTION
 
     Returns the object name for given selection.
+
+ARGUMENTS
+
+    selection = string: atom selection
+    strict = 0: allow multiple objects in selection but only return the first
+    strict = 1: raise exception if selection spans multiple objects
     '''
     names = _self.get_object_list('(' + selection + ')')
     if len(names) == 0:
@@ -320,22 +335,22 @@ DESCRIPTION
     return names[0]
 
 
-def get_object_state(name, *, _self=cmd):
+def get_object_state(name: str, *, _self=cmd) -> int:
     '''
 DESCRIPTION
 
     Returns the effective object state.
     '''
-    states = _self.count_states(name)
+    states: int = _self.count_states(name)
     if states < 2 and _self.get_setting_boolean('static_singletons'):
         return 1
-    state = _self.get_setting_int('state', name)
+    state: int = _self.get_setting_int('state', name)
     if state > states:
         raise CmdException('Invalid state %d for object %s' % (state, name))
     return state
 
 
-def get_selection_state(selection, *, _self=cmd):
+def get_selection_state(selection: str, *, _self=cmd) -> int:
     '''
 DESCRIPTION
 
@@ -350,7 +365,11 @@ DESCRIPTION
     return state_set.pop()
 
 
-def get_ensemble_coords(selection, *, _self=cmd):
+def get_ensemble_coords(
+    selection: str,
+    *,
+    _self=cmd,
+) -> "np.ndarray[tuple[int, int, Literal[3]], np.dtype[np.float32]]":
     '''
 DESCRIPTION
 
@@ -361,7 +380,11 @@ DESCRIPTION
     return _self.get_coords(selection, 0).reshape((nstates, -1, 3))
 
 
-def iterate_to_list(selection, expression, *, space=None, _self=cmd) -> list:
+def iterate_to_list(selection: str,
+                    expression: str,
+                    *,
+                    space: Optional[dict] = None,
+                    _self=cmd) -> list:
     """
     API-only function to capture "iterate" results in a list.
     """
@@ -375,7 +398,7 @@ def iterate_state_to_list(state: int,
                           selection: str,
                           expression: str,
                           *,
-                          space=None,
+                          space: Optional[dict] = None,
                           _self=cmd) -> list:
     """
     API-only function to capture "iterate_state" results in a list.
@@ -391,7 +414,7 @@ def iterate_state_to_list(state: int,
 def iterate_to_sele(selection: str,
                     expression: str,
                     *,
-                    space=None,
+                    space: Optional[dict] = None,
                     _self=cmd) -> str:
     """
     API-only function to get a selection expression for "iterate" results which
@@ -407,7 +430,7 @@ def iterate_to_sele(selection: str,
     return " ".join(f"{model}`{index}" for (model, index) in space["ids"])
 
 
-def csp(sele1, sele2='', quiet=1, var="formal_charge", _self=cmd):
+def csp(sele1: str, sele2: str = '', quiet=1, var="formal_charge", _self=cmd) -> float:
     """
 DESCRIPTION
 
@@ -436,7 +459,7 @@ DESCRIPTION
     return r
 
 
-def extinction_coefficient(selection="all", state=-1, *, quiet=1, _self=cmd):
+def extinction_coefficient(selection="all", state=-1, *, quiet=1, _self=cmd) -> Tuple[int, float]:
     """
 DESCRIPTION
 
@@ -444,9 +467,9 @@ DESCRIPTION
     """
     from pymol.util import compute_mass
 
-    nW = _self.count_atoms(f"({selection}) & resn TRP & guide", state=state)
-    nY = _self.count_atoms(f"({selection}) & resn TYR & guide", state=state)
-    nSS = _self.count_atoms(
+    nW: int = _self.count_atoms(f"({selection}) & resn TRP & guide", state=state)
+    nY: int = _self.count_atoms(f"({selection}) & resn TYR & guide", state=state)
+    nSS: int = _self.count_atoms(
         f"({selection}) & resn CYS & elem S & bound_to elem S",
         state=state) // 2
     eps = nW * 5500 + nY * 1490 + nSS * 125
@@ -520,7 +543,7 @@ EXAMPLE
                        (other.model, other.index, other.state)
             return False
 
-    def get_atoms(state: int, sele: str):
+    def get_atoms(state: int, sele: str) -> List[ShortestDistanceAtom]:
         return iterate_state_to_list(state, sele,
             "ShortestDistanceAtom(model, segi, chain, resn, resi, name, index, (x, y, z), state)",
             space={'ShortestDistanceAtom': ShortestDistanceAtom}, _self=_self)
@@ -561,7 +584,7 @@ def isoelectric_point(selection: str = "polymer",
                       *,
                       ph: float = 7,
                       quiet: int = 1,
-                      _self=cmd):
+                      _self=cmd) -> float:
     """
 DESCRIPTION
 
@@ -578,7 +601,7 @@ DESCRIPTION
     if not fasta:
         if not quiet:
             print(" empty selection")
-        return
+        return float("nan")
 
     records = list(SeqIO.parse(io.StringIO(fasta), "fasta"))
 
@@ -600,7 +623,7 @@ DESCRIPTION
 
 
 @cmd.extend
-def get_segis(selection="all", *, quiet=1, _self=cmd) -> set:
+def get_segis(selection="all", *, quiet=1, _self=cmd) -> "set[str]":
     """
 DESCRIPTION
 
