@@ -112,7 +112,7 @@ SEE ALSO
 
     morpheasy
     '''
-    from numpy import asfarray
+    from numpy import asarray
     from .fitting import MatchMaker
     from .querying import get_selection_state
 
@@ -128,8 +128,8 @@ SEE ALSO
 
     mm = MatchMaker(source, target, match, _self=_self)
 
-    csource = asfarray(_self.get_coords(mm.mobile, source_state))
-    ctarget = asfarray(_self.get_coords(mm.target, target_state))
+    csource = asarray(_self.get_coords(mm.mobile, source_state))
+    ctarget = asarray(_self.get_coords(mm.target, target_state))
     cdiff = ctarget - csource
 
     if name is None:

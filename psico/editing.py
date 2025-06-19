@@ -119,9 +119,9 @@ SEE ALSO
     '''
     _assert_package_import()
     from . import querying
-    from numpy import asfarray, sqrt, pi
+    from numpy import sqrt, pi
     linearscale = float(linearscale)
-    coords = asfarray(querying.get_ensemble_coords(selection, _self=_self))
+    coords = querying.get_ensemble_coords(selection, _self=_self)
     n_states, n_atoms, _ = coords.shape
     if n_atoms == 0 or n_states < 2:
         raise CmdException('not enough atoms or states')

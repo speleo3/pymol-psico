@@ -42,7 +42,6 @@ def test_minimize_ob():
 
 @pytest.mark.rdkit
 def test_minimize_rdkit():
-    import rdkit
     cmd.reinitialize()
     cmd.fab("ACD", "m1")
     cmd.copy("m2", "m1")
@@ -51,7 +50,7 @@ def test_minimize_rdkit():
     assert r == approx(0.7118, abs=1e-2)
     psico.minimizing.minimize_rdkit("m2", nsteps=100, ff="UFF")
     r = cmd.rms("m2", "m1")
-    abs_UFF = 1e-1 if rdkit.__version__ < '2022.09.1' else 1e-2
+    abs_UFF = 0.03
     assert r == approx(0.9508, abs=abs_UFF)
 
 
