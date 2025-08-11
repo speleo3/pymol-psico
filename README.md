@@ -1,6 +1,7 @@
 [![CI](https://github.com/speleo3/pymol-psico/actions/workflows/build.yml/badge.svg)](https://github.com/speleo3/pymol-psico/actions)
 [![codecov](https://codecov.io/gh/speleo3/pymol-psico/branch/master/graph/badge.svg)](https://codecov.io/gh/speleo3/pymol-psico)
 [![Anaconda.org](https://anaconda.org/speleo3/pymol-psico/badges/version.svg)](https://anaconda.org/speleo3/pymol-psico)
+[![Documentation](https://app.readthedocs.org/projects/pymol-psico/badge/?version=latest)](https://pymol-psico.readthedocs.io/)
 
 # Pymol ScrIpt COllection (PSICO)
 
