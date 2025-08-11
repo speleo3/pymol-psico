@@ -1,4 +1,5 @@
 import psico.exporting
+import psico.exporting as m
 import pytest
 from pytest import approx
 from pymol import cmd
@@ -101,6 +102,25 @@ def test_unittouu():
     with pytest.raises(ValueError) as excinfo:
         unittouu("123xx")
     assert 'unknown unit' in str(excinfo.value)
+
+
+def test_save_lightdock_restraints(tmp_path):
+    cmd.reinitialize()
+    cmd.fab("ACDE", "rec1", chain="P")
+    cmd.fab("FGHI", "lig1", chain="M")
+    path = tmp_path / "restraints.list"
+    m.save_lightdock_restraints(path, "/rec1///1-2 /lig1///3 ")
+    assert path.read_text(encoding="utf-8") == (  #
+        "R P.ALA.1\n"
+        "R P.CYS.2\n"
+        "L M.HIS.3\n"  #
+    )
+    m.save_lightdock_restraints(path, "/rec1///3", ligand="rec1")
+    m.save_lightdock_restraints(path, "/lig1///2", ligand="rec1", append=True)
+    assert path.read_text(encoding="utf-8") == (  #
+        "L P.ASP.3\n"
+        "R M.GLY.2\n"  #
+    )
 
 
 # def get_pdb_sss(selection='(all)', state=-1, quiet=1):

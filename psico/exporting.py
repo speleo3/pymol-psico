@@ -10,6 +10,7 @@ License: BSD-2-Clause
 '''
 
 from io import FileIO as file
+from pathlib import Path
 from pymol import cmd, CmdException
 from pymol import selector
 
@@ -567,6 +568,42 @@ DESCRIPTION
     buffer.append(f"{(a)/10:10.5f} {(b)/10:9.5f} {(c)/10:9.5f}")
     buffer.append("")
     return "\n".join(buffer)
+
+
+@cmd.extendaa(None, cmd.auto_arg[1]['save'])
+def save_lightdock_restraints(
+    filename: Path | str,
+    selection: str,
+    *,
+    ligand: str = "",
+    append: bool = False,
+    quiet: bool = True,
+    _self=cmd,
+):
+    """
+DESCRIPTION
+
+    Save a LightDock restraints file
+
+ARGUMENTS
+
+    ligand = str: Ligand object name
+    """
+    from psico.querying import iterate_to_list
+    if ligand:
+        cond = 'model == model_ligand'
+    else:
+        cond = 'model[:1].upper() == "L"'
+    lines = iterate_to_list(
+        f"byca ({selection})",
+        r'f"""{"L" if ' + cond + r' else "R"} {chain}.{resn}.{resi}\n"""',
+        space={"model_ligand": ligand},
+        _self=_self,
+    )
+    with open(filename, "a" if int(append) else "w", encoding="utf-8") as out:
+        out.writelines(lines)
+    if not int(quiet):
+        print(f"Written {len(lines)} restraints to {filename!r}")
 
 
 ## pymol command stuff
