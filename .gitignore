@@ -3,6 +3,8 @@
 *.swp
 *.egg-info
 
+.venv
+
 /build
 /dist
 
