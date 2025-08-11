@@ -13,6 +13,7 @@ from io import FileIO as file
 from pathlib import Path
 from pymol import cmd, CmdException
 from pymol import selector
+from typing import Union
 
 
 def _assert_package_import():
@@ -572,7 +573,7 @@ DESCRIPTION
 
 @cmd.extendaa(None, cmd.auto_arg[1]['save'])
 def save_lightdock_restraints(
-    filename: Path | str,
+    filename: Union[Path, str],
     selection: str,
     *,
     ligand: str = "",
