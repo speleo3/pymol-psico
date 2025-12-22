@@ -600,6 +600,7 @@ def sculpt_homolog(mobile: str,
                    cycles: int = 1000,
                    *,
                    fix: str = "restrain",
+                   disulfide: bool = True,
                    quiet: int = 1,
                    _self=cmd):
     """
@@ -612,10 +613,22 @@ ARGUMENTS
     cycles: Number of sculpt iterations
 
     fix = restrain | fix | protect | none: Method for fixing updated atoms
+    disulfide = 0 or 1: Whether to create disulfide bonds {default: 1}
     """
     (mobile_object, ) = _self.get_object_list(mobile)
     _self.sculpt_activate(mobile_object, state)
     update_align(mobile, target, state, fix=fix, quiet=quiet, _self=_self)
+
+    # does this break sculpting?
+    if int(disulfide):
+        sele = f"({mobile}) & name SG & not bound_to name SG"
+        pairs = cmd.find_pairs(sele, sele, cutoff=2.5)
+        for (a, b) in pairs:
+            cmd.bond(a, b)
+        sele = " ".join(f"{model}`{atom}" for pair in pairs for (model, atom) in pair)
+        if sele:
+            cmd.remove(f"hydro and bound_to ({sele})")
+
     _self.sculpt_iterate(mobile, state, cycles)
 
 
