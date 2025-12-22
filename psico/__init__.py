@@ -44,6 +44,7 @@ __all__ = [
     'msms',
     'nma',
     'plotting',
+    'prolif',
     'querying',
     'selecting',
     'setting',

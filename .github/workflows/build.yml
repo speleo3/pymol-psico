@@ -21,7 +21,7 @@ jobs:
 
     - name: Test
       run: |
-        python3 -m coverage run -m pytest
+        python3 -m coverage run -m pytest -k 'not prolif'
         python3 -m coverage xml
 
     - name: Upload coverage reports to Codecov
@@ -47,7 +47,7 @@ jobs:
         generate-run-shell: true
 
     - name: Test
-      run: python3 -m pytest -v
+      run: python3 -m pytest -v -k 'not prolif'
       shell: micromamba-shell {0}
 
   build-max:

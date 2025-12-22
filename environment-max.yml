@@ -12,6 +12,7 @@ dependencies:
   - numpy 2.*
   - openbabel
   - pip
+  - prolif
   - pymol-open-source >=3.1
   - pytest
   - python >=3.12

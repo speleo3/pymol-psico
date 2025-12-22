@@ -51,6 +51,7 @@ Some functions in *psico* require the following python modules:
 * csb (https://github.com/csb-toolbox/CSB)
 * modeller
 * prody
+* prolif (https://prolif.readthedocs.io/)
 * rdkit (http://www.rdkit.org/)
 * indigo (https://github.com/epam/Indigo)
 
