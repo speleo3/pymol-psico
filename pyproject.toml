@@ -58,7 +58,7 @@ select = [
     "W291", # trailing whitespace (does not work)
 ]
 
-[tool.ruff]
+[tool.ruff.lint]
 extend-select = ["W", "B", "Q003"]
 ignore = [
     "E401",     # Multiple imports on one line
