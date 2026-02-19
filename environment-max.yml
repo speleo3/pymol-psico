@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - apbs
-  - speleo3::aggrescan3d
+  - speleo3::aggrescan3d >1.1
   - biopython >=1.81
   - speleo3::csb
   - mdtraj

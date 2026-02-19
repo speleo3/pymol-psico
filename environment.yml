@@ -2,7 +2,7 @@ channels:
   - conda-forge
 dependencies:
   - apbs
-  - speleo3::aggrescan3d
+  - speleo3::aggrescan3d >1.1
   - biopython
   - speleo3::csb
   - coverage
