@@ -519,7 +519,7 @@ def sst(selection='(all)', raw='', state=-1, quiet=1, *, _self=cmd):
 DESCRIPTION
 
     Secondary structure assignment with SST.
-    http://lcb.infotech.monash.edu.au/sstweb/
+    https://lcb.infotech.monash.edu/sst/sst_submission_form.html
 
 SEE ALSO
 
@@ -577,7 +577,7 @@ SEE ALSO
         try:
             request = urllib2.Request(
                 data=body,
-                url='https://lcb.infotech.monash.edu/sstweb2/formaction.php')
+                url='https://lcb.infotech.monash.edu/sst/sst_formaction.php')
             request.add_header('User-agent', 'PyMOL ' + cmd.get_version()[0] + ' ' +
                     sys.platform)
             request.add_header('Content-type', 'multipart/form-data; boundary=%s' % boundary)
@@ -586,11 +586,23 @@ SEE ALSO
         except urllib2.URLError as ex:
             raise CmdException('URL request failed') from ex
 
+        # Example output
+        """
+....................RESIDUE-LEVEL ASSIGNMENT DETAILS......................
+.
+! Chain Residue     SSType
+- A     M (MET1)    C
+- A     G (GLY76)   C
+.
+..........................................................................
+...................................LEGEND.................................
+        """
+
         lines = (line.decode('ascii', 'ignore') for line in lines)
         lines = iter(lines)
 
         for line in lines:
-            if line.startswith('..........RESIDUE LEVEL'):
+            if line.startswith('....................RESIDUE-LEVEL'):
                 break
         else:
             if not quiet:
@@ -600,11 +612,14 @@ SEE ALSO
         next(lines)
 
         for line in lines:
-            if line.startswith('...................................END'):
+            if 'LEGEND........' in line:
                 break
-            chain = line[2].strip()
-            resi = line[3:9].strip()
-            ss = line[21]
+            if not line.startswith("- "):
+                continue
+            chain = line[2:6].rstrip()
+            # resn = line[11:14].strip()
+            resi = line[14:19].rstrip(") ")
+            ss = line[20]
             ss_dict[model, chain, resi] = ss
 
     _common_ss_alter(selection, ss_dict, ss_map, raw, _self=_self)
