@@ -8,7 +8,9 @@ authors = [
 license = {text = "BSD-2-Clause"}
 requires-python = ">=3.7"
 dependencies = [
-    "pymol",
+    # one of:
+    # "pymol",
+    # "pymol-open-source",
 ]
 dynamic = ["version"]
 
