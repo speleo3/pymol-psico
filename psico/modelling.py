@@ -365,7 +365,11 @@ SEE ALSO
     _self.select(namedsele, '{} & present'.format(selection), 0)
 
     identifiers = []
-    _self.iterate(namedsele + ' and polymer and guide and alt +A',
+    _self.iterate(namedsele + ' and (alt +A) and ('
+                  '  (polymer and guide) or '
+                  '  (resn ACE and name C) or '
+                  '  (resn NME and name N)'
+                  ')',
             'identifiers.append([segi,chain,resi,resv,resn])', space=locals())
 
     model = models.Indexed()

@@ -35,6 +35,16 @@ def test_peptide_rebuild():
     cmd.load(DATA_PATH / '2x19-frag-mse.pdb', "m1")
     psico.modelling.peptide_rebuild("m2", "m1", cycles=100)
     assert psico.modelling.get_seq("m2") == "LSMMPD"
+    assert cmd.count_atoms("m2 and resn NME+ACE") == 0
+
+
+def test_peptide_rebuild__caps():
+    cmd.reinitialize()
+    cmd.load(DATA_PATH / '2x19-frag-mse.pdb', "m1")
+    psico.modelling.cap_termini("m1")
+    psico.modelling.peptide_rebuild("m2", "m1", cycles=100)
+    assert psico.modelling.get_seq("m2") == "LSMMPD"
+    assert cmd.count_atoms("m2 and resn NME+ACE") == 12
 
 
 def test_get_seq():
