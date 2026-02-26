@@ -87,3 +87,29 @@ def test_sculpt_homolog__restrain():
     c2 = cmd.get_coords("/m2///6-8")
     assert not (c1 == c2).all()
     assert c1.flatten().tolist() == approx(c2.flatten().tolist(), abs=1.5)
+
+
+def test_cap_termini():
+    cmd.reinitialize()
+    cmd.fab("ACD", "m1", resi=2)
+    psico.modelling.cap_termini()
+    assert cmd.count_atoms("resn ACE and resi 1") > 0
+    assert cmd.count_atoms("resn NME and resi 5") > 0
+
+
+def test_cap_termini__no_ace():
+    cmd.reinitialize()
+    cmd.fab("ACD", "m1", resi=1)
+    psico.modelling.cap_termini()
+    assert cmd.count_atoms("resn ACE") == 0
+    assert cmd.count_atoms("resn NME and resi 4") > 0
+
+
+def test_cap_termini__no_nme():
+    cmd.reinitialize()
+    cmd.fab("ACD", "m1", resi=4)
+    cmd.edit("ASP`6/C")
+    cmd.attach("O", 3, 1, name="OXT")
+    psico.modelling.cap_termini()
+    assert cmd.count_atoms("resn ACE and resi 3") > 0
+    assert cmd.count_atoms("resn NME") == 0

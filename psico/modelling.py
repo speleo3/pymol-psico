@@ -4,7 +4,7 @@
 License: BSD-2-Clause
 '''
 
-from pymol import cmd, CmdException
+from pymol import cmd, CmdException, editor
 
 _auto_arg0_align = cmd.auto_arg[0]['align']
 _auto_arg1_align = cmd.auto_arg[1]['align']
@@ -621,6 +621,33 @@ ARGUMENTS
     _self.sculpt_activate(mobile_object, state)
     update_align(mobile, target, state, fix=fix, quiet=quiet, _self=_self)
     _self.sculpt_iterate(mobile, state, cycles)
+
+
+@cmd.extendaa(_auto_arg0_align)
+def cap_termini(selection: str = "polymer", *, _self=cmd):
+    """
+DESCRIPTION
+
+    Add ACE and NME caps to all open peptide termini.
+
+    Residue number 1 is considered the actual N-terminus (no cap)
+    Residue with atom OXT is considered the actual C-terminus (no cap).
+    """
+    pending_n = "_tmp_cap_termini_pending_n"
+    pending_c = "_tmp_cap_termini_pending_c"
+    next_n = "_tmp_cap_termini_next_n"
+    next_c = "_tmp_cap_termini_next_c"
+    sele_n = f"({selection}) & polymer.protein & name N & ! (bound_to name C) & ! resi 1"
+    sele_c = f"({selection}) & polymer.protein & name C & ! (bound_to name N+OXT)"
+    try:
+        _self.select(pending_n, sele_n, 0)
+        _self.select(pending_c, sele_c, 0)
+        while _self.pop(next_n, pending_n):
+            editor.attach_amino_acid(next_n, "ace", _self=_self)
+        while _self.pop(next_c, pending_c):
+            editor.attach_amino_acid(next_c, "nme", _self=_self)
+    finally:
+        _self.delete(" ".join([pending_n, pending_c, next_n, next_c]))
 
 
 cmd.extend('mutate', mutate)
