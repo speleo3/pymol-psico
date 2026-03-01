@@ -64,7 +64,6 @@ ARGUMENTS
             myalign(method)
 
 
-@cmd.extendaa(_auto_arg0_align, _auto_arg1_align)
 def usalign(mobile: str,
             target: str,
             mobile_state: int = 1,
@@ -83,6 +82,8 @@ DESCRIPTION
 
     Reference: Zhang et al., Nature Methods 2022 19: 1109-1115
     https://zhanggroup.org/US-align/
+
+    Note: PyMOL 3.2 adds a native usalign implementation
 
 ARGUMENTS
 
@@ -1432,6 +1433,8 @@ cmd.extend('intra_xfit', intra_xfit)
 cmd.extend('promix', promix)
 cmd.extend('intra_promix', intra_promix)
 cmd.extend('intra_boxfit', intra_boxfit)
+if 'usalign' not in cmd.keyword:
+    cmd.extendaa(_auto_arg0_align, _auto_arg1_align)(usalign)
 
 # autocompletion
 cmd.auto_arg[0].update([
