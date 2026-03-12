@@ -237,3 +237,21 @@ def test_update_identifiers():
     my_values = []
     cmd.iterate('m2', 'my_values.append(segi)', space=locals())
     assert set(my_values) == set(["Segi"])
+
+
+def test_protonate_fc():
+    cmd.reinitialize()
+    cmd.fab("EHK", "m1")
+    cmd.edit("3/C")
+    cmd.attach("O", 4, 2, "OXT")
+    cmd.unpick()
+    psico.editing.protonate_fc("m1", pH=1.0)
+    assert cmd.count_atoms("hydro") == 31  # protonated OXT
+    psico.editing.protonate_fc("m1", pH=3.5)
+    assert cmd.count_atoms("hydro") == 30
+    psico.editing.protonate_fc("m1", pH=5.9)
+    assert cmd.count_atoms("hydro") == 29
+    psico.editing.protonate_fc("m1", pH=6.1)
+    assert cmd.count_atoms("hydro") == 28
+    psico.editing.protonate_fc("m1", pH=13.0)
+    assert cmd.count_atoms("hydro") == 26  # deprotonated N-term

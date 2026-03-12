@@ -7,6 +7,7 @@ License: BSD-2-Clause
 import sys
 
 from pymol import cmd, CmdException
+from typing import Tuple
 
 _auto_arg0_zoom = cmd.auto_arg[0]['zoom']
 
@@ -664,6 +665,101 @@ DESCRIPTION
         _self.iterate(mm.target, 'skeys.append(%s)' % (key), space=locals())
         t2s = dict(zip(tkeys, skeys))
         _self.alter(target, '%s = t2s.get(%s, %s)' % (key, key, key), space=locals())
+
+
+cAtomInfoTetrahedral = 4
+
+_TITRATABLE_PKA_FORMAL_CHARGE = {
+    # (resn, name[, geom]): (pKa, charge below, charge above)
+
+    ('ARG', 'NE'):  (12.48, 0, 0),
+    ('ARG', 'NH1'): (12.48, 1, 0),
+    ('ARG', 'NH2'): (12.48, 0, 0),
+
+    ('LYS', 'NZ'):  (10.53, 1, 0),
+
+    ('TYR', 'OH'):  (10.07, 0, -1),
+    ('CYS', 'SG'):   (8.18, 0, -1),
+
+    ('HIE', 'ND1'):  (6.00, 1, 0),
+    ('HIP', 'ND1'):  (6.00, 1, 0),
+    ('HIS', 'ND1'):  (6.00, 1, 0),
+
+    ('HIE', 'NE2'):  (6.00, 0, 0),
+    ('HIP', 'NE2'):  (6.00, 0, 0),
+    ('HIS', 'NE2'):  (6.00, 0, 0),
+
+    ('GLU', 'OE1'):  (4.25, 0, 0),
+    ('GLU', 'OE2'):  (4.25, 0, -1),
+
+    ('ASP', 'OD1'):  (3.65, 0, 0),
+    ('ASP', 'OD2'):  (3.65, 0, -1),
+
+    (None,  'OXT'):  (2.00, 0, -1),
+    (None,  'N', cAtomInfoTetrahedral): (10.00, 1, 0),
+}
+
+
+def _get_formal_charge(resn: str, name: str, pH: float, geom,
+                       fc_fallback: float) -> Tuple[float, float]:
+    for key in [
+        (resn, name),
+        (None, name),
+        (None, name, geom),
+    ]:
+        value = _TITRATABLE_PKA_FORMAL_CHARGE.get(key)
+        if value is not None:
+            break
+    else:
+        return fc_fallback, 0.0
+
+    pka, fc_below, fc_above = value
+    formal_charge = fc_below if pH < pka else fc_above
+    sign = fc_below + fc_above
+    partial_charge = sign / (10**((pH - pka) * sign) + 1.0)
+    return formal_charge, partial_charge
+
+
+@cmd.extendaa(cmd.auto_arg[0]["h_add"])
+def protonate_fc(
+    selection: str = "all",
+    pH: float = 7.4,
+    *,
+    partial: bool = True,
+    state=-1,
+    quiet=1,
+    _self=cmd,
+):
+    """
+DESCRIPTION
+
+    pH dependent protonation of proteins, based on pKa table.
+
+    Assign formal_charge atom property.
+
+ARGUMENTS
+
+    selection = str: atom selection
+
+    pH = float: pH {default: 7.4}
+
+    partial = 0/1: Whether to also assign partial charge (basically the
+                   signed probability of protonation) {default: 1}
+
+    state = int: object state {default: current}
+    """
+    pc_var = "partial_charge" if int(partial) else "_"
+
+    _self.remove(f"hydro & bound_to ({selection})")
+
+    _self.alter(
+        selection,
+        f"(formal_charge, {pc_var}) = _get_formal_charge(resn, name, {float(pH)}, geom, formal_charge)",
+        space={"_get_formal_charge": _get_formal_charge},
+        quiet=quiet,
+    )
+
+    _self.h_add(selection, state=state, quiet=quiet)
 
 
 if 'split_chains' not in cmd.keyword:
