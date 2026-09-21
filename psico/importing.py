@@ -7,6 +7,7 @@ License: BSD-2-Clause
 import os.path
 from pathlib import Path
 from pymol import cmd, CmdException
+import tempfile
 
 mysql_kwargs = {
     'host': 'abt1-th.eb.local',
@@ -886,6 +887,27 @@ DESCRIPTION
                 multiplex=multiplex, zoom=zoom)
     finally:
         os.remove(outfile)
+
+
+@cmd.extend
+def smi(content: str, oname: str = '', *, quiet: int = 1, _self=cmd):
+    '''
+DESCRIPTION
+
+    Load a SMILES string with an openbabel backend
+    '''
+    if not oname:
+        oname = _self.get_unused_name('obj')
+
+    filename = tempfile.mktemp('.smi')
+
+    with open(filename, "w", encoding="utf-8") as handle:
+        handle.write(content)
+
+    try:
+        load_smi(filename, oname=oname, discrete=-1, quiet=quiet, _self=_self)
+    finally:
+        os.remove(filename)
 
 
 @cmd.extend
