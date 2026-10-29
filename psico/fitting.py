@@ -14,6 +14,8 @@ from .mcsalign import mcsalign  # noqa: F401
 ALL_STATES = 0
 CURRENT_STATE = -1
 
+GUIDE_AUTO = -1
+
 _auto_arg0_align = cmd.auto_arg[0]['align']
 _auto_arg1_align = cmd.auto_arg[1]['align']
 
@@ -971,8 +973,17 @@ def _bfit_get_prior(distribution, em=0):
     return prior
 
 
+def _resolve_guide(_self, guide: "int | str", selection: str, min_atoms: int = 3) -> bool:
+    guide = int(guide)
+
+    if guide == GUIDE_AUTO:
+        return _self.count_atoms(f'({selection}) & guide') >= min_atoms
+
+    return guide != 0
+
+
 def xfit(mobile, target, mobile_state=-1, target_state=-1, load_b=0,
-        cycles=10, match='align', guide=1, seed=0, quiet=1,
+        cycles=10, match='align', guide=GUIDE_AUTO, seed=0, quiet=1,
         bfit=0, distribution='student', _self=cmd):
     '''
 DESCRIPTION
@@ -1012,6 +1023,8 @@ SEE ALSO
         mobile_state = querying.get_object_state(mobile_obj, _self=_self)
     if target_state < 1:
         target_state = querying.get_selection_state(target, _self=_self)
+
+    guide = _resolve_guide(_self, guide, mobile) and _resolve_guide(_self, guide, target)
 
     if int(guide):
         mobile = '(%s) and guide' % (mobile)
@@ -1062,7 +1075,7 @@ SEE ALSO
         print(' xfit: %d atoms aligned' % (len(X)))
 
 
-def intra_xfit(selection, load_b=0, cycles=20, guide=1, seed=0, quiet=1,
+def intra_xfit(selection, load_b=0, cycles=20, guide=GUIDE_AUTO, seed=0, quiet=1,
         bfit=0, distribution='student', _self=cmd):
     '''
 DESCRIPTION
@@ -1094,6 +1107,8 @@ SEE ALSO
     from .querying import get_ensemble_coords
 
     cycles, quiet = int(cycles), int(quiet)
+
+    guide = _resolve_guide(_self, guide, selection)
 
     if int(guide):
         selection = '(%s) and guide' % (selection)
