@@ -127,3 +127,16 @@ def test_save_lightdock_restraints(tmp_path):
 # def get_pdb_seqres(selection='all', quiet=1):
 # def save(filename, selection='(all)', state=-1, format='',
 # def paper_png(filename, width=100, height=0, dpi=300, ray=1):
+
+
+@pytest.mark.exe
+@pytest.mark.openbabel
+def test_get_smistr(tmp_path):
+    cmd.reinitialize()
+    cmd.fragment("benzene")
+    cmd.fragment("gly")
+    smistr = psico.exporting.get_smistr()
+    assert smistr.splitlines() == ["c1ccccc1\tbenzene", "NCC=O\tgly"]
+    filename = tmp_path / "foo.smi"
+    cmd.save(filename, "benzene")
+    assert filename.read_text() == "c1ccccc1\tbenzene\n"

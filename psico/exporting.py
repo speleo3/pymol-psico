@@ -571,6 +571,28 @@ DESCRIPTION
     return "\n".join(buffer)
 
 
+def get_smistr(selection="all", state=-1, quiet=1, *, _self=cmd):
+    """
+DESCRIPTION
+
+    Get a SMILES string (.smi file content) with an openbabel backend. Writes
+    one line per object (and per state if state=0), with the object name as
+    the title.
+    """
+    import subprocess
+    sdfstr = _self.get_str("sdf", selection, state)
+    p = subprocess.run(
+        ["obabel", "-isdf", "-osmi"],
+        input=sdfstr,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    if not int(quiet):
+        print(p.stderr.strip())
+    return p.stdout
+
+
 @cmd.extendaa(None, cmd.auto_arg[1]['save'])
 def save_lightdock_restraints(
     filename: Union[Path, str],
@@ -616,6 +638,7 @@ try:
     for _ext in ['trj', 'crd']:
         _savefunctions.setdefault(_ext, save_traj)
     _savefunctions.setdefault("gro", get_grostr)
+    _savefunctions.setdefault("smi", get_smistr)
 except ImportError:
     pass
 
